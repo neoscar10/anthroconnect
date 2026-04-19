@@ -9,6 +9,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/explore', \App\Livewire\Public\ExplorePage::class)->name('explore.index');
+Route::get('/explore/{slug}', [\App\Http\Controllers\PublicExploreController::class, 'show'])->name('explore.show');
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
 
 // Authenticated User Routes (Onboarding Enforced)

@@ -64,7 +64,7 @@
                             </p>
                         </div>
                     </div>
-                    <a href="#" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
+                    <a href="{{ route('explore.show', $featuredArticle->slug) }}" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
                         Read Story
                     </a>
                 </div>
@@ -85,7 +85,7 @@
             @if($articles->count() > 0)
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                 @foreach($articles as $article)
-                <div class="group cursor-pointer">
+                <a href="{{ route('explore.show', $article->slug) }}" class="group block">
                     <div class="aspect-[4/3] rounded-xl overflow-hidden mb-6 bg-stone-100">
                         @if($article->featured_image)
                             <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
@@ -112,7 +112,7 @@
                         <span class="text-primary font-bold uppercase tracking-widest text-[10px]">{{ $article->topic->name }}</span>
                         @endif
                     </div>
-                </div>
+                </a>
                 @endforeach
             </div>
             

@@ -22,11 +22,23 @@ class PublicExploreController extends Controller
         $topics = $this->exploreService->getPublicTopics();
         $featuredArticle = $this->exploreService->getFeaturedArticle($topicId);
         
-        $excludeId = $featuredArticle ? $featuredArticle->id : null;
-        $articles = $this->exploreService->getPublishedArticles($filters, $excludeId);
+        $articles = $this->exploreService->getPublishedArticles($filters);
         
         $articles->appends($request->all());
 
         return view('pages.explore', compact('topics', 'featuredArticle', 'articles', 'topicId'));
+    }
+
+    public function show(string $slug)
+    {
+        $article = $this->exploreService->getArticleBySlug($slug);
+
+        if (!$article) {
+            abort(404);
+        }
+
+        $relatedArticles = $this->exploreService->getRelatedArticles($article, 2);
+
+        return view('pages.explore-detail', compact('article', 'relatedArticles'));
     }
 }
