@@ -31,15 +31,16 @@ class OnboardingController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
+            'title' => 'nullable|string|max:255',
             'type' => 'required|string|in:card_multi,card_single,radio,multi_select',
         ]);
 
+        $title = $request->title ?: 'New Onboarding Step';
         $maxOrder = OnboardingStep::max('sort_order') ?? 0;
 
         $step = OnboardingStep::create([
-            'title' => $request->title,
-            'slug' => \Illuminate\Support\Str::slug($request->title ?: 'new-step-' . now()->timestamp),
+            'title' => $title,
+            'slug' => \Illuminate\Support\Str::slug($title . '-' . now()->timestamp),
             'type' => $request->type,
             'description' => '',
             'sort_order' => $maxOrder + 1,

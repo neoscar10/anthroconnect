@@ -15,7 +15,7 @@
         <form action="{{ route('admin.onboarding.store') }}" method="POST" class="flex items-center gap-3">
             @csrf
             <input type="hidden" name="type" value="card_multi">
-            <input type="hidden" name="title" value="">
+            <input type="hidden" name="title" value="New Onboarding Step">
             <button type="submit" class="bg-gradient-to-br from-primary to-primary-container text-on-primary px-6 py-3 rounded-lg font-bold uppercase tracking-widest text-xs flex items-center gap-2 shadow-lg shadow-primary/10 hover:opacity-90 transition-opacity">
                 <span class="material-symbols-outlined text-sm">add_circle</span>
                 New Step
