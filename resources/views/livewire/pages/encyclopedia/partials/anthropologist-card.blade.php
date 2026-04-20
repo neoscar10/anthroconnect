@@ -41,8 +41,8 @@
     </div>
     
     <div class="px-8 pb-8">
-        <button class="w-full py-4 bg-stone-50 dark:bg-stone-950 hover:bg-primary hover:text-white transition-all rounded-2xl text-[10px] uppercase tracking-widest font-extrabold text-primary shadow-sm hover:shadow-lg hover:shadow-primary/30 transform active:scale-95">
+        <a href="{{ route('encyclopedia.anthropologists.show', $person->slug) }}" class="block w-full py-4 bg-stone-50 dark:bg-stone-950 hover:bg-primary hover:text-white transition-all rounded-2xl text-[10px] uppercase tracking-widest font-extrabold text-primary shadow-sm hover:shadow-lg hover:shadow-primary/30 transform active:scale-95 text-center">
             View Research Profile
-        </button>
+        </a>
     </div>
 </div>

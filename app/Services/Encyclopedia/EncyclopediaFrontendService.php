@@ -140,4 +140,79 @@ class EncyclopediaFrontendService
             ->filter()
             ->values();
     }
+    /**
+     * Get a single anthropologist by slug with relationships.
+     */
+    public function getAnthropologistBySlug(string $slug): ?Anthropologist
+    {
+        return Anthropologist::with(['topics', 'coreConcepts'])
+            ->where('status', 'active')
+            ->where('slug', $slug)
+            ->first();
+    }
+
+    /**
+     * Get related thinkers based on shared topics or concepts.
+     */
+    public function getRelatedThinkers(Anthropologist $person, int $limit = 4)
+    {
+        $topicIds = $person->topics->pluck('id');
+        $conceptIds = $person->coreConcepts->pluck('id');
+
+        $related = Anthropologist::where('status', 'active')
+            ->where('id', '!=', $person->id)
+            ->where(function($query) use ($topicIds, $conceptIds) {
+                if ($topicIds->isNotEmpty()) {
+                    $query->whereHas('topics', function($q) use ($topicIds) {
+                        $q->whereIn('topics.id', $topicIds);
+                    });
+                }
+                if ($conceptIds->isNotEmpty()) {
+                    $query->orWhereHas('coreConcepts', function($q) use ($conceptIds) {
+                        $q->whereIn('encyclopedia_core_concepts.id', $conceptIds);
+                    });
+                }
+            })
+            ->limit($limit)
+            ->get();
+
+        // Fallback to featured anthropologists if we don't have enough related ones
+        if ($related->count() < $limit) {
+            $takenIds = $related->pluck('id')->push($person->id);
+            
+            $backfill = Anthropologist::where('status', 'active')
+                ->whereNotIn('id', $takenIds)
+                ->orderBy('is_featured', 'desc')
+                ->limit($limit - $related->count())
+                ->get();
+
+            $related = $related->concat($backfill);
+        }
+
+        return $related;
+    }
+
+    /**
+     * Infer a matching major theory based on topics or specialization keywords.
+     */
+    public function getRecommendedTheory(Anthropologist $person): ?MajorTheory
+    {
+        $keywords = $person->topics->pluck('name')->toArray();
+        if ($person->discipline_or_specialization) {
+            $keywords[] = $person->discipline_or_specialization;
+        }
+
+        if (empty($keywords)) return null;
+
+        $query = MajorTheory::where('status', 'active');
+        
+        $query->where(function($q) use ($keywords) {
+            foreach ($keywords as $keyword) {
+                $q->orWhere('title', 'like', "%{$keyword}%")
+                  ->orWhere('short_description', 'like', "%{$keyword}%");
+            }
+        });
+
+        return $query->first();
+    }
 }

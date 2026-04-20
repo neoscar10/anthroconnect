@@ -11,6 +11,7 @@ Route::get('/', function () {
 Route::get('/explore', \App\Livewire\Public\ExplorePage::class)->name('explore.index');
 Route::get('/explore/{slug}', [\App\Http\Controllers\PublicExploreController::class, 'show'])->name('explore.show');
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
+Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showAnthropologist'])->name('encyclopedia.anthropologists.show');
 
 // Authenticated User Routes (Onboarding Enforced)
 Route::middleware(['auth', 'onboarding'])->group(function () {
