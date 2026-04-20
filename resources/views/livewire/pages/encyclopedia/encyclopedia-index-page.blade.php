@@ -10,7 +10,7 @@
     </section>
 
     <!-- Search & Filter Section -->
-    <section class="space-y-8 sticky top-[4rem] z-30 bg-stone-50/80 dark:bg-stone-950/80 backdrop-blur-md py-4 -mx-4 px-4">
+    <section class="space-y-6 py-4 px-4">
         <div class="relative max-w-5xl mx-auto group">
             <span class="absolute inset-y-0 left-5 flex items-center text-stone-400 group-focus-within:text-primary transition-colors">
                 <span class="material-symbols-outlined text-3xl">search</span>
@@ -28,7 +28,7 @@
             @endif
         </div>
 
-        <div class="flex flex-wrap gap-4 justify-center items-center">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-4 justify-center items-center max-w-5xl mx-auto">
             <!-- Category Filter -->
             <div class="flex items-center gap-3 bg-white dark:bg-stone-900 px-5 py-3 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm group">
                 <span class="text-[10px] font-extrabold text-primary uppercase tracking-widest">Category</span>
@@ -63,7 +63,7 @@
             </div>
 
             @if($isFiltered)
-                <button wire:click="resetFilters" class="text-[10px] font-bold text-error uppercase tracking-widest hover:underline flex items-center gap-1">
+                <button wire:click="resetFilters" class="text-[10px] font-bold text-error uppercase tracking-widest hover:underline flex items-center gap-1 mt-2 sm:mt-0">
                     <span class="material-symbols-outlined text-sm">restart_alt</span>
                     Reset Filters
                 </button>
@@ -72,7 +72,8 @@
     </section>
 
     <!-- Search Results / Landing Sections -->
-    @if($isSearching)
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        @if($isSearching)
         <div class="space-y-16">
             @if($anthropologists->count() > 0)
                 <section>
@@ -283,5 +284,6 @@
                 </div>
             </section>
         </div>
-    @endif
+        @endif
+    </div>
 </div>
