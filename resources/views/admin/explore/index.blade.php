@@ -137,12 +137,18 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                <form action="{{ route('admin.explore.toggle-featured', $article) }}" method="POST">
-                                    @csrf @method('PATCH')
-                                    <button type="submit" class="p-1 rounded-lg transition-colors {{ $article->is_featured ? 'text-primary' : 'text-stone-300 hover:text-stone-400' }}">
-                                        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ $article->is_featured ? 1 : 0 }};">star</span>
+                                <div class="flex items-center gap-3">
+                                    <form action="{{ route('admin.explore.toggle-featured', $article) }}" method="POST">
+                                        @csrf @method('PATCH')
+                                        <button type="submit" class="p-1 rounded-lg transition-colors {{ $article->is_featured ? 'text-primary' : 'text-stone-300 hover:text-stone-400' }}" title="Toggle Featured">
+                                            <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ $article->is_featured ? 1 : 0 }};">star</span>
+                                        </button>
+                                    </form>
+                                    <div class="h-4 w-px bg-outline-variant/10"></div>
+                                    <button type="button" @click="toggleMembersOnly({{ $article->id }})" class="p-1 rounded-lg transition-colors {{ $article->is_members_only ? 'text-primary' : 'text-stone-300 hover:text-stone-400' }}" title="Toggle Members Only">
+                                        <span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' {{ $article->is_members_only ? 1 : 0 }}; transition: all 0.3s ease;">{{ $article->is_members_only ? 'shield_person' : 'no_accounts' }}</span>
                                     </button>
-                                </form>
+                                </div>
                             </td>
                             <td class="px-6 py-4 text-[11px] text-on-surface-variant font-mono italic">
                                 {{ $article->updated_at->format('M d, Y') }}
@@ -337,8 +343,19 @@
                                     @error('status') <span class="text-[10px] text-error font-medium px-1">{{ $message }}</span> @enderror
                                 </div>
 
-                                <div class="pt-2">
+                                <div class="pt-2 flex flex-col gap-4">
                                     <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input name="is_members_only" type="checkbox" value="1" x-model="form.is_members_only" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Members Only Access</span>
+                                            <span class="text-[8px] text-stone-400 uppercase tracking-tight italic">Restrict to active scholars</span>
+                                        </div>
+                                    </label>
+
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit pt-2 border-t border-outline-variant/5">
                                         <div class="relative inline-flex items-center">
                                             <input name="is_featured" type="checkbox" value="1" x-model="form.is_featured" class="sr-only peer">
                                             <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
@@ -377,6 +394,7 @@
                     markdown_content: '',
                     status: 'published',
                     is_featured: false,
+                    is_members_only: false,
                     existing_image_url: null
                 },
 
@@ -425,6 +443,7 @@
                             this.form.markdown_content = article.markdown_content || '';
                             this.form.status = article.status || 'draft';
                             this.form.is_featured = article.is_featured ? true : false;
+                            this.form.is_members_only = article.is_members_only ? true : false;
                             this.form.existing_image_url = article.featured_image ? '/storage/' + article.featured_image : null;
                         }
                     } else {
@@ -435,6 +454,7 @@
                         this.form.markdown_content = '';
                         this.form.status = 'published';
                         this.form.is_featured = false;
+                        this.form.is_members_only = false;
                         this.form.existing_image_url = null;
                     }
                     this.modalOpen = true;
@@ -444,6 +464,25 @@
                 closeModal() {
                     this.modalOpen = false;
                     document.body.style.overflow = 'auto';
+                },
+
+                toggleMembersOnly(id) {
+                    fetch(`/admin/explore/${id}/toggle-members-only`, {
+                        method: 'PATCH',
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            const article = this.articles.find(a => a.id === id);
+                            if (article) article.is_members_only = data.is_members_only;
+                            location.reload(); // Refresh to update labels
+                        }
+                    });
                 }
             }));
         });

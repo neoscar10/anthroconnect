@@ -37,6 +37,12 @@ class PublicExploreController extends Controller
             abort(404);
         }
 
+        // Protection: Redirect if unauthorized
+        if (!$article->canAccess(auth()->user())) {
+            return redirect()->route('explore.index')
+                ->with('error', 'This narrative is reserved for the AnthroConnect Scholar community. Please upgrade your membership to unlock full access.');
+        }
+
         $relatedArticles = $this->exploreService->getRelatedArticles($article, 2);
 
         return view('pages.explore-detail', compact('article', 'relatedArticles'));

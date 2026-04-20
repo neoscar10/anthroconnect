@@ -19,7 +19,7 @@
     <div class="flex justify-between items-end mb-12">
         <div>
             <h1 class="font-headline text-4xl text-on-surface mb-2 italic">Explore Humanity Management</h1>
-            <p class="font-body text-on-surface-variant text-lg">Curate editorial narratives and research highlights for the public Explore page.</p>
+            <p class="font-body text-on-surface-variant text-lg">Curate editorial narratives and research highlights for the public Explore page</p>
         </div>
         <button @click="openModal()" class="bg-primary text-on-primary px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] flex items-center gap-2 shadow-lg shadow-primary/20 hover:opacity-90 transition-opacity">
             <span class="material-symbols-outlined text-sm">add</span>
@@ -60,6 +60,11 @@
                     <option value="draft">Drafts</option>
                     <option value="archived">Archived</option>
                 </select>
+                <select wire:model.live="access_filter" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="">All Access</option>
+                    <option value="members">Members Only</option>
+                    <option value="public">Publicly Available</option>
+                </select>
             </div>
             
             <div class="flex items-center gap-6">
@@ -81,6 +86,7 @@
                     <tr>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Article Details</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Topic</th>
+                        <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Access</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Status</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Feat.</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Last Updated</th>
@@ -109,6 +115,21 @@
                             </td>
                             <td class="px-6 py-4">
                                 <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{{ $article->topic->name }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <button wire:click="toggleMembersOnly({{ $article->id }})" class="flex items-center gap-1.5 transition-opacity hover:opacity-80">
+                                    @if($article->is_members_only)
+                                        <span class="flex items-center gap-1.5 text-primary">
+                                            <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-widest">Members</span>
+                                        </span>
+                                    @else
+                                        <span class="flex items-center gap-1.5 text-stone-400">
+                                            <span class="material-symbols-outlined text-sm">public</span>
+                                            <span class="text-[10px] font-bold uppercase tracking-widest">Public</span>
+                                        </span>
+                                    @endif
+                                </button>
                             </td>
                             <td class="px-6 py-4">
                                 @php
@@ -215,7 +236,7 @@
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-y-auto no-scrollbar p-10">
+                <div class="flex-1 overflow-y-auto p-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
                         
                         <!-- Main Editorial Fields (8 Col) -->
@@ -260,6 +281,7 @@
                                 </div>
                                 @error('markdown_content') <span class="text-[10px] text-error font-medium px-4">{{ $message }}</span> @enderror
                             </div>
+
                         </div>
 
                         <!-- Media & Settings (4 Col) -->
@@ -290,9 +312,25 @@
                                 @error('featured_image') <span class="text-[10px] text-error font-medium px-1">{{ $message }}</span> @enderror
                             </div>
 
-                            <!-- Visibility & Status -->
+                            <!-- Visibility & Availability Settings -->
                             <div class="bg-surface-container-low/50 border border-outline-variant/10 rounded-[28px] p-8 space-y-8">
+                                <!-- Members Only Access -->
                                 <div class="space-y-4">
+                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Scholar Access</label>
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_members_only" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Members Only Access</span>
+                                            <span class="text-[8px] text-stone-400 uppercase tracking-tight">Restrict to active scholars</span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Publication Status -->
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
                                     <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Publication Status</label>
                                     <div class="grid grid-cols-1 gap-2">
                                         @foreach(['draft' => ['icon' => 'edit_note', 'label' => 'Internal Draft'], 'published' => ['icon' => 'verified', 'label' => 'Publicly Live'], 'archived' => ['icon' => 'inventory_2', 'label' => 'Archived']] as $val => $meta)
@@ -305,13 +343,29 @@
                                     </div>
                                 </div>
 
-                                <div class="pt-2">
+                                <!-- Scholar Access -->
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
+                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Scholar Access</label>
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_members_only" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Members Only Access</span>
+                                            <span class="text-[8px] text-stone-400 uppercase tracking-tight">Restrict to active scholars</span>
+                                        </div>
+                                    </label>
+                                </div>
+
+                                <!-- Featured Toggle -->
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
                                     <label class="flex items-center gap-3 cursor-pointer group w-fit">
                                         <div class="relative inline-flex items-center">
                                             <input wire:model="is_featured" type="checkbox" class="sr-only peer">
                                             <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                                         </div>
-                                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mark as Featured Narrative</span>
+                                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mark as Featured</span>
                                     </label>
                                 </div>
                             </div>

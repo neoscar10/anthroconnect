@@ -80,6 +80,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::put('/{exploreArticle}', [App\Http\Controllers\Admin\ExploreController::class, 'update'])->name('update');
             Route::delete('/{exploreArticle}', [App\Http\Controllers\Admin\ExploreController::class, 'destroy'])->name('destroy');
             Route::patch('/{exploreArticle}/toggle-featured', [App\Http\Controllers\Admin\ExploreController::class, 'toggleFeatured'])->name('toggle-featured');
+            Route::patch('/{exploreArticle}/toggle-members-only', [App\Http\Controllers\Admin\ExploreController::class, 'toggleMembersOnly'])->name('toggle-members-only');
         });
 
         // Global Topics Management

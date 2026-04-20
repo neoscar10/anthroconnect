@@ -24,15 +24,6 @@ class DashboardPage extends Component
     public ?UserMembership $userMembership = null;
     public bool $isMember = false;
 
-    // Checkout Modal State
-    public bool $showCheckoutModal = false;
-    public bool $paymentSuccess = false;
-    public string $cardName = '';
-    public string $cardNumber = '';
-    public string $cardExpiry = '';
-    public string $cardCvv = '';
-    public string $paymentReference = '';
-
     public function mount(): void
     {
         $this->loadMembershipData();
@@ -134,50 +125,12 @@ class DashboardPage extends Component
     }
 
     /**
-     * Open the checkout modal.
+     * Open the checkout modal via global event.
      */
     public function openCheckout(): void
     {
         if ($this->isMember) return;
-        
-        $this->reset('cardName', 'cardNumber', 'cardExpiry', 'cardCvv', 'paymentSuccess', 'paymentReference');
-        $this->showCheckoutModal = true;
-    }
-
-    /**
-     * Process simulated payment and activate membership.
-     */
-    public function processPurchase(): void
-    {
-        $this->validate([
-            'cardName' => 'required|string|max:100',
-            'cardNumber' => 'required|string|min:12',
-            'cardExpiry' => 'required|string|regex:/^\d{2}\/\d{2}$/',
-            'cardCvv' => 'required|string|min:3|max:4',
-        ]);
-
-        try {
-            if (!$this->globalSetting) {
-                throw new Exception("Membership configuration is missing.");
-            }
-
-            $purchaseService = app(MembershipPurchaseService::class);
-            $result = $purchaseService->purchase(Auth::user(), $this->globalSetting, [
-                'name' => $this->cardName,
-                'number' => $this->cardNumber,
-                'expiry' => $this->cardExpiry,
-                'cvv' => $this->cardCvv,
-            ]);
-
-            if ($result['success']) {
-                $this->paymentSuccess = true;
-                $this->paymentReference = $result['reference'];
-                $this->loadMembershipData();
-                $this->dispatch('membership-activated');
-            }
-        } catch (Exception $e) {
-            $this->addError('payment', $e->getMessage());
-        }
+        $this->dispatch('open-upgrade-modal');
     }
 
     public function getUserFirstNameProperty(): string

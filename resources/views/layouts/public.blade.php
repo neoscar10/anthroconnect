@@ -235,6 +235,7 @@ tailwind.config = {
     </div>
 </footer>
 
-@livewireScripts
+    <livewire:public.upgrade-modal />
+    @livewireScripts
 </body>
 </html>

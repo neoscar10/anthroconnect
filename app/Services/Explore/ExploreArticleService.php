@@ -108,6 +108,10 @@ class ExploreArticleService
             $query->where('status', $filters['status']);
         }
 
+        if (isset($filters['is_members_only']) && !is_null($filters['is_members_only'])) {
+            $query->where('is_members_only', $filters['is_members_only']);
+        }
+
         return $query;
     }
 }

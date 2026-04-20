@@ -1,4 +1,22 @@
 <div>
+    <!-- Session Messages -->
+    @if(session('error'))
+    <div class="max-w-7xl mx-auto px-6 pt-8">
+        <div class="bg-red-50 border border-red-200 text-red-800 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+            <span class="material-symbols-outlined text-red-500">lock</span>
+            <p class="text-sm font-medium">{{ session('error') }}</p>
+        </div>
+    </div>
+    @endif
+
+    @if(session('success'))
+    <div class="max-w-7xl mx-auto px-6 pt-8">
+        <div class="bg-green-50 border border-green-200 text-green-800 px-6 py-4 rounded-2xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-500">
+            <span class="material-symbols-outlined text-green-500">check_circle</span>
+            <p class="text-sm font-medium">{{ session('success') }}</p>
+        </div>
+    </div>
+    @endif
     <!-- Hero Section -->
     <section class="relative h-[70vh] min-h-[500px] w-full overflow-hidden">
         <div class="absolute inset-0 bg-cover bg-top transition-transform duration-700 hover:scale-105" 
@@ -39,34 +57,71 @@
         <!-- Featured Story -->
         <section class="max-w-7xl mx-auto px-6 py-16">
             @if($featuredArticle)
-            <div class="grid lg:grid-cols-2 gap-12 items-center bg-white dark:bg-primary/5 rounded-2xl overflow-hidden border border-stone-200 dark:border-primary/10 shadow-sm">
-                <div class="h-[400px] lg:h-[600px] bg-cover bg-center" 
-                     style="background-image: url('{{ $featuredArticle->featured_image ? Storage::url($featuredArticle->featured_image) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuB1KrzCmQu1SRay1g3xwXb34xOECNU7hsNulEoKpJxrQI33s6lcR1kxVQWaAqd2jWREeOYYJUKAQAYHlNJRTbkAABcQVSa9Q1WTvE-0M5SWd9xohvvS8_i0-mZ4FMzzSQwAvEA1L1y9wG4xD70lA7gKCrnCw1GprAFAKXceoz2eyK9Sj1sneWzVTyAxoOjH-9QnJtovBZQjNYfh505cm4BtDNZQQ1eqxonbhvV99UXuLrKo4vJLer0BJzVRkJZSnGPKy4ACpmz6Nak' }}')">
-                </div>
-                <div class="p-8 lg:p-12">
-                    <span class="text-primary font-bold uppercase tracking-widest text-xs mb-4 block">
-                        {{ $featuredArticle->topic ? $featuredArticle->topic->name : 'Feature Story' }}
-                    </span>
-                    <h2 class="font-serif text-4xl lg:text-5xl font-bold mb-6 leading-tight text-stone-900">
-                        {{ $featuredArticle->title }}
-                    </h2>
-                    <p class="text-stone-600 dark:text-stone-400 text-lg mb-8 leading-relaxed">
-                        {{ $featuredArticle->excerpt }}
-                    </p>
-                    <div class="flex items-center gap-4 mb-8">
-                        <div class="size-12 rounded-full bg-cover bg-center border border-stone-200" 
-                             style="background-image: url('{{ $featuredArticle->creator->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($featuredArticle->creator->name) }}')">
-                        </div>
-                        <div>
-                            <p class="font-bold text-stone-900">{{ $featuredArticle->creator->name }}</p>
-                            <p class="text-xs text-stone-500">
-                                {{ $featuredArticle->published_at ? $featuredArticle->published_at->format('M d, Y') : 'Recently' }} • {{ $featuredArticle->reading_time_minutes ?? 5 }} min read
-                            </p>
-                        </div>
+            @php 
+                $isRestricted = $featuredArticle && !$featuredArticle->canAccess(Auth::user()); 
+                $restrictedClick = Auth::check() 
+                    ? "\$dispatch('open-upgrade-modal')" 
+                    : "window.location.href='" . route('login') . "'";
+            @endphp
+
+            <div class="relative group {{ $isRestricted ? 'cursor-pointer' : '' }}" 
+                 @if($isRestricted) @click="{!! $restrictedClick !!}" @endif>
+                
+                <div class="grid lg:grid-cols-2 gap-12 items-center bg-white dark:bg-primary/5 rounded-2xl overflow-hidden border border-stone-200 dark:border-primary/10 shadow-sm relative">
+                    <div class="h-[400px] lg:h-[600px] bg-cover bg-center transition-all duration-700 {{ $isRestricted ? 'blur-xl grayscale opacity-50' : '' }}" 
+                         style="background-image: url('{{ $featuredArticle->featured_image ? Storage::url($featuredArticle->featured_image) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuB1KrzCmQu1SRay1g3xwXb34xOECNU7hsNulEoKpJxrQI33s6lcR1kxVQWaAqd2jWREeOYYJUKAQAYHlNJRTbkAABcQVSa9Q1WTvE-0M5SWd9xohvvS8_i0-mZ4FMzzSQwAvEA1L1y9wG4xD70lA7gKCrnCw1GprAFAKXceoz2eyK9Sj1sneWzVTyAxoOjH-9QnJtovBZQjNYfh505cm4BtDNZQQ1eqxonbhvV99UXuLrKo4vJLer0BJzVRkJZSnGPKy4ACpmz6Nak' }}')">
                     </div>
-                    <a href="{{ route('explore.show', $featuredArticle->slug) }}" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
-                        Read Story
-                    </a>
+                    <div class="p-8 lg:p-12 transition-all duration-700 {{ $isRestricted ? 'blur-md opacity-30 select-none' : '' }}">
+                        <span class="text-primary font-bold uppercase tracking-widest text-xs mb-4 block">
+                            {{ $featuredArticle->topic ? $featuredArticle->topic->name : 'Feature Story' }}
+                        </span>
+                        <h2 class="font-serif text-4xl lg:text-5xl font-bold mb-6 leading-tight text-stone-900">
+                            {{ $featuredArticle->title }}
+                        </h2>
+                        <p class="text-stone-600 dark:text-stone-400 text-lg mb-8 leading-relaxed">
+                            {{ $featuredArticle->excerpt }}
+                        </p>
+                        
+                        <div class="flex items-center gap-4 mb-8">
+                            <div class="size-12 rounded-full bg-cover bg-center border border-stone-200" 
+                                 style="background-image: url('{{ $featuredArticle->creator->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($featuredArticle->creator->name) }}')">
+                            </div>
+                            <div>
+                                <p class="font-bold text-stone-900">{{ $featuredArticle->creator->name }}</p>
+                                <p class="text-xs text-stone-500 flex items-center gap-2">
+                                    {{ $featuredArticle->published_at ? $featuredArticle->published_at->format('M d, Y') : 'Recently' }} • {{ $featuredArticle->reading_time_minutes ?? 5 }} min read
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <a href="{{ route('explore.show', $featuredArticle->slug) }}" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
+                            Read Story
+                        </a>
+                    </div>
+
+                    @if($isRestricted)
+                        <div class="absolute inset-0 z-10 flex flex-col items-center justify-center p-8 text-center bg-black/5 backdrop-blur-[2px]">
+                            <div class="bg-white/95 p-10 rounded-[32px] shadow-2xl border border-stone-100 max-w-md flex flex-col items-center animate-in zoom-in-95 duration-500">
+                                <div class="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                                    <span class="material-symbols-outlined text-primary text-3xl" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                                </div>
+                                <h3 class="font-serif text-2xl font-bold text-stone-900 mb-3">Premium Scholarly Content</h3>
+                                <p class="text-stone-500 text-sm mb-8 leading-relaxed">
+                                    This featured narrative is exclusively available to our community of registered scholars. Join us to unlock the full archive.
+                                </p>
+                                <button @click.stop="{!! $restrictedClick !!}" class="w-full bg-primary text-white px-8 py-4 rounded-xl font-bold hover:scale-[1.02] transition-all shadow-xl shadow-primary/25 flex items-center justify-center gap-2">
+                                    @auth
+                                        <span class="material-symbols-outlined text-sm">upgrade</span>
+                                        Upgrade to Access
+                                    @else
+                                        <span class="material-symbols-outlined text-sm">login</span>
+                                        Login to Read
+                                    @endauth
+                                </button>
+                                <p class="mt-4 text-[10px] uppercase font-bold text-stone-400 tracking-widest">Members Only Privilege</p>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             @else
@@ -85,17 +140,38 @@
             @if($articles->count() > 0)
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
                 @foreach($articles as $article)
-                <a href="{{ route('explore.show', $article->slug) }}" class="group block">
-                    <div class="aspect-[4/3] rounded-xl overflow-hidden mb-6 bg-stone-100">
+                @php 
+                    $isRestricted = !$article->canAccess(Auth::user()); 
+                    $restrictedClick = Auth::check() 
+                        ? "\$dispatch('open-upgrade-modal')" 
+                        : "window.location.href='" . route('login') . "'";
+                @endphp
+                
+                <div @if($isRestricted) @click="{!! $restrictedClick !!}" @endif class="group block cursor-pointer">
+                    @if(!$isRestricted)
+                        <a href="{{ route('explore.show', $article->slug) }}" class="block">
+                    @endif
+                    
+                    <div class="relative aspect-[4/3] rounded-xl overflow-hidden mb-6 bg-stone-100 shadow-sm">
                         @if($article->featured_image)
-                            <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+                            <img class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 {{ $isRestricted ? 'blur-md grayscale-[0.5]' : '' }}" 
                                  src="{{ Storage::url($article->featured_image) }}" alt="{{ $article->title }}" />
                         @else
                             <div class="w-full h-full flex items-center justify-center opacity-10">
                                 <span class="material-symbols-outlined text-4xl">image</span>
                             </div>
                         @endif
+
+                        @if($isRestricted)
+                            <div class="absolute inset-0 bg-black/20 flex flex-col items-center justify-center p-6 text-center backdrop-blur-[2px]">
+                                <div class="w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-lg mb-3 group-hover:scale-110 transition-transform">
+                                    <span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">lock</span>
+                                </div>
+                                <span class="bg-primary text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-md">Members Only</span>
+                            </div>
+                        @endif
                     </div>
+
                     <h4 class="font-serif text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-stone-900">
                         {{ $article->title }}
                     </h4>
@@ -104,15 +180,24 @@
                     </p>
                     <div class="flex items-center justify-between text-xs text-stone-500 font-medium">
                         <div class="flex items-center gap-2">
-                            <span>{{ $article->published_at ? $article->published_at->format('F d, Y') : 'Unknown' }}</span> 
+                            <span>{{ $article->published_at ? $article->published_at->format('M d, Y') : 'Unknown' }}</span> 
                             <span>•</span> 
                             <span>{{ $article->reading_time_minutes ?? 5 }} min read</span>
                         </div>
-                        @if($article->topic)
-                        <span class="text-primary font-bold uppercase tracking-widest text-[10px]">{{ $article->topic->name }}</span>
+                        @if($article->is_members_only)
+                            <span class="text-primary font-bold uppercase tracking-widest text-[9px] flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+                                Members Only
+                            </span>
+                        @elseif($article->topic)
+                            <span class="text-stone-400 font-bold uppercase tracking-widest text-[10px]">{{ $article->topic->name }}</span>
                         @endif
                     </div>
-                </a>
+
+                    @if(!$isRestricted)
+                        </a>
+                    @endif
+                </div>
                 @endforeach
             </div>
             

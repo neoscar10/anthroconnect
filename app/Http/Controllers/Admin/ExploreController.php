@@ -54,6 +54,7 @@ class ExploreController extends Controller
         ]);
 
         $validated['is_featured'] = $request->has('is_featured');
+        $validated['is_members_only'] = $request->has('is_members_only');
 
         $this->articleService->createArticle($validated);
 
@@ -74,6 +75,7 @@ class ExploreController extends Controller
         ]);
 
         $validated['is_featured'] = $request->has('is_featured');
+        $validated['is_members_only'] = $request->has('is_members_only');
 
         $this->articleService->updateArticle($exploreArticle, $validated);
 
@@ -99,5 +101,15 @@ class ExploreController extends Controller
         
         return redirect()->back()
             ->with('success', 'Narrative featured status updated.');
+    }
+
+    public function toggleMembersOnly(ExploreArticle $exploreArticle)
+    {
+        $exploreArticle->update(['is_members_only' => !$exploreArticle->is_members_only]);
+        
+        return response()->json([
+            'success' => true,
+            'is_members_only' => $exploreArticle->is_members_only
+        ]);
     }
 }

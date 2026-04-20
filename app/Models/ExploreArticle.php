@@ -22,6 +22,7 @@ class ExploreArticle extends Model
         'featured_image',
         'status',
         'is_featured',
+        'is_members_only',
         'reading_time_minutes',
         'published_at',
         'created_by',
@@ -34,8 +35,21 @@ class ExploreArticle extends Model
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_members_only' => 'boolean',
         'published_at' => 'datetime',
     ];
+
+    /**
+     * Check if a user can access this article.
+     */
+    public function canAccess(?User $user): bool
+    {
+        if (!$this->is_members_only) {
+            return true;
+        }
+
+        return $user && $user->isMember();
+    }
 
     /**
      * Relationship with Topic (Global).
