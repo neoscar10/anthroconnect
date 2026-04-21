@@ -8,6 +8,7 @@ use App\Services\Lms\LmsPublicService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 #[Layout('layouts.public')]
 class ModuleShow extends Component
