@@ -41,6 +41,14 @@ class Topic extends Model
     }
 
     /**
+     * Relationship with LMS Modules.
+     */
+    public function lmsModules()
+    {
+        return $this->hasMany(\App\Models\Lms\LmsModule::class, 'topic_id');
+    }
+
+    /**
      * Relationship with Anthropologists (Encyclopedia).
      */
     public function anthropologists()

@@ -10,6 +10,12 @@ Route::get('/', function () {
 
 Route::get('/explore', \App\Livewire\Public\ExplorePage::class)->name('explore.index');
 Route::get('/explore/{slug}', [\App\Http\Controllers\PublicExploreController::class, 'show'])->name('explore.show');
+
+// Public LMS Routes
+Route::get('/modules', \App\Livewire\Public\Lms\ModulesIndex::class)->name('modules.index');
+Route::get('/modules/{slug}', \App\Livewire\Public\Lms\ModuleShow::class)->name('modules.show');
+Route::get('/modules/{moduleSlug}/lessons/{lessonSlug}', \App\Livewire\Public\Lms\LessonShow::class)->name('lessons.show');
+
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
 Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showAnthropologist'])->name('encyclopedia.anthropologists.show');
 
@@ -97,6 +103,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/core-concepts', \App\Livewire\Admin\Encyclopedia\CoreConcepts\Index::class)->name('core-concepts.index');
             Route::get('/major-theories', \App\Livewire\Admin\Encyclopedia\MajorTheories\Index::class)->name('major-theories.index');
             Route::get('/anthropologists', \App\Livewire\Admin\Encyclopedia\Anthropologists\Index::class)->name('anthropologists.index');
+        });
+
+        // Simplified LMS Module
+        Route::prefix('lms')->name('lms.')->group(function () {
+            Route::get('/modules', \App\Livewire\Admin\Lms\Modules\Index::class)->name('modules.index');
+            Route::get('/modules/create', \App\Livewire\Admin\Lms\Modules\Editor::class)->name('modules.create');
+            Route::get('/modules/{lmsModule}/edit', \App\Livewire\Admin\Lms\Modules\Editor::class)->name('modules.edit');
+            Route::get('/resources', \App\Livewire\Admin\Lms\Resources\Index::class)->name('resources.index');
         });
 
         Route::post('/logout', [App\Http\Controllers\Admin\AdminAuthController::class, 'logout'])->name('logout');

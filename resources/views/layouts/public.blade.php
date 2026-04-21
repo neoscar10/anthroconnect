@@ -85,9 +85,9 @@ tailwind.config = {
 
             <!-- Desktop Navigation -->
             <nav class="hidden lg:flex items-center gap-8">
-                <a class="text-sm font-medium hover:text-orange-700 transition-colors {{ request()->routeIs('home') ? 'text-orange-800' : '' }}" href="{{ route('home') }}">Home</a>
                 <a class="text-sm font-medium hover:text-orange-700 transition-colors" href="#">Learn Anthropology</a>
                 <a class="text-sm font-medium transition-colors {{ request()->routeIs('explore.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('explore.index') }}">Explore Humanity</a>
+                <a class="text-sm font-medium transition-colors {{ request()->routeIs('modules.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('modules.index') }}">Modules</a>
                 <a class="text-sm font-medium transition-colors {{ request()->routeIs('encyclopedia.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('encyclopedia.index') }}">Encyclopedia</a>
                 <a class="text-sm font-medium hover:text-orange-700 transition-colors" href="#">Research Library</a>
                 <a class="text-sm font-medium hover:text-orange-700 transition-colors" href="#">Community</a>
@@ -136,13 +136,13 @@ tailwind.config = {
         </div>
         
         <nav class="flex flex-col space-y-2">
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('home') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('home') }}">
-                <span class="material-symbols-outlined">home</span>
-                <span class="font-headline text-lg">Home</span>
-            </a>
             <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('explore.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('explore.index') }}">
                 <span class="material-symbols-outlined">explore</span>
                 <span class="font-headline text-lg">Explore Humanity</span>
+            </a>
+            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('modules.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('modules.index') }}">
+                <span class="material-symbols-outlined">school</span>
+                <span class="font-headline text-lg">Modules</span>
             </a>
             <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('encyclopedia.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('encyclopedia.index') }}">
                 <span class="material-symbols-outlined">account_tree</span>

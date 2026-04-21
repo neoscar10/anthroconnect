@@ -41,6 +41,15 @@ export default {
               sans: ["Public Sans", ...defaultTheme.fontFamily.sans],
               serif: ["Lora", ...defaultTheme.fontFamily.serif],
             },
+            keyframes: {
+                'progress-fast': {
+                    '0%': { transform: 'translateX(-100%)' },
+                    '100%': { transform: 'translateX(100%)' },
+                }
+            },
+            animation: {
+                'progress-fast': 'progress-fast 1s infinite linear',
+            },
         },
     },
 

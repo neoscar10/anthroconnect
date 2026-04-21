@@ -129,6 +129,20 @@
                     <span class="material-symbols-outlined mr-3 text-[20px]">category</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Topics</span>
                 </a>
+
+                <div x-data="{ lmsOpen: {{ request()->routeIs('admin.lms.*') ? 'true' : 'false' }} }" class="group w-full">
+                    <button @click="lmsOpen = !lmsOpen" class="{{ request()->routeIs('admin.lms.*') ? 'bg-primary/10 text-primary' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center justify-between w-full px-3 py-2.5 transition-all">
+                        <div class="flex items-center">
+                            <span class="material-symbols-outlined mr-3 text-[20px]">school</span>
+                            <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">LMS</span>
+                        </div>
+                        <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="lmsOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
+                    </button>
+                    <div x-show="lmsOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
+                        <a href="{{ route('admin.lms.modules.index') }}" class="{{ request()->routeIs('admin.lms.modules.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Modules</a>
+                        <a href="{{ route('admin.lms.resources.index') }}" class="{{ request()->routeIs('admin.lms.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
+                    </div>
+                </div>
                 
                 <div x-data="{ encyOpen: {{ request()->routeIs('admin.encyclopedia.*') ? 'true' : 'false' }} }" class="group w-full">
                     <button @click="encyOpen = !encyOpen" class="{{ request()->routeIs('admin.encyclopedia.*') ? 'bg-primary/10 text-primary' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center justify-between w-full px-3 py-2.5 transition-all">
@@ -218,6 +232,7 @@
             </div>
         </main>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     @livewireScripts
     @stack('scripts')
     <x-delete-confirm-modal />
