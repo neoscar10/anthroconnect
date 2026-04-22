@@ -4,11 +4,96 @@ namespace App\Services\Lms;
 
 use App\Models\Lms\LmsModule;
 use App\Models\Lms\LmsLesson;
+use App\Models\Lms\LmsLessonProgress;
 use App\Models\Topic;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class LmsPublicService
 {
+    /**
+     * Mark a narrative unit as completed for the scholar.
+     */
+    public function markLessonComplete(User $user, LmsLesson $lesson, int $watchedSeconds = 0)
+    {
+        return LmsLessonProgress::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'lms_lesson_id' => $lesson->id,
+            ],
+            [
+                'lms_module_id' => $lesson->lms_module_id,
+                'completed_at' => now(),
+                'watched_seconds' => $watchedSeconds,
+                'last_watched_at' => now(),
+            ]
+        );
+    }
+
+    /**
+     * Calculate scholarly advancement within a module.
+     */
+    public function getModuleProgress(User $user, LmsModule $module)
+    {
+        $totalLessons = $module->lessons()->published()->count();
+        
+        if ($totalLessons === 0) {
+            return [
+                'completed_count' => 0,
+                'total_count' => 0,
+                'percentage' => 0,
+            ];
+        }
+
+        $completedCount = LmsLessonProgress::where('user_id', $user->id)
+            ->where('lms_module_id', $module->id)
+            ->whereNotNull('completed_at')
+            ->count();
+
+        $percentage = min(100, round(($completedCount / $totalLessons) * 100));
+
+        return [
+            'completed_count' => $completedCount,
+            'total_count' => $totalLessons,
+            'percentage' => $percentage,
+        ];
+    }
+
+    /**
+     * Resolve the next incomplete unit for the scholar to continue their journey.
+     */
+    public function getContinueLesson(User $user, LmsModule $module)
+    {
+        $lessons = $module->lessons()->published()->orderBy('sort_order')->get();
+        
+        $completedLessonIds = LmsLessonProgress::where('user_id', $user->id)
+            ->where('lms_module_id', $module->id)
+            ->whereNotNull('completed_at')
+            ->pluck('lms_lesson_id')
+            ->toArray();
+
+        foreach ($lessons as $lesson) {
+            if (!in_array($lesson->id, $completedLessonIds)) {
+                return $lesson;
+            }
+        }
+
+        return $lessons->first(); // Return first if all completed or none found
+    }
+
+    /**
+     * Batch retrieve completion records for a module's lessons.
+     */
+    public function getModuleLessonCompletionStatuses(User $user, LmsModule $module)
+    {
+        return LmsLessonProgress::where('user_id', $user->id)
+            ->where('lms_module_id', $module->id)
+            ->whereNotNull('completed_at')
+            ->pluck('lms_lesson_id')
+            ->toArray();
+    }
+
     /**
      * Retrieve all active topics that have associated modules.
      */

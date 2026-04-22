@@ -67,4 +67,12 @@ class User extends Authenticatable
             'onboarding_completed_at' => 'datetime',
         ];
     }
+
+    /**
+     * Relationship to LMS lesson progress records.
+     */
+    public function lessonProgress()
+    {
+        return $this->hasMany(\App\Models\Lms\LmsLessonProgress::class);
+    }
 }

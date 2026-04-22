@@ -17,6 +17,12 @@ class ModuleShow extends Component
     public $lessons;
     public $resources;
     public $relatedModules;
+    public $completedLessonIds = [];
+    public $progress = [
+        'completed_count' => 0,
+        'total_count' => 0,
+        'percentage' => 0,
+    ];
 
     public function mount(string $slug, LmsPublicService $lmsService)
     {
@@ -29,6 +35,25 @@ class ModuleShow extends Component
         $this->lessons = $this->module->lessons;
         $this->resources = $this->module->resources;
         $this->relatedModules = $lmsService->getRelatedModules($this->module, 2);
+
+        // Load progress for authenticated scholars
+        if (Auth::check()) {
+            $this->progress = $lmsService->getModuleProgress(Auth::user(), $this->module);
+            $this->completedLessonIds = $lmsService->getModuleLessonCompletionStatuses(Auth::user(), $this->module);
+        }
+    }
+
+    /**
+     * Resolve the best entry point for the scholar to continue their journey.
+     */
+    public function continueJourney(LmsPublicService $lmsService)
+    {
+        if (!Auth::check()) {
+            return $this->openLesson($this->lessons->first()->slug);
+        }
+
+        $lesson = $lmsService->getContinueLesson(Auth::user(), $this->module);
+        return $this->openLesson($lesson->slug);
     }
 
     /**

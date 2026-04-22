@@ -17,6 +17,8 @@ class LessonShow extends Component
     public $prevLesson;
     public $nextLesson;
     public $lessons;
+    public $completedLessonIds = [];
+    public $isCompleted = false;
 
     public function mount(string $moduleSlug, string $lessonSlug, LmsPublicService $lmsService)
     {
@@ -40,6 +42,45 @@ class LessonShow extends Component
         
         // Load curriculum for the sidebar
         $this->lessons = $this->module->lessons;
+
+        // Load progress for authenticated scholars
+        if (Auth::check()) {
+            $this->completedLessonIds = $lmsService->getModuleLessonCompletionStatuses(Auth::user(), $this->module);
+            $this->isCompleted = in_array($this->lesson->id, $this->completedLessonIds);
+        }
+    }
+
+    /**
+     * Handle manual completion click.
+     */
+    public function markComplete(LmsPublicService $lmsService)
+    {
+        if (!Auth::check()) {
+            return redirect()->route('login');
+        }
+
+        if ($this->isCompleted) return;
+
+        $lmsService->markLessonComplete(Auth::user(), $this->lesson);
+        $this->isCompleted = true;
+        
+        // Refresh component state
+        $this->completedLessonIds = $lmsService->getModuleLessonCompletionStatuses(Auth::user(), $this->module);
+    }
+
+    /**
+     * Handle automatic completion from video player.
+     */
+    public function autoComplete(int $seconds, LmsPublicService $lmsService)
+    {
+        if (!Auth::check()) return;
+        if ($this->isCompleted) return;
+
+        $lmsService->markLessonComplete(Auth::user(), $this->lesson, $seconds);
+        $this->isCompleted = true;
+        
+        // Refresh component state
+        $this->completedLessonIds = $lmsService->getModuleLessonCompletionStatuses(Auth::user(), $this->module);
     }
 
     public function render()
