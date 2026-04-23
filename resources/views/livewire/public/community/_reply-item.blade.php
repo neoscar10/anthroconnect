@@ -1,4 +1,4 @@
-<div class="group relative bg-white rounded-3xl p-6 border border-stone-100 shadow-sm transition-all {{ $reply->depth > 0 ? 'ml-6 sm:ml-12 mt-4' : '' }}">
+<div class="group relative bg-white rounded-3xl p-4 sm:p-6 border border-stone-100 shadow-sm transition-all {{ $reply->depth > 0 ? 'ml-4 sm:ml-12 mt-4' : '' }}">
     <div class="flex items-start gap-4">
         <!-- Scholar Info -->
         <div class="shrink-0">
@@ -8,9 +8,9 @@
         </div>
 
         <div class="flex-1 min-w-0">
-            <div class="flex items-center justify-between mb-2">
-                <div class="flex items-center gap-3">
-                    <span class="text-[11px] font-bold text-stone-900 uppercase tracking-widest">{{ $reply->author?->name }}</span>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-2">
+                <div class="flex items-center flex-wrap gap-2 sm:gap-3">
+                    <span class="text-[11px] font-bold text-stone-900 uppercase tracking-widest truncate max-w-[120px] sm:max-w-none">{{ $reply->author?->name }}</span>
                     <span class="text-[10px] text-stone-400">•</span>
                     <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{{ $reply->published_at->diffForHumans() }}</span>
                     @if($reply->is_expert_reply)
@@ -18,15 +18,15 @@
                     @endif
                 </div>
                 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 self-end sm:self-auto">
                     <button wire:click="vote('reply', {{ $reply->id }}, 1)" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border {{ $reply->votes()->where('user_id', Auth::id())->where('vote', 1)->exists() ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-stone-50 text-stone-400 border-stone-100 hover:text-stone-900 transition-colors' }}">
                         <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">thumb_up</span>
                         <span class="text-[10px] font-bold">{{ $reply->upvotes_count }}</span>
                     </button>
                     @if($reply->depth < 2)
-                        <button wire:click="setReplyingTo({{ $reply->id }})" class="p-1 px-3 text-[10px] font-bold text-stone-400 hover:text-primary uppercase tracking-widest transition-colors flex items-center gap-1">
+                        <button wire:click="setReplyingTo({{ $reply->id }})" class="p-1 px-2 sm:px-3 text-[10px] font-bold text-stone-400 hover:text-primary uppercase tracking-widest transition-colors flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">reply</span>
-                            Reply
+                            <span class="hidden xs:inline">Reply</span>
                         </button>
                     @endif
                 </div>

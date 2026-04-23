@@ -5,13 +5,13 @@
     <!-- Modal Content -->
     <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-12 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-12 sm:scale-95" class="relative bg-white rounded-[40px] shadow-2xl w-full max-w-2xl overflow-hidden border border-stone-200">
         <!-- Header -->
-        <div class="relative bg-stone-900 p-8 sm:p-10 overflow-hidden">
+        <div class="relative bg-stone-900 p-6 sm:p-10 overflow-hidden">
             <div class="absolute inset-0 opacity-10 ethno-pattern"></div>
             <div class="relative z-10 flex justify-between items-start">
                 <div class="space-y-2">
-                    <span class="text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Scholarship Contribution</span>
-                    <h2 class="text-3xl font-headline font-bold text-white italic leading-tight">Start a New Inquiry</h2>
-                    <p class="text-stone-400 text-sm max-w-md">Contribute your research questions or expertise to the global anthropological community.</p>
+                    <span class="text-[9px] sm:text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Scholarship Contribution</span>
+                    <h2 class="text-2xl sm:text-3xl font-headline font-bold text-white italic leading-tight">Start a New Inquiry</h2>
+                    <p class="text-stone-400 text-xs sm:text-sm max-w-md">Contribute your research questions or expertise.</p>
                 </div>
                 <button @click="open = false" class="text-stone-500 hover:text-white transition-colors">
                     <span class="material-symbols-outlined text-2xl">close</span>
@@ -20,7 +20,7 @@
         </div>
 
         <!-- Form -->
-        <form wire:submit.prevent="save" class="p-8 sm:p-10 space-y-8 bg-white max-h-[70vh] overflow-y-auto scrollbar-hide">
+        <form wire:submit.prevent="save" class="p-6 sm:p-10 space-y-6 sm:space-y-8 bg-white max-h-[75vh] overflow-y-auto scrollbar-hide">
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <!-- Topic Selection -->
                 <div class="col-span-2 sm:col-span-1">

@@ -1,6 +1,6 @@
 <div class="pb-24">
     <!-- Hero Section -->
-    <div class="relative bg-stone-900 overflow-hidden pt-32 pb-20 px-4 sm:px-6 lg:px-8">
+    <div class="relative bg-stone-900 overflow-hidden pt-24 pb-12 md:pt-32 md:pb-20 px-4 sm:px-6 lg:px-8">
         <div class="absolute inset-0 opacity-20 ethno-pattern"></div>
         <div class="absolute -top-24 -right-24 w-96 h-96 bg-primary/20 rounded-full blur-3xl"></div>
         <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-orange-900/20 rounded-full blur-3xl"></div>
@@ -12,7 +12,7 @@
                         <span class="material-symbols-outlined text-sm">public</span>
                         Global Anthropology Forum
                     </div>
-                    <h1 class="text-4xl md:text-6xl font-headline font-bold text-white italic leading-tight">Connect with a Global Community of Scholars</h1>
+                    <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-headline font-bold text-white italic leading-tight">Connect with a Global Community of Scholars</h1>
                     <p class="text-lg text-stone-400 font-medium leading-relaxed">
                         Share your research, find collaborators, and engage in meaningful discussions across all domains of anthropology.
                     </p>
@@ -34,7 +34,7 @@
                     </div>
                 </div>
                 
-                <div class="lg:w-80 shrink-0">
+                <div class="w-full lg:w-80 shrink-0">
                     <div class="bg-white/5 backdrop-blur-lg border border-white/10 rounded-3xl p-6 space-y-6 shadow-2xl">
                         <div class="space-y-1">
                             <p class="text-[10px] font-bold text-primary uppercase tracking-widest leading-none">Scholarship Stats</p>
@@ -77,7 +77,7 @@
     </div>
 
     <!-- Main Content Grid -->
-    <div id="feed" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
+    <div id="feed" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8 md:mt-12 grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">
         <!-- Feed Column -->
         <div class="lg:col-span-2 space-y-8">
             <!-- Feed Tabs & Search -->
@@ -136,7 +136,7 @@
                     <div class="group relative bg-white rounded-3xl p-6 border border-stone-200 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all">
                         <div class="flex items-start gap-6">
                             <!-- Engagement Score -->
-                            <div class="hidden md:flex flex-col items-center justify-center w-16 px-2 py-4 bg-stone-50 rounded-2xl border border-stone-100 text-stone-400 group-hover:bg-primary/5 group-hover:border-primary/10 transition-colors">
+                            <div class="hidden sm:flex flex-col items-center justify-center w-16 px-2 py-4 bg-stone-50 rounded-2xl border border-stone-100 text-stone-400 group-hover:bg-primary/5 group-hover:border-primary/10 transition-colors">
                                 <span class="text-lg font-bold text-stone-800">{{ $disc->replies_count }}</span>
                                 <span class="text-[9px] font-bold uppercase tracking-tighter">Replies</span>
                                 <div class="w-full h-px bg-stone-200 my-2"></div>
@@ -162,22 +162,26 @@
                                     <p class="text-sm text-stone-500 line-clamp-2 italic">{{ $disc->excerpt }}</p>
                                 </a>
                                 
-                                <div class="flex flex-wrap items-center gap-4 mt-6">
-                                    <button wire:click="selectTopic({{ $disc->topic_id }})" class="flex items-center gap-1.5 px-3 py-1 bg-stone-50 text-stone-600 rounded-full text-[10px] font-bold uppercase tracking-widest border border-stone-200 hover:border-primary transition-colors">
+                                <div class="flex flex-wrap items-center gap-3 sm:gap-4 mt-6">
+                                    <button wire:click="selectTopic({{ $disc->topic_id }})" class="flex items-center gap-1.5 px-3 py-1 bg-stone-50 text-stone-600 rounded-full text-[9px] sm:text-[10px] font-bold uppercase tracking-widest border border-stone-200 hover:border-primary transition-colors">
                                         <span class="w-2 h-2 rounded-full" style="background-color: {{ $disc->topic?->color ?? '#F97316' }}"></span>
                                         {{ $disc->topic?->name ?? 'General' }}
                                     </button>
                                     
                                     <div class="flex gap-2">
-                                        @foreach($disc->tags->take(3) as $tag_obj)
-                                            <button wire:click="$set('tag', '{{ $tag_obj->slug }}')" class="text-[10px] font-bold text-primary opacity-60 hover:opacity-100 italic transition-opacity">#{{ $tag_obj->name }}</button>
+                                        @foreach($disc->tags->take(2) as $tag_obj)
+                                            <button wire:click="$set('tag', '{{ $tag_obj->slug }}')" class="text-[9px] sm:text-[10px] font-bold text-primary opacity-60 hover:opacity-100 italic transition-opacity">#{{ $tag_obj->name }}</button>
                                         @endforeach
                                     </div>
                                     
-                                    <div class="ml-auto flex items-center gap-4 text-stone-400">
+                                    <div class="ml-auto flex items-center gap-3 sm:gap-4 text-stone-400">
                                         <div class="flex items-center gap-1">
                                             <span class="material-symbols-outlined text-sm">visibility</span>
-                                            <span class="text-[10px] font-bold">{{ number_format($disc->views_count) }}</span>
+                                            <span class="text-[9px] sm:text-[10px] font-bold">{{ number_format($disc->views_count) }}</span>
+                                        </div>
+                                        <div class="flex sm:hidden items-center gap-1">
+                                            <span class="material-symbols-outlined text-sm">forum</span>
+                                            <span class="text-[9px] font-bold">{{ $disc->replies_count }}</span>
                                         </div>
                                         <button class="hover:text-primary transition-colors">
                                             <span class="material-symbols-outlined text-sm">bookmark</span>

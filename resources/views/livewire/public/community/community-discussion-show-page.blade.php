@@ -1,4 +1,4 @@
-<div class="pb-24 pt-10 px-4 sm:px-6 lg:px-8">
+<div class="pb-24 pt-6 md:pt-10 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
         <!-- Breadcrumbs -->
         <nav class="flex mb-8 overflow-x-auto whitespace-nowrap scrollbar-hide py-1" aria-label="Breadcrumb">
@@ -26,8 +26,8 @@
             <div class="lg:col-span-8 space-y-12">
                 
                 <!-- Main Discussion Card -->
-                <article class="bg-white rounded-[40px] border border-stone-200 shadow-sm overflow-hidden">
-                    <div class="p-8 sm:p-12 space-y-8">
+                <article class="bg-white rounded-[32px] md:rounded-[40px] border border-stone-200 shadow-sm overflow-hidden">
+                    <div class="p-6 sm:p-10 md:p-12 space-y-8">
                         <!-- Discussion Header -->
                         <div class="space-y-6">
                             <h1 class="text-3xl md:text-5xl font-headline font-bold text-stone-900 italic leading-tight">
@@ -45,13 +45,13 @@
                                     </div>
                                 </div>
                                 
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
                                     <button wire:click="vote('discussion', {{ $discussion->id }}, 1)" class="flex items-center gap-2 px-4 py-2 rounded-xl border {{ $discussion->votes()->where('user_id', Auth::id())->where('vote', 1)->exists() ? 'bg-primary text-white border-primary' : 'bg-stone-50 text-stone-600 border-stone-100 hover:border-primary' }} transition-all">
                                         <span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">thumb_up</span>
                                         <span class="text-xs font-bold">{{ number_format($discussion->likes_count) }}</span>
                                     </button>
-                                    <div class="h-8 w-px bg-stone-100 mx-2"></div>
-                                    <button wire:click="$toggle('showTopComposer')" class="flex items-center gap-2 px-5 py-2.5 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-all shadow-lg shadow-stone-200">
+                                    <div class="h-8 w-px bg-stone-100 mx-1 sm:mx-2"></div>
+                                    <button wire:click="$toggle('showTopComposer')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 px-5 py-2.5 bg-stone-900 text-white rounded-xl hover:bg-stone-800 transition-all shadow-lg shadow-stone-200">
                                         <span class="material-symbols-outlined text-sm font-bold">add</span>
                                         <span class="text-xs font-bold uppercase tracking-widest">Contribute</span>
                                     </button>
@@ -92,7 +92,7 @@
                         
                         <div class="space-y-6">
                             @foreach($expertInsights as $insight)
-                                <div class="relative bg-stone-900 rounded-[32px] p-8 border border-stone-800 shadow-xl overflow-hidden group">
+                                <div class="relative bg-stone-900 rounded-[28px] md:rounded-[32px] p-6 md:p-8 border border-stone-800 shadow-xl overflow-hidden group">
                                     <div class="absolute inset-0 opacity-5 ethno-pattern"></div>
                                     <div class="relative z-10 space-y-6">
                                         <div class="flex justify-between items-start">
@@ -134,14 +134,14 @@
 
                 <!-- Community Dialogue (Replies) -->
                 <section class="space-y-8 pt-6">
-                    <div class="flex items-center justify-between px-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 px-4">
                         <div class="flex items-center gap-4">
                             <span class="w-1.5 h-6 bg-stone-200 rounded-full"></span>
                             <h2 class="text-xs font-bold text-stone-900 uppercase tracking-widest">Community Dialogue ({{ $discussion->replies_count }})</h2>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 self-end sm:self-auto">
                              <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Sort:</span>
-                             <select class="bg-transparent border-none text-[10px] font-bold text-stone-900 uppercase tracking-widest focus:ring-0 cursor-pointer">
+                             <select class="bg-transparent border-none text-[10px] font-bold text-stone-900 uppercase tracking-widest focus:ring-0 cursor-pointer p-0">
                                  <option>Scholarly Relevancy</option>
                                  <option>Chronological</option>
                              </select>
