@@ -62,6 +62,14 @@ class Topic extends Model
     }
 
     /**
+     * Relationship with Community Discussions.
+     */
+    public function communityDiscussions()
+    {
+        return $this->hasMany(\App\Models\Community\CommunityDiscussion::class, 'topic_id');
+    }
+
+    /**
      * Scope for active topics.
      */
     public function scopeActive($query)

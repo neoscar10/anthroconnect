@@ -28,7 +28,7 @@ class TopicController extends Controller
             $serviceFilters['is_active'] = $filters['status'] === 'active';
         }
 
-        $topics = $this->topicService->listTopicsForAdmin($serviceFilters)->paginate(15);
+        $topics = $this->topicService->listTopicsForAdmin($serviceFilters)->paginate(5);
         $topics->appends($request->all());
 
         return view('admin.topics.index', compact('topics', 'filters'))

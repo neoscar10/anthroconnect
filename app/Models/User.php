@@ -75,4 +75,28 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Lms\LmsLessonProgress::class);
     }
+
+    /**
+     * Relationship to community discussions.
+     */
+    public function communityDiscussions()
+    {
+        return $this->hasMany(\App\Models\Community\CommunityDiscussion::class);
+    }
+
+    /**
+     * Relationship to community discussion replies.
+     */
+    public function communityReplies()
+    {
+        return $this->hasMany(\App\Models\Community\CommunityDiscussionReply::class);
+    }
+
+    /**
+     * Relationship to community votes.
+     */
+    public function communityVotes()
+    {
+        return $this->hasMany(\App\Models\Community\CommunityVote::class);
+    }
 }

@@ -163,9 +163,34 @@
             </table>
         </div>
 
-        @if($topics->hasPages())
-            <div class="px-8 py-6 border-t border-outline-variant/10 bg-surface-container-low/20">
-                {{ $topics->links() }}
+        @if($topics->total() > 0)
+            <div class="px-8 py-6 border-t border-outline-variant/10 bg-surface-container-low/20 flex items-center justify-between">
+                <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-on-surface-variant/60 italic">
+                    Showing {{ $topics->firstItem() }} to {{ $topics->lastItem() }} of {{ $topics->total() }} topics
+                </div>
+                <div class="flex items-center gap-4">
+                    @if($topics->onFirstPage())
+                        <div class="w-10 h-10 flex items-center justify-center text-stone-300 cursor-not-allowed border border-outline-variant/5 rounded-xl">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </div>
+                    @else
+                        <a href="{{ $topics->previousPageUrl() }}" class="w-10 h-10 flex items-center justify-center text-primary hover:bg-primary/5 border border-primary/10 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm">
+                            <span class="material-symbols-outlined text-sm">chevron_left</span>
+                        </a>
+                    @endif
+
+                    @if($topics->hasMorePages())
+                        <a href="{{ $topics->nextPageUrl() }}" class="h-10 px-6 flex items-center justify-center gap-3 text-primary hover:bg-primary/5 border border-primary/10 rounded-xl transition-all hover:scale-105 active:scale-95 shadow-sm group">
+                            <span class="text-[10px] font-bold uppercase tracking-widest">Next Page</span>
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">chevron_right</span>
+                        </a>
+                    @else
+                        <div class="h-10 px-6 flex items-center justify-center gap-3 text-stone-300 border border-outline-variant/5 rounded-xl cursor-not-allowed">
+                            <span class="text-[10px] font-bold uppercase tracking-widest">Next Page</span>
+                            <span class="material-symbols-outlined text-sm">chevron_right</span>
+                        </div>
+                    @endif
+                </div>
             </div>
         @endif
     </div>

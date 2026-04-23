@@ -63,6 +63,6 @@ class TopicService
             $query->where('is_active', $filters['is_active']);
         }
 
-        return $query->orderBy('name', 'asc');
+        return $query->latest();
     }
 }

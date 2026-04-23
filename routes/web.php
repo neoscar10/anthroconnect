@@ -19,6 +19,10 @@ Route::get('/modules/{moduleSlug}/lessons/{lessonSlug}', \App\Livewire\Public\Lm
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
 Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showAnthropologist'])->name('encyclopedia.anthropologists.show');
 
+// Public Community Routes
+Route::get('/community', \App\Livewire\Public\Community\CommunityIndexPage::class)->name('community.index');
+Route::get('/community/{slug}', \App\Livewire\Public\Community\CommunityDiscussionShowPage::class)->name('community.show');
+
 // Authenticated User Routes (Onboarding Enforced)
 Route::middleware(['auth', 'onboarding'])->group(function () {
     Route::get('/dashboard', function () {
@@ -111,6 +115,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/modules/create', \App\Livewire\Admin\Lms\Modules\Editor::class)->name('modules.create');
             Route::get('/modules/{lmsModule}/edit', \App\Livewire\Admin\Lms\Modules\Editor::class)->name('modules.edit');
             Route::get('/resources', \App\Livewire\Admin\Lms\Resources\Index::class)->name('resources.index');
+        });
+
+        // Community Management
+        Route::prefix('community')->name('community.')->group(function () {
+            Route::get('/topics', \App\Livewire\Admin\Community\TopicIndex::class)->name('topics.index');
+            Route::get('/discussions', \App\Livewire\Admin\Community\DiscussionIndex::class)->name('discussions.index');
+            Route::get('/discussions/{id}', \App\Livewire\Admin\Community\DiscussionDetail::class)->name('discussions.show');
         });
 
         Route::post('/logout', [App\Http\Controllers\Admin\AdminAuthController::class, 'logout'])->name('logout');

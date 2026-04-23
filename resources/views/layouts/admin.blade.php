@@ -163,10 +163,19 @@
                     <span class="material-symbols-outlined mr-3 text-[20px]">group</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">User Management</span>
                 </a>
-                <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
-                    <span class="material-symbols-outlined mr-3 text-[20px]">forum</span>
-                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Community Moderation</span>
-                </a>
+                        <div class="px-3 py-2">
+                            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-3" x-show="sidebarOpen">Community</p>
+                            <a class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.community.topics.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
+                               href="{{ route('admin.community.topics.index') }}">
+                                <span class="material-symbols-outlined mr-3 text-[20px]">category</span>
+                                <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Manage Topics</span>
+                            </a>
+                            <a class="flex items-center px-3 py-2.5 rounded-lg mt-1 transition-colors {{ request()->routeIs('admin.community.discussions.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
+                               href="{{ route('admin.community.discussions.index') }}">
+                                <span class="material-symbols-outlined mr-3 text-[20px]">forum</span>
+                                <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Discussions</span>
+                            </a>
+                        </div>
                 <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
                     <span class="material-symbols-outlined mr-3 text-[20px]">school</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">UPSC Hub</span>
