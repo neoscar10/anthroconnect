@@ -124,6 +124,36 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/discussions/{id}', \App\Livewire\Admin\Community\DiscussionDetail::class)->name('discussions.show');
         });
 
+        // Research Library Management
+        Route::prefix('library')->name('library.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Admin\Library\LibraryDashboardController::class, 'index'])->name('dashboard');
+            
+            Route::prefix('resources')->name('resources.')->group(function () {
+                Route::get('/', App\Livewire\Admin\Library\Resources\Index::class)->name('index');
+            });
+
+            Route::prefix('resource-types')->name('resource-types.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\Library\LibraryResourceTypeController::class, 'index'])->name('index');
+                Route::post('/', [App\Http\Controllers\Admin\Library\LibraryResourceTypeController::class, 'store'])->name('store');
+                Route::put('/{resourceType}', [App\Http\Controllers\Admin\Library\LibraryResourceTypeController::class, 'update'])->name('update');
+                Route::delete('/{resourceType}', [App\Http\Controllers\Admin\Library\LibraryResourceTypeController::class, 'destroy'])->name('destroy');
+            });
+
+            Route::prefix('regions')->name('regions.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'index'])->name('index');
+                Route::post('/', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'store'])->name('store');
+                Route::put('/{region}', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'update'])->name('update');
+                Route::delete('/{region}', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'destroy'])->name('destroy');
+            });
+
+            Route::prefix('tags')->name('tags.')->group(function () {
+                Route::get('/', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'index'])->name('index');
+                Route::post('/', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'store'])->name('store');
+                Route::put('/{tag}', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'update'])->name('update');
+                Route::delete('/{tag}', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'destroy'])->name('destroy');
+            });
+        });
+
         Route::post('/logout', [App\Http\Controllers\Admin\AdminAuthController::class, 'logout'])->name('logout');
     });
 
@@ -134,3 +164,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+Route::get('/library', [App\Http\Controllers\Frontend\LibraryController::class, 'index'])->name('library.index');
+Route::get('/library/{resource:slug}', [App\Http\Controllers\Frontend\LibraryController::class, 'show'])->name('library.show');
+Route::get('/library/{resource:slug}/download', [App\Http\Controllers\Frontend\LibraryController::class, 'download'])->name('library.download');

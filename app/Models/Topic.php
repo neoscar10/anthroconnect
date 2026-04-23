@@ -14,6 +14,7 @@ class Topic extends Model
 
     protected $fillable = [
         'name',
+        'slug',
         'short_description',
         'is_active',
         'is_members_only',
@@ -67,6 +68,14 @@ class Topic extends Model
     public function communityDiscussions()
     {
         return $this->hasMany(\App\Models\Community\CommunityDiscussion::class, 'topic_id');
+    }
+
+    /**
+     * Relationship with Library Resources.
+     */
+    public function libraryResources()
+    {
+        return $this->belongsToMany(LibraryResource::class, 'library_resource_topic');
     }
 
     /**

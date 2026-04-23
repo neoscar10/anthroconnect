@@ -39,9 +39,11 @@ class TopicController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:topics,slug',
             'short_description' => 'nullable|string|max:500',
         ]);
 
+        $validated['slug'] = $validated['slug'] ?: Str::slug($validated['name']);
         $validated['is_active'] = $request->has('is_active');
         $validated['is_members_only'] = $request->has('is_members_only');
 
@@ -55,9 +57,11 @@ class TopicController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:topics,slug,'.$topic->id,
             'short_description' => 'nullable|string|max:500',
         ]);
         
+        $validated['slug'] = $validated['slug'] ?: Str::slug($validated['name']);
         $validated['is_active'] = $request->has('is_active');
         $validated['is_members_only'] = $request->has('is_members_only');
 
