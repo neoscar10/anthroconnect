@@ -15,7 +15,7 @@
                 <li aria-current="page">
                     <div class="flex items-center">
                         <span class="material-symbols-outlined text-stone-300 text-sm mx-1">chevron_right</span>
-                        <span class="text-[10px] font-bold text-stone-900 uppercase tracking-widest truncate max-w-[200px]">{{ $discussion->title }}</span>
+                        <span class="text-[10px] font-bold text-stone-900 uppercase tracking-widest truncate max-w-[150px] sm:max-w-[200px]">{{ $discussion->title }}</span>
                     </div>
                 </li>
             </ol>
@@ -30,7 +30,7 @@
                     <div class="p-6 sm:p-10 md:p-12 space-y-8">
                         <!-- Discussion Header -->
                         <div class="space-y-6">
-                            <h1 class="text-3xl md:text-5xl font-headline font-bold text-stone-900 italic leading-tight">
+                            <h1 class="text-3xl md:text-5xl font-headline font-bold text-stone-900 italic leading-tight break-words">
                                 {{ $discussion->title }}
                             </h1>
                             
@@ -172,13 +172,13 @@
                             Inquiry Metrics
                         </h3>
                         <div class="grid grid-cols-2 gap-4">
-                            <div class="p-4 rounded-2xl bg-stone-50 border border-stone-100">
-                                <p class="text-xl font-bold text-stone-900">{{ number_format($discussion->likes_count) }}</p>
-                                <p class="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">Scholarly Likes</p>
+                            <div class="p-3 sm:p-4 rounded-2xl bg-stone-50 border border-stone-100 min-w-0">
+                                <p class="text-lg sm:text-xl font-bold text-stone-900 truncate">{{ number_format($discussion->likes_count) }}</p>
+                                <p class="text-[9px] font-bold text-stone-400 uppercase tracking-tighter truncate">Likes</p>
                             </div>
-                            <div class="p-4 rounded-2xl bg-stone-50 border border-stone-100">
-                                <p class="text-xl font-bold text-stone-900">{{ $discussion->replies_count }}</p>
-                                <p class="text-[9px] font-bold text-stone-400 uppercase tracking-tighter">Contributions</p>
+                            <div class="p-3 sm:p-4 rounded-2xl bg-stone-50 border border-stone-100 min-w-0">
+                                <p class="text-lg sm:text-xl font-bold text-stone-900 truncate">{{ $discussion->replies_count }}</p>
+                                <p class="text-[9px] font-bold text-stone-400 uppercase tracking-tighter truncate">Contribs</p>
                             </div>
                         </div>
                     </div>

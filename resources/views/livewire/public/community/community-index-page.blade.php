@@ -58,7 +58,7 @@
 
     <!-- Topics Navigation -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-10 relative z-20">
-        <div class="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide py-2">
+        <div class="flex items-center gap-4 overflow-x-auto pb-4 scrollbar-hide py-2 w-full">
             @foreach($browseTopics as $bt)
                 <button 
                     wire:click="selectTopic({{ $bt->id }})"
@@ -82,7 +82,7 @@
         <div class="lg:col-span-2 space-y-8">
             <!-- Feed Tabs & Search -->
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-stone-200">
-                <div class="flex items-center gap-2 p-1 bg-stone-100 rounded-xl w-fit">
+                <div class="flex items-center gap-2 p-1 bg-stone-100 rounded-xl overflow-x-auto scrollbar-hide max-w-full shrink-0">
                     @foreach(['all' => 'Discovery', 'hot' => 'Hot', 'newest' => 'Newest', 'unsolved' => 'Unsolved'] as $key => $label)
                         <button 
                             wire:click="selectTab('{{ $key }}')"
@@ -158,7 +158,7 @@
                                 </div>
                                 
                                 <a href="{{ route('community.show', $disc->slug) }}" class="block">
-                                    <h3 class="text-xl font-headline font-bold text-stone-900 group-hover:text-primary transition-colors leading-tight mb-2">{{ $disc->title }}</h3>
+                                    <h3 class="text-xl font-headline font-bold text-stone-900 group-hover:text-primary transition-colors leading-tight mb-2 break-words">{{ $disc->title }}</h3>
                                     <p class="text-sm text-stone-500 line-clamp-2 italic">{{ $disc->excerpt }}</p>
                                 </a>
                                 

@@ -57,6 +57,13 @@ tailwind.config = {
     background-image: radial-gradient(circle at 2px 2px, rgba(158, 80, 21, 0.05) 1px, transparent 0);
     background-size: 24px 24px;
 }
+.scrollbar-hide::-webkit-scrollbar {
+    display: none;
+}
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
 </style>
 </head>
 
