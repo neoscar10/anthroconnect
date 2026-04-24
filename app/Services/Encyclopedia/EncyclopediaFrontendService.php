@@ -152,6 +152,49 @@ class EncyclopediaFrontendService
     }
 
     /**
+     * Get a single theory by slug.
+     */
+    public function getTheoryBySlug(string $slug): ?MajorTheory
+    {
+        return MajorTheory::where('status', 'active')
+            ->where('slug', $slug)
+            ->first();
+    }
+
+    /**
+     * Get a single concept by slug.
+     */
+    public function getConceptBySlug(string $slug): ?CoreConcept
+    {
+        return CoreConcept::with('anthropologists')
+            ->where('status', 'active')
+            ->where('slug', $slug)
+            ->first();
+    }
+
+    /**
+     * Get related theories.
+     */
+    public function getRelatedTheories(MajorTheory $theory, int $limit = 4)
+    {
+        return MajorTheory::where('status', 'active')
+            ->where('id', '!=', $theory->id)
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Get related concepts.
+     */
+    public function getRelatedConcepts(CoreConcept $concept, int $limit = 4)
+    {
+        return CoreConcept::where('status', 'active')
+            ->where('id', '!=', $concept->id)
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
      * Get related thinkers based on shared topics or concepts.
      */
     public function getRelatedThinkers(Anthropologist $person, int $limit = 4)

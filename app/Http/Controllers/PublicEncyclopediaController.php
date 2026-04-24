@@ -48,4 +48,29 @@ class PublicEncyclopediaController extends Controller
 
         return view('pages.encyclopedia.anthropologist-detail', compact('anthropologist', 'relatedThinkers', 'keyTheory', 'contributions'));
     }
+    public function showTheory(string $slug)
+    {
+        $theory = $this->encyclopediaService->getTheoryBySlug($slug);
+
+        if (!$theory) {
+            abort(404);
+        }
+
+        $relatedTheories = $this->encyclopediaService->getRelatedTheories($theory, 3);
+        
+        return view('pages.encyclopedia.theory-detail', compact('theory', 'relatedTheories'));
+    }
+
+    public function showConcept(string $slug)
+    {
+        $concept = $this->encyclopediaService->getConceptBySlug($slug);
+
+        if (!$concept) {
+            abort(404);
+        }
+
+        $relatedConcepts = $this->encyclopediaService->getRelatedConcepts($concept, 3);
+        
+        return view('pages.encyclopedia.concept-detail', compact('concept', 'relatedConcepts'));
+    }
 }

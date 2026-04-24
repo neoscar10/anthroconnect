@@ -101,8 +101,8 @@
                             <span class="material-symbols-outlined text-primary text-4xl">psychology</span>
                             <h3 class="text-3xl font-headline font-bold text-stone-900 dark:text-stone-100 italic">Key Theory: {{ $keyTheory->title }}</h3>
                         </div>
-                        <a class="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline" href="#">
-                            Explore Concept <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                        <a class="text-primary font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:underline" href="{{ route('encyclopedia.theories.show', $keyTheory->slug) }}">
+                            Explore Theory <span class="material-symbols-outlined text-sm">arrow_forward</span>
                         </a>
                     </div>
                     <p class="text-stone-700 dark:text-stone-300 text-lg leading-relaxed mb-8 max-w-3xl">
@@ -128,9 +128,9 @@
                 <h3 class="font-bold text-[10px] uppercase tracking-[0.2em] mb-6 text-stone-400 dark:text-stone-500">Related Concepts</h3>
                 <div class="flex flex-wrap gap-2">
                     @foreach($anthropologist->coreConcepts as $concept)
-                        <span class="px-4 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-sm font-bold text-stone-700 dark:text-stone-300 shadow-sm cursor-default">
+                        <a href="{{ route('encyclopedia.concepts.show', $concept->slug) }}" class="px-4 py-3 bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-xl text-sm font-bold text-stone-700 dark:text-stone-300 shadow-sm hover:border-primary/50 transition-colors">
                             {{ $concept->title }}
-                        </span>
+                        </a>
                     @endforeach
                 </div>
             </section>

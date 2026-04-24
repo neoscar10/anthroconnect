@@ -18,6 +18,8 @@ Route::get('/modules/{moduleSlug}/lessons/{lessonSlug}', \App\Livewire\Public\Lm
 
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
 Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showAnthropologist'])->name('encyclopedia.anthropologists.show');
+Route::get('/encyclopedia/theories/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showTheory'])->name('encyclopedia.theories.show');
+Route::get('/encyclopedia/concepts/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showConcept'])->name('encyclopedia.concepts.show');
 
 // Public Community Routes
 Route::get('/community', \App\Livewire\Public\Community\CommunityIndexPage::class)->name('community.index');

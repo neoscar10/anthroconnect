@@ -34,11 +34,12 @@ class ExplorePage extends Component
         $filters = ['topic_id' => $this->topicId];
 
         $topics = $exploreService->getPublicTopics();
-        $featuredArticle = $exploreService->getFeaturedArticle($this->topicId);
+        $featuredArticles = $exploreService->getFeaturedArticles($this->topicId);
         
-        $articles = $exploreService->getPublishedArticles($filters);
+        $featuredIds = $featuredArticles->pluck('id')->toArray();
+        $articles = $exploreService->getPublishedArticles(array_merge($filters, ['exclude_ids' => $featuredIds]));
 
-        return view('livewire.public.explore-page', compact('topics', 'featuredArticle', 'articles'))
+        return view('livewire.public.explore-page', compact('topics', 'featuredArticles', 'articles'))
             ->title('Explore Humanity');
     }
 }

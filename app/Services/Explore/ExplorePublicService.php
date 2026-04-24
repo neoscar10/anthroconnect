@@ -15,12 +15,16 @@ class ExplorePublicService
         return Topic::active()->orderBy('name')->get();
     }
 
-    /**
-     * Retrieve the single featured article.
-     * If a topic ID is provided, scope the featured article to that topic.
-     * If no featured article exists, fall back to the most recent published article.
-     */
     public function getFeaturedArticle($topicId = null)
+    {
+        return $this->getFeaturedArticles($topicId)->first();
+    }
+
+    /**
+     * Retrieve all featured articles.
+     * If no featured articles exist, fall back to the most recent published article.
+     */
+    public function getFeaturedArticles($topicId = null)
     {
         $query = ExploreArticle::with(['topic', 'creator'])
             ->published()
@@ -30,13 +34,13 @@ class ExplorePublicService
             $query->where('topic_id', $topicId);
         }
 
-        // Clone to act as a fallback
-        $fallbackQuery = clone $query;
+        $featured = (clone $query)->featured()->get();
 
-        // Try getting the featured one first
-        $featured = $query->featured()->first();
+        if ($featured->isEmpty()) {
+            return $query->limit(1)->get();
+        }
 
-        return $featured ?? $fallbackQuery->first();
+        return $featured;
     }
 
     /**
@@ -52,7 +56,11 @@ class ExplorePublicService
             $query->where('topic_id', $filters['topic_id']);
         }
 
-        return $query->paginate(5);
+        if (!empty($filters['exclude_ids'])) {
+            $query->whereNotIn('id', $filters['exclude_ids']);
+        }
+
+        return $query->paginate(6);
     }
 
     /**
