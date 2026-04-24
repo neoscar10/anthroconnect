@@ -28,7 +28,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        if ($onboardingService->requiresOnboarding($request->user())) {
+        $user = Auth::user();
+
+        if (! $user->hasCompletedOtpVerification()) {
+            return redirect()->route('user.otp.verify');
+        }
+
+        if ($onboardingService->requiresOnboarding($user)) {
             return redirect()->intended(route('onboarding.index', absolute: false));
         }
 

@@ -26,6 +26,10 @@ class User extends Authenticatable
         'avatar',
         'user_type',
         'onboarding_completed_at',
+        'whatsapp_phone',
+        'whatsapp_phone_verified_at',
+        'otp_verified_at',
+        'last_login_at',
     ];
 
     /**
@@ -65,6 +69,9 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'onboarding_completed_at' => 'datetime',
+            'whatsapp_phone_verified_at' => 'datetime',
+            'otp_verified_at' => 'datetime',
+            'last_login_at' => 'datetime',
         ];
     }
 
@@ -98,5 +105,18 @@ class User extends Authenticatable
     public function communityVotes()
     {
         return $this->hasMany(\App\Models\Community\CommunityVote::class);
+    }
+
+    /**
+     * Authentication Helpers
+     */
+    public function hasVerifiedWhatsappPhone(): bool
+    {
+        return ! is_null($this->whatsapp_phone_verified_at);
+    }
+
+    public function hasCompletedOtpVerification(): bool
+    {
+        return ! is_null($this->otp_verified_at);
     }
 }

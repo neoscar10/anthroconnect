@@ -82,14 +82,14 @@
             <form class="space-y-6" method="POST" action="{{ route('login') }}">
                 @csrf
                 
-                <!-- Email Address -->
+                <!-- WhatsApp Phone -->
                 <div class="space-y-2">
-                    <label class="text-sm font-bold text-stone-700 uppercase tracking-wider ml-1">Email Address</label>
+                    <label class="text-sm font-bold text-stone-700 uppercase tracking-wider ml-1">WhatsApp Phone Number</label>
                     <div class="relative">
-                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-xl">mail</span>
-                        <input name="email" value="{{ old('email') }}" required autofocus class="w-full rounded-2xl border-stone-200 bg-stone-50/50 py-3.5 pl-12 pr-4 text-sm focus:border-orange-800 focus:ring-orange-800/20 transition-all outline-none" placeholder="scholar@university.edu" type="email"/>
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-stone-400 text-xl">phone_iphone</span>
+                        <input name="whatsapp_phone" value="{{ old('whatsapp_phone') }}" required autofocus class="w-full rounded-2xl border-stone-200 bg-stone-50/50 py-3.5 pl-12 pr-4 text-sm focus:border-orange-800 focus:ring-orange-800/20 transition-all outline-none" placeholder="e.g. +91 98765 43210" type="text"/>
                     </div>
-                    @error('email') <p class="text-xs text-red-600 mt-1 ml-1 font-medium">{{ $message }}</p> @enderror
+                    @error('whatsapp_phone') <p class="text-xs text-red-600 mt-1 ml-1 font-medium">{{ $message }}</p> @enderror
                 </div>
 
                 <!-- Password -->

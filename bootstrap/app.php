@@ -16,6 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'onboarding' => \App\Http\Middleware\EnsureOnboardingCompleted::class,
+            'otp.verified' => \App\Http\Middleware\EnsureUserOtpIsVerified::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

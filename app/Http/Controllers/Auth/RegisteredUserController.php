@@ -28,30 +28,30 @@ class RegisteredUserController extends Controller
      *
      * @throws ValidationException
      */
-    public function store(Request $request, \App\Services\Onboarding\UserOnboardingService $onboardingService): RedirectResponse
+    public function store(Request $request, \App\Services\Auth\WhatsappAuthService $authService, \App\Services\Onboarding\UserOnboardingService $onboardingService): RedirectResponse
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'whatsapp_phone' => ['required', 'string', 'max:20', 'unique:users,whatsapp_phone'],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'user_type' => ['nullable', 'string', 'in:student,upsc_aspirant,researcher,educator,enthusiast'],
         ]);
 
-        $user = User::create([
+        $user = $authService->register([
             'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'user_type' => $request->user_type,
+            'whatsapp_phone' => $request->whatsapp_phone,
+            'password' => $request->password,
         ]);
+
+        // Manually update user_type since service might not handle it all
+        if ($request->user_type) {
+            $user->update(['user_type' => $request->user_type]);
+        }
 
         event(new Registered($user));
 
         Auth::login($user);
 
-        if ($onboardingService->requiresOnboarding($user)) {
-            return redirect()->intended(route('onboarding.index', absolute: false));
-        }
-
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->route('user.otp.verify');
     }
 }

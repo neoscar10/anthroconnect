@@ -25,8 +25,13 @@ Route::get('/encyclopedia/concepts/{slug}', [App\Http\Controllers\PublicEncyclop
 Route::get('/community', \App\Livewire\Public\Community\CommunityIndexPage::class)->name('community.index');
 Route::get('/community/{slug}', \App\Livewire\Public\Community\CommunityDiscussionShowPage::class)->name('community.show');
 
-// Authenticated User Routes (Onboarding Enforced)
-Route::middleware(['auth', 'onboarding'])->group(function () {
+// OTP Verification Route
+Route::middleware(['auth'])->group(function () {
+    Route::get('/verify-otp', \App\Livewire\Auth\VerifyOtpPage::class)->name('user.otp.verify');
+});
+
+// Authenticated User Routes (OTP & Onboarding Enforced)
+Route::middleware(['auth', 'otp.verified', 'onboarding'])->group(function () {
     Route::get('/dashboard', function () {
         return view('pages.dashboard');
     })->name('dashboard');
@@ -37,7 +42,7 @@ Route::middleware(['auth', 'onboarding'])->group(function () {
 });
 
 // Onboarding Flow
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'otp.verified'])->group(function () {
     Route::get('/onboarding/{stepSlug?}', function ($stepSlug = null) {
         $onboardingService = app(\App\Services\Onboarding\UserOnboardingService::class);
         if (!$onboardingService->requiresOnboarding(auth()->user())) {
