@@ -242,6 +242,33 @@ tailwind.config = {
     <livewire:public.upgrade-modal />
     <livewire:public.community.start-discussion-modal />
     @livewireScripts
+    <script>
+        document.addEventListener('livewire:init', () => {
+            // Handle session expiration gracefully
+            Livewire.on('session.expired', () => {
+                window.location.reload();
+            });
+
+            // Cleanup any leftover modal backdrops on navigation
+            document.addEventListener('livewire:navigated', () => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            });
+        });
+        
+        // Fallback for non-livewire navigations / initial load
+        window.addEventListener('load', () => {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            if (backdrops.length > 0) {
+                backdrops.forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
     @stack('scripts')
 </body>
 </html>

@@ -7,6 +7,7 @@ use App\Models\Lms\LmsModule;
 use App\Services\Lms\LmsPublicService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 
 #[Layout('layouts.public')]
@@ -36,6 +37,17 @@ class LessonShow extends Component
                 ->with('error', 'This lecture is reserved for our scholarly community. Please upgrade your membership to gain full access.');
         }
 
+        $this->loadLessonData($lmsService);
+    }
+
+    #[On('membership-activated')]
+    public function refresh(LmsPublicService $lmsService)
+    {
+        $this->loadLessonData($lmsService);
+    }
+
+    protected function loadLessonData(LmsPublicService $lmsService)
+    {
         $nav = $lmsService->getLessonNavigation($this->lesson);
         $this->prevLesson = $nav['prev'];
         $this->nextLesson = $nav['next'];

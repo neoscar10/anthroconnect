@@ -9,7 +9,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/explore', \App\Livewire\Public\ExplorePage::class)->name('explore.index');
-Route::get('/explore/{slug}', [\App\Http\Controllers\PublicExploreController::class, 'show'])->name('explore.show');
+Route::get('/explore/{slug}', \App\Livewire\Public\ExploreDetail::class)->name('explore.show');
 
 // Public LMS Routes
 Route::get('/modules', \App\Livewire\Public\Lms\ModulesIndex::class)->name('modules.index');
@@ -165,6 +165,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
 require __DIR__.'/auth.php';
 
-Route::get('/library', [App\Http\Controllers\Frontend\LibraryController::class, 'index'])->name('library.index');
-Route::get('/library/{resource:slug}', [App\Http\Controllers\Frontend\LibraryController::class, 'show'])->name('library.show');
+Route::get('/library', \App\Livewire\Public\Library\LibraryIndex::class)->name('library.index');
+Route::get('/library/{slug}', \App\Livewire\Public\Library\LibraryShow::class)->name('library.show');
 Route::get('/library/{resource:slug}/download', [App\Http\Controllers\Frontend\LibraryController::class, 'download'])->name('library.download');

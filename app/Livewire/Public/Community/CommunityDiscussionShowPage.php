@@ -3,6 +3,7 @@
 namespace App\Livewire\Public\Community;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 use App\Services\Community\CommunityDiscussionService;
 use App\Models\Community\CommunityDiscussion;
 use App\Models\Community\CommunityDiscussionReply;
@@ -76,6 +77,12 @@ class CommunityDiscussionShowPage extends Component
         if ($votable) {
             $service->castVote($votable, Auth::user(), $value);
         }
+    }
+
+    #[On('membership-activated')]
+    public function refresh()
+    {
+        // Triggers re-render
     }
 
     public function render(CommunityDiscussionService $service)

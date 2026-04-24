@@ -4,6 +4,7 @@ namespace App\Livewire\Public\Community;
 
 use App\Services\Community\CommunityDiscussionService;
 use Livewire\Component;
+use Livewire\Attributes\On;
 use Livewire\WithPagination;
 
 class CommunityIndexPage extends Component
@@ -58,6 +59,12 @@ class CommunityIndexPage extends Component
     {
         $this->reset(['search', 'topicId', 'tag', 'tab']);
         $this->resetPage();
+    }
+
+    #[On('membership-activated')]
+    public function refresh()
+    {
+        // Triggers re-render
     }
 
     public function render(CommunityDiscussionService $service)

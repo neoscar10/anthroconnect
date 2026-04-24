@@ -7,6 +7,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\Url;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 
 #[Layout('layouts.public')]
 class ExplorePage extends Component
@@ -15,6 +16,12 @@ class ExplorePage extends Component
 
     #[Url(as: 'topic_id', except: '')]
     public $topicId = '';
+
+    #[On('membership-activated')]
+    public function refresh()
+    {
+        // Triggers re-render
+    }
 
     public function setTopic($id)
     {

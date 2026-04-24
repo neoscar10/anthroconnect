@@ -1,76 +1,90 @@
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        document.querySelectorAll('.js-library-locked').forEach(function (element) {
-            element.addEventListener('click', function (event) {
-                event.preventDefault();
-
-                const message = this.dataset.message || 'This resource is available to AnthroConnect members only.';
-                const reason = this.dataset.reason || 'membership_required';
-
-                const title = reason === 'guest_login_required'
-                    ? 'Login required'
-                    : 'Members-only resource';
-
-                const titleEl = document.getElementById('libraryRestrictionTitle');
-                const messageEl = document.getElementById('libraryRestrictionMessage');
-
-                if (titleEl) titleEl.textContent = title;
-                if (messageEl) messageEl.textContent = message;
-
-                const modalEl = document.getElementById('libraryRestrictionModal');
-
-                if (modalEl && window.bootstrap) {
-                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-                    modal.show();
-                    return;
-                }
-                
-                // Fallback if bootstrap is not available (though it should be for modal logic)
-                const modal = new bootstrap.Modal(modalEl);
-                modal.show();
-            });
-        });
-
-        document.querySelectorAll('[data-copy-target]').forEach(function (button) {
-            button.addEventListener('click', async function () {
-                const targetId = this.dataset.copyTarget;
-                const target = document.getElementById(targetId);
-
-                if (!target) return;
-
-                try {
-                    await navigator.clipboard.writeText(target.textContent.trim());
-                    const old = this.innerHTML;
-                    this.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Copied';
-                    setTimeout(() => this.innerHTML = old, 1600);
-                } catch (error) {
-                    alert('Citation: ' + target.textContent.trim());
-                }
-            });
-        });
-
+    function initLibraryScripts() {
         // Fullscreen Logic
         const fsBtn = document.getElementById('btn-preview-fullscreen');
         const previewEl = document.getElementById('document-preview');
 
         if (fsBtn && previewEl) {
-            fsBtn.addEventListener('click', function () {
+            // Remove existing listener if any (to avoid duplicates)
+            const newFsBtn = fsBtn.cloneNode(true);
+            fsBtn.parentNode.replaceChild(newFsBtn, fsBtn);
+
+            newFsBtn.addEventListener('click', function () {
                 if (!document.fullscreenElement) {
                     previewEl.requestFullscreen().catch(err => {
                         console.error(`Error attempting to enable full-screen mode: ${err.message}`);
                     });
-                    fsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen_exit</span>';
+                    newFsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen_exit</span>';
                 } else {
                     document.exitFullscreen();
-                    fsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen</span>';
-                }
-            });
-
-            document.addEventListener('fullscreenchange', () => {
-                if (!document.fullscreenElement) {
-                    fsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen</span>';
+                    newFsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen</span>';
                 }
             });
         }
+    }
+
+    // Event delegation for locked elements (persistent)
+    document.addEventListener('click', function (event) {
+        const lockedEl = event.target.closest('.js-library-locked');
+        if (lockedEl) {
+            event.preventDefault();
+
+            const message = lockedEl.dataset.message || 'This resource is available to AnthroConnect members only.';
+            const reason = lockedEl.dataset.reason || 'membership_required';
+
+            const title = reason === 'guest_login_required' ? 'Login required' : 'Members-only resource';
+
+            const titleEl = document.getElementById('libraryRestrictionTitle');
+            const messageEl = document.getElementById('libraryRestrictionMessage');
+
+            if (titleEl) titleEl.textContent = title;
+            if (messageEl) messageEl.textContent = message;
+
+            const modalEl = document.getElementById('libraryRestrictionModal');
+            if (modalEl && window.bootstrap) {
+                const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                modal.show();
+            }
+        }
+
+        // Event delegation for copy buttons
+        const copyBtn = event.target.closest('[data-copy-target]');
+        if (copyBtn) {
+            const targetId = copyBtn.dataset.copyTarget;
+            const target = document.getElementById(targetId);
+
+            if (target) {
+                navigator.clipboard.writeText(target.textContent.trim()).then(() => {
+                    const old = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<span class="material-symbols-outlined text-sm">check</span> Copied';
+                    setTimeout(() => copyBtn.innerHTML = old, 1600);
+                }).catch(() => {
+                    alert('Citation: ' + target.textContent.trim());
+                });
+            }
+        }
     });
+
+    document.addEventListener('fullscreenchange', () => {
+        const fsBtn = document.getElementById('btn-preview-fullscreen');
+        if (fsBtn) {
+            if (!document.fullscreenElement) {
+                fsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen</span>';
+            } else {
+                fsBtn.innerHTML = '<span class="material-symbols-outlined text-sm">fullscreen_exit</span>';
+            }
+        }
+    });
+
+    // Run on initial load and after Livewire navigations/updates
+    document.addEventListener('DOMContentLoaded', initLibraryScripts);
+    document.addEventListener('livewire:navigated', initLibraryScripts);
+    document.addEventListener('livewire:load', initLibraryScripts); // For Livewire 2 fallback if any
+    
+    // Listen for component refreshes
+    if (window.Livewire) {
+        Livewire.hook('morph.updated', ({ el, component }) => {
+            initLibraryScripts();
+        });
+    }
 </script>

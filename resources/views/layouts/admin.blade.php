@@ -159,6 +159,21 @@
                     </div>
                 </div>
 
+                <div x-data="{ libOpen: {{ request()->routeIs('admin.library.*') ? 'true' : 'false' }} }" class="group w-full">
+                    <button @click="libOpen = !libOpen" class="{{ request()->routeIs('admin.library.*') ? 'bg-primary/10 text-primary' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center justify-between w-full px-3 py-2.5 transition-all">
+                        <div class="flex items-center">
+                            <span class="material-symbols-outlined mr-3 text-[20px]">library_books</span>
+                            <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Research Library</span>
+                        </div>
+                        <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="libOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
+                    </button>
+                    <div x-show="libOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
+                        <a href="{{ route('admin.library.dashboard') }}" class="{{ request()->routeIs('admin.library.dashboard') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Overview</a>
+                        <a href="{{ route('admin.library.resources.index') }}" class="{{ request()->routeIs('admin.library.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
+                        <a href="{{ route('admin.library.resource-types.index') }}" class="{{ request()->routeIs('admin.library.resource-types.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resource Types</a>
+                    </div>
+                </div>
+
                 <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
                     <span class="material-symbols-outlined mr-3 text-[20px]">group</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">User Management</span>
@@ -180,21 +195,6 @@
                     <span class="material-symbols-outlined mr-3 text-[20px]">school</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">UPSC Hub</span>
                 </a>
-                <div x-data="{ libOpen: {{ request()->routeIs('admin.library.*') ? 'true' : 'false' }} }" class="group w-full">
-                    <button @click="libOpen = !libOpen" class="{{ request()->routeIs('admin.library.*') ? 'bg-primary/10 text-primary' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center justify-between w-full px-3 py-2.5 transition-all">
-                        <div class="flex items-center">
-                            <span class="material-symbols-outlined mr-3 text-[20px]">library_books</span>
-                            <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Research Library</span>
-                        </div>
-                        <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="libOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
-                    </button>
-                    <div x-show="libOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
-                        <a href="{{ route('admin.library.dashboard') }}" class="{{ request()->routeIs('admin.library.dashboard') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Overview</a>
-                        <a href="{{ route('admin.library.resources.index') }}" class="{{ request()->routeIs('admin.library.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
-                        <a href="{{ route('admin.library.resource-types.index') }}" class="{{ request()->routeIs('admin.library.resource-types.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resource Types</a>
-                    </div>
-                </div>
-
                 <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
                     <span class="material-symbols-outlined mr-3 text-[20px]">monitoring</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Analytics</span>
@@ -254,6 +254,33 @@
     </div>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     @livewireScripts
+    <script>
+        document.addEventListener('livewire:init', () => {
+            // Handle session expiration gracefully
+            Livewire.on('session.expired', () => {
+                window.location.reload();
+            });
+
+            // Cleanup any leftover modal backdrops on navigation
+            document.addEventListener('livewire:navigated', () => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+            });
+        });
+        
+        // Fallback for non-livewire navigations / initial load
+        window.addEventListener('load', () => {
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            if (backdrops.length > 0) {
+                backdrops.forEach(el => el.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+            }
+        });
+    </script>
     @stack('scripts')
     <x-delete-confirm-modal />
 </body>

@@ -7,6 +7,7 @@ use App\Models\Lms\LmsLesson;
 use App\Services\Lms\LmsPublicService;
 use Livewire\Component;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\On;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,6 +33,17 @@ class ModuleShow extends Component
             abort(404);
         }
 
+        $this->loadModuleData($lmsService);
+    }
+
+    #[On('membership-activated')]
+    public function refresh(LmsPublicService $lmsService)
+    {
+        $this->loadModuleData($lmsService);
+    }
+
+    protected function loadModuleData(LmsPublicService $lmsService)
+    {
         $this->lessons = $this->module->lessons;
         $this->resources = $this->module->resources;
         $this->relatedModules = $lmsService->getRelatedModules($this->module, 2);

@@ -4,6 +4,7 @@ namespace App\Livewire\Dashboard;
 
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use Livewire\Attributes\On;
 use App\Services\Membership\MembershipService;
 use App\Services\Membership\MembershipPurchaseService;
 use App\Models\MembershipSetting;
@@ -111,6 +112,12 @@ class DashboardPage extends Component
                 'border' => 'border-sand',
             ],
         ];
+    }
+
+    #[On('membership-activated')]
+    public function refresh(): void
+    {
+        $this->loadMembershipData();
     }
 
     protected function loadMembershipData(): void
