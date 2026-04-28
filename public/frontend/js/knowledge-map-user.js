@@ -39,12 +39,17 @@ document.addEventListener('alpine:init', () => {
             if (!layer) return;
 
             layer.innerHTML = '';
+            
+            console.log(`Rendering ${this.connections.length} connections...`);
 
             this.connections.forEach((connection) => {
                 const fromNode = this.nodes.find(n => Number(n.id) === Number(connection.from_node_id));
                 const toNode = this.nodes.find(n => Number(n.id) === Number(connection.to_node_id));
 
-                if (!fromNode || !toNode) return;
+                if (!fromNode || !toNode) {
+                    console.warn('Could not find nodes for connection:', connection);
+                    return;
+                }
 
                 const from = this.getAnchorPoint(fromNode, toNode);
                 const to = this.getAnchorPoint(toNode, fromNode);
@@ -52,6 +57,9 @@ document.addEventListener('alpine:init', () => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', this.createPath(from, to));
                 path.setAttribute('class', 'km-line');
+                
+                // Add a unique ID for debugging
+                path.setAttribute('data-conn-id', connection.id);
 
                 layer.appendChild(path);
             });

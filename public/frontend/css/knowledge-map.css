@@ -230,6 +230,7 @@
     height: 3000px;
     pointer-events: none;
     z-index: 1;
+    border: 1px solid rgba(255, 0, 0, 0.1); /* Temporary debug border */
 }
 
 .km-nodes-layer {

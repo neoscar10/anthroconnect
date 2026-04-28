@@ -1,10 +1,10 @@
 <div class="knowledge-map-page">
     @push('styles')
-        <link rel="stylesheet" href="{{ asset('frontend/css/knowledge-map.css') }}">
+        <link rel="stylesheet" href="{{ asset('frontend/css/knowledge-map.css') }}?v={{ filemtime(public_path('frontend/css/knowledge-map.css')) }}">
     @endpush
 
     @push('scripts')
-        <script src="{{ asset('frontend/js/knowledge-map-user.js') }}" defer></script>
+        <script src="{{ asset('frontend/js/knowledge-map-user.js') }}?v={{ filemtime(public_path('frontend/js/knowledge-map-user.js')) }}" defer></script>
     @endpush
 
     <section class="km-hero">
