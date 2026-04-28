@@ -554,12 +554,33 @@
                     </div>
 
                     <!-- Modal Footer -->
-                    <div class="p-8 border-t border-outline-variant/10 bg-surface-container-low/30 flex justify-end items-center gap-4 shrink-0">
-                        <button type="button" @click="isModalOpen = false; $wire.resetForm()" class="px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all">Cancel</button>
-                        <button type="submit" class="bg-primary text-on-primary px-12 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2">
-                            <span wire:loading wire:target="save" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
-                            {{ $editingId ? 'Update Question' : 'Save Question' }}
-                        </button>
+                    <div class="p-8 border-t border-outline-variant/10 bg-surface-container-low/30 flex justify-between items-center gap-4 shrink-0">
+                        <div class="flex items-center gap-3">
+                            <button type="button" @click="isModalOpen = false; $wire.resetForm()" class="px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all">Cancel</button>
+                            
+                            @if($activeTab !== 'question')
+                                <button type="button" wire:click="prevStep" class="px-6 py-3 border border-outline-variant/20 rounded-xl text-xs font-bold uppercase tracking-widest text-on-surface-variant hover:bg-surface-container-high transition-all flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                                    Previous
+                                </button>
+                            @endif
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            @if($activeTab !== 'publishing')
+                                <button type="button" wire:click="nextStep" class="bg-stone-800 text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-black transition-all flex items-center gap-2">
+                                    Next Step
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </button>
+                            @endif
+
+                            @if($editingId || $activeTab === 'publishing')
+                                <button type="submit" class="bg-primary text-on-primary px-12 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all flex items-center gap-2">
+                                    <span wire:loading wire:target="save" class="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+                                    {{ $editingId ? 'Update Question' : 'Save Question' }}
+                                </button>
+                            @endif
+                        </div>
                     </div>
                 </form>
             </div>

@@ -115,6 +115,26 @@ class ExamQuestionIndex extends Component
         $this->learning_resources = [];
     }
 
+    public function nextStep()
+    {
+        $steps = ['question', 'tags', 'guidelines', 'model', 'rubric', 'publishing'];
+        $currentIndex = array_search($this->activeTab, $steps);
+        
+        if ($currentIndex !== false && $currentIndex < count($steps) - 1) {
+            $this->activeTab = $steps[$currentIndex + 1];
+        }
+    }
+
+    public function prevStep()
+    {
+        $steps = ['question', 'tags', 'guidelines', 'model', 'rubric', 'publishing'];
+        $currentIndex = array_search($this->activeTab, $steps);
+        
+        if ($currentIndex !== false && $currentIndex > 0) {
+            $this->activeTab = $steps[$currentIndex - 1];
+        }
+    }
+
     public function addRubricRow()
     {
         $this->evaluation_rubric[] = ['criteria' => '', 'marks' => ''];
