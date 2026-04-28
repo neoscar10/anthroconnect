@@ -307,7 +307,29 @@ class CommunityDiscussionService
             ]);
 
             if (!empty($data['tags'])) {
-                $discussion->syncTags($data['tags']);
+                $tagIds = [];
+                if (is_string($data['tags'])) {
+                    $tagNames = array_filter(array_map('trim', explode(',', $data['tags'])));
+                    $group = \App\Models\TagGroup::where('slug', 'discussion-tags')->first();
+                    
+                    foreach ($tagNames as $name) {
+                        $tag = \App\Models\Tag::firstOrCreate(
+                            [
+                                'name' => $name,
+                                'tag_group_id' => $group?->id
+                            ],
+                            [
+                                'slug' => \Illuminate\Support\Str::slug($name),
+                                'is_active' => true
+                            ]
+                        );
+                        $tagIds[] = $tag->id;
+                    }
+                } else {
+                    $tagIds = (array) $data['tags'];
+                }
+                
+                $discussion->syncTags($tagIds);
             }
 
             return $discussion;

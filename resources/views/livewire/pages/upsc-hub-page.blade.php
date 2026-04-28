@@ -1,6 +1,4 @@
 @push('styles')
-    <!-- Bootstrap 5 CSS for this page specifically -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         :root {
             --ac-primary: #9a3412;
@@ -10,7 +8,6 @@
             --ac-stone-600: #57534e;
         }
         .upsc-hub-page {
-            font-family: 'Public Sans', sans-serif;
             background-color: var(--ac-stone-50);
         }
         .upsc-hub-page h1, .upsc-hub-page h2, .upsc-hub-page h3, .upsc-hub-page h4, .upsc-hub-page h5, .upsc-hub-page h6 {
@@ -21,12 +18,17 @@
             background-color: white;
             border: 1px solid var(--ac-stone-200);
             border-radius: 2rem;
-            padding: 4rem;
+            padding: 3rem;
             margin-bottom: 3rem;
             position: relative;
             overflow: hidden;
             background-image: radial-gradient(circle at 2px 2px, rgba(154, 52, 18, 0.05) 1px, transparent 0);
             background-size: 24px 24px;
+        }
+        @media (min-width: 1024px) {
+            .upsc-hero {
+                padding: 4rem;
+            }
         }
         .upsc-hero::before {
             content: '';
@@ -38,38 +40,14 @@
             background: radial-gradient(circle, rgba(154, 52, 18, 0.03) 0%, transparent 70%);
             z-index: 0;
         }
-        .btn-primary {
-            background-color: var(--ac-primary);
-            border-color: var(--ac-primary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 20px rgba(154, 52, 18, 0.15);
-        }
-        .btn-primary:hover {
-            background-color: var(--ac-primary-dark);
-            border-color: var(--ac-primary-dark);
-        }
-        .btn-outline-primary {
-            color: var(--ac-primary);
-            border-color: var(--ac-primary);
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            border-radius: 0.75rem;
-        }
-        .btn-outline-primary:hover {
-            background-color: var(--ac-primary);
-            border-color: var(--ac-primary);
-        }
         .upsc-card {
             border: 1px solid var(--ac-stone-200);
             border-radius: 1.25rem;
             transition: all 0.3s ease;
             background: white;
             height: 100%;
+            display: flex;
+            flex-direction: column;
         }
         .upsc-card:hover {
             transform: translateY(-5px);
@@ -101,17 +79,6 @@
             padding: 0.35rem 0.65rem;
             border-radius: 0.5rem;
         }
-        .search-container .form-control {
-            border-radius: 1rem;
-            padding: 1rem 1.5rem;
-            border: 1px solid var(--ac-stone-200);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.03);
-            font-size: 1.1rem;
-        }
-        .search-container .form-control:focus {
-            border-color: var(--ac-primary);
-            box-shadow: 0 10px 30px rgba(154, 52, 18, 0.1);
-        }
         .thinker-img {
             width: 100px;
             height: 100px;
@@ -135,70 +102,72 @@
     </style>
 @endpush
 
-<div class="upsc-hub-page py-5">
-    <div class="container">
+<div class="upsc-hub-page min-h-screen py-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- HERO -->
         <div class="upsc-hero shadow-sm">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <span class="badge-upsc mb-3 d-inline-block">Curated for Excellence</span>
-                    <h1 class="display-4 fw-bold mb-3">UPSC Anthropology Hub</h1>
-                    <p class="lead text-muted mb-4 font-body">
+            <div class="flex flex-col lg:flex-row items-center gap-8">
+                <div class="lg:w-2/3">
+                    <span class="badge-upsc mb-4 inline-block">Curated for Excellence</span>
+                    <h1 class="text-4xl lg:text-6xl font-bold mb-4 text-gray-900">UPSC Anthropology Hub</h1>
+                    <p class="text-lg lg:text-xl text-gray-600 mb-8 font-sans">
                         Your strategic command center for UPSC Anthropology preparation. We've aggregated every high-yield resource, thinker, and concept into a single, structured dashboard.
                     </p>
 
-                    <div class="d-flex gap-3">
-                        <a href="#modules" class="btn btn-primary px-5">Start Prep Journey</a>
-                        <a href="{{ route('knowledge-map.show') }}" class="btn btn-light border px-4 rounded-3 fw-bold">Explore Knowledge Map</a>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="#modules" class="bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl shadow-lg shadow-orange-900/20 transition-all">
+                            Start Prep Journey
+                        </a>
+                        <a href="{{ route('knowledge-map.show') }}" class="bg-white border border-gray-200 text-gray-700 font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl hover:bg-gray-50 transition-all">
+                            Explore Knowledge Map
+                        </a>
                     </div>
                 </div>
-                <div class="col-lg-4 d-none d-lg-block text-center">
-                    <span class="material-symbols-outlined display-1 text-primary opacity-25" style="font-size: 180px;">account_balance</span>
+                <div class="hidden lg:block lg:w-1/3 text-center">
+                    <span class="material-symbols-outlined text-[#9a3412] opacity-10" style="font-size: 200px;">account_balance</span>
                 </div>
             </div>
         </div>
 
         <!-- SEARCH -->
-        <div class="search-container mb-5">
-            <div class="row justify-content-center">
-                <div class="col-md-8">
-                    <div class="position-relative">
-                        <span class="material-symbols-outlined position-absolute top-50 translate-middle-y ms-3 text-muted">search</span>
-                        <input type="text"
-                               class="form-control ps-5"
-                               placeholder="Search thinkers, modules, or core concepts..."
-                               wire:model.live.debounce.400ms="search">
-                    </div>
+        <div class="mb-12">
+            <div class="max-w-3xl mx-auto">
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                    <input type="text"
+                           class="w-full bg-white border border-gray-200 rounded-2xl pl-12 pr-6 py-4 text-lg focus:ring-2 focus:ring-[#9a3412] focus:border-transparent transition-all shadow-sm outline-none"
+                           placeholder="Search thinkers, modules, or core concepts..."
+                           wire:model.live.debounce.400ms="search">
                 </div>
             </div>
         </div>
 
         @if($modules->count() > 0)
         <!-- MODULES -->
-        <div id="modules" class="mb-5">
-            <h3 class="section-title fw-bold">Core UPSC Modules</h3>
-            <div class="row g-4">
+        <div id="modules" class="mb-16">
+            <h3 class="section-title text-2xl font-bold text-gray-900">Core UPSC Modules</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($modules as $module)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="upsc-card p-4">
-                            <div class="mb-3">
-                                @if($module->cover_image)
-                                    <img src="{{ Storage::url($module->cover_image) }}" class="rounded-3 w-100 mb-3 object-cover" style="height: 180px;">
-                                @else
-                                    <div class="rounded-3 bg-light w-100 mb-3 d-flex align-items-center justify-center" style="height: 180px;">
-                                        <span class="material-symbols-outlined text-muted opacity-50">school</span>
-                                    </div>
-                                @endif
-                                <h5 class="fw-bold mb-2">{{ $module->title }}</h5>
-                                <p class="text-muted small mb-3">
-                                    {{ Str::limit($module->short_description ?: $module->overview, 100) }}
-                                </p>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-auto">
-                                <span class="badge-upsc">Module</span>
-                                <a href="{{ route('modules.show', $module->slug) }}" class="btn btn-sm btn-outline-primary">Enter Module</a>
-                            </div>
+                    <div class="upsc-card p-6">
+                        <div class="mb-6">
+                            @if($module->cover_image)
+                                <img src="{{ Storage::url($module->cover_image) }}" class="rounded-2xl w-full mb-4 object-cover h-48">
+                            @else
+                                <div class="rounded-2xl bg-gray-50 w-full mb-4 flex items-center justify-center h-48 border border-gray-100">
+                                    <span class="material-symbols-outlined text-gray-300 text-4xl">school</span>
+                                </div>
+                            @endif
+                            <h5 class="text-xl font-bold mb-2 text-gray-900">{{ $module->title }}</h5>
+                            <p class="text-gray-500 text-sm leading-relaxed">
+                                {{ Str::limit($module->short_description ?: $module->overview, 120) }}
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-50">
+                            <span class="badge-upsc">Module</span>
+                            <a href="{{ route('modules.show', $module->slug) }}" class="text-[#9a3412] font-bold text-xs uppercase tracking-widest hover:underline">
+                                Enter Module
+                            </a>
                         </div>
                     </div>
                 @endforeach
@@ -208,34 +177,34 @@
 
         @if($exploreItems->count() > 0)
         <!-- FEATURED COLLECTIONS (EXPLORE) -->
-        <div class="mb-5">
-            <h3 class="section-title fw-bold">High-Yield Collections</h3>
-            <div class="row g-4">
+        <div class="mb-16">
+            <h3 class="section-title text-2xl font-bold text-gray-900">High-Yield Collections</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($exploreItems as $article)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="upsc-card p-4">
-                            <div class="mb-3">
-                                @if($article->featured_image)
-                                    <img src="{{ Storage::url($article->featured_image) }}" class="rounded-3 w-100 mb-3 object-cover" style="height: 180px;">
-                                @else
-                                    <div class="rounded-3 bg-light w-100 mb-3 d-flex align-items-center justify-center" style="height: 180px;">
-                                        <span class="material-symbols-outlined text-muted opacity-50">explore</span>
-                                    </div>
+                    <div class="upsc-card p-6">
+                        <div class="mb-6">
+                            @if($article->featured_image)
+                                <img src="{{ Storage::url($article->featured_image) }}" class="rounded-2xl w-full mb-4 object-cover h-48">
+                            @else
+                                <div class="rounded-2xl bg-gray-50 w-full mb-4 flex items-center justify-center h-48 border border-gray-100">
+                                    <span class="material-symbols-outlined text-gray-300 text-4xl">explore</span>
+                                </div>
+                            @endif
+                            <h5 class="text-xl font-bold mb-2 text-gray-900 flex items-center gap-2">
+                                {{ $article->title }}
+                                @if($article->is_members_only)
+                                    <span class="material-symbols-outlined text-gray-400 text-sm" title="Members Only">lock</span>
                                 @endif
-                                <h5 class="fw-bold mb-2">
-                                    {{ $article->title }}
-                                    @if($article->is_members_only)
-                                        <span class="material-symbols-outlined small text-muted align-middle" title="Members Only" style="font-size: 1rem;">lock</span>
-                                    @endif
-                                </h5>
-                                <p class="text-muted small mb-3">
-                                    {{ Str::limit($article->excerpt, 100) }}
-                                </p>
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mt-auto">
-                                <span class="badge-upsc" style="background-color: rgba(96, 108, 56, 0.1); color: #606c38;">Collection</span>
-                                <a href="{{ route('explore.show', $article->slug) }}" class="btn btn-sm btn-link text-primary p-0 fw-bold text-decoration-none">Read Collection →</a>
-                            </div>
+                            </h5>
+                            <p class="text-gray-500 text-sm leading-relaxed">
+                                {{ Str::limit($article->excerpt, 120) }}
+                            </p>
+                        </div>
+                        <div class="flex justify-between items-center mt-auto pt-4 border-t border-gray-50">
+                            <span class="badge-upsc" style="background-color: rgba(96, 108, 56, 0.1); color: #606c38;">Collection</span>
+                            <a href="{{ route('explore.show', $article->slug) }}" class="text-[#9a3412] font-bold text-xs uppercase tracking-widest hover:underline">
+                                Read Collection →
+                            </a>
                         </div>
                     </div>
                 @endforeach
@@ -245,50 +214,48 @@
 
         @if($anthropologists->count() > 0)
         <!-- THINKERS -->
-        <div class="mb-5">
-            <h3 class="section-title fw-bold">Foundational Thinkers</h3>
-            <div class="row g-4">
+        <div class="mb-16">
+            <h3 class="section-title text-2xl font-bold text-gray-900">Foundational Thinkers</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                 @foreach($anthropologists as $item)
-                    <div class="col-md-6 col-lg-3">
-                        <div class="upsc-card p-4 text-center">
-                            @if($item->profile_image)
-                                <img src="{{ Storage::url($item->profile_image) }}" class="thinker-img">
-                            @else
-                                <div class="thinker-img bg-light d-flex align-items-center justify-content-center">
-                                    <span class="material-symbols-outlined text-muted">person</span>
-                                </div>
-                            @endif
-                            <h6 class="fw-bold mb-1">{{ $item->name }}</h6>
-                            <p class="text-muted small mb-3">Thinker / Theorist</p>
-                            <a href="{{ route('encyclopedia.anthropologists.show', $item->slug) }}" class="btn btn-sm btn-outline-primary px-4">Biography</a>
-                        </div>
+                    <div class="upsc-card p-8 text-center">
+                        @if($item->profile_image)
+                            <img src="{{ Storage::url($item->profile_image) }}" class="thinker-img">
+                        @else
+                            <div class="thinker-img bg-gray-50 d-flex flex items-center justify-center border border-gray-100 mx-auto mb-4">
+                                <span class="material-symbols-outlined text-gray-300 text-4xl">person</span>
+                            </div>
+                        @endif
+                        <h6 class="text-lg font-bold mb-1 text-gray-900">{{ $item->name }}</h6>
+                        <p class="text-gray-400 text-xs uppercase tracking-widest mb-6">Thinker / Theorist</p>
+                        <a href="{{ route('encyclopedia.anthropologists.show', $item->slug) }}" class="inline-block border border-[#9a3412] text-[#9a3412] hover:bg-[#9a3412] hover:text-white font-bold text-[10px] uppercase tracking-widest px-6 py-2.5 rounded-lg transition-all">
+                            Biography
+                        </a>
                     </div>
                 @endforeach
             </div>
         </div>
         @endif
 
-        <div class="row">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             @if($concepts->count() > 0)
             <!-- CONCEPTS -->
-            <div class="col-lg-6 mb-5">
-                <h3 class="section-title fw-bold">UPSC Core Concepts</h3>
-                <div class="row g-3">
+            <div>
+                <h3 class="section-title text-2xl font-bold text-gray-900">UPSC Core Concepts</h3>
+                <div class="space-y-4">
                     @foreach($concepts as $item)
-                        <div class="col-12">
-                            <a href="{{ route('encyclopedia.concepts.show', $item->slug) }}" class="text-decoration-none">
-                                <div class="upsc-card p-3 d-flex align-items-center gap-3">
-                                    <div class="resource-icon mb-0">
-                                        <span class="material-symbols-outlined">label_important</span>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-0 text-dark">{{ $item->title }}</h6>
-                                        <p class="small text-muted mb-0">{{ Str::limit($item->description, 60) }}</p>
-                                    </div>
-                                    <span class="material-symbols-outlined ms-auto text-muted opacity-50">chevron_right</span>
+                        <a href="{{ route('encyclopedia.concepts.show', $item->slug) }}" class="block group">
+                            <div class="upsc-card p-4 flex items-center gap-4 group-hover:border-[#9a3412] transition-colors">
+                                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-[#9a3412]">
+                                    <span class="material-symbols-outlined">label_important</span>
                                 </div>
-                            </a>
-                        </div>
+                                <div class="flex-1">
+                                    <h6 class="font-bold text-gray-900 mb-0">{{ $item->title }}</h6>
+                                    <p class="text-gray-400 text-xs">{{ Str::limit($item->description, 80) }}</p>
+                                </div>
+                                <span class="material-symbols-outlined text-gray-300 group-hover:text-[#9a3412] transition-colors">chevron_right</span>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
             </div>
@@ -296,24 +263,22 @@
 
             @if($theories->count() > 0)
             <!-- THEORIES -->
-            <div class="col-lg-6 mb-5">
-                <h3 class="section-title fw-bold">Major Theories</h3>
-                <div class="row g-3">
+            <div>
+                <h3 class="section-title text-2xl font-bold text-gray-900">Major Theories</h3>
+                <div class="space-y-4">
                     @foreach($theories as $item)
-                        <div class="col-12">
-                            <a href="{{ route('encyclopedia.theories.show', $item->slug) }}" class="text-decoration-none">
-                                <div class="upsc-card p-3 d-flex align-items-center gap-3">
-                                    <div class="resource-icon mb-0" style="color: #606c38;">
-                                        <span class="material-symbols-outlined">psychology</span>
-                                    </div>
-                                    <div>
-                                        <h6 class="fw-bold mb-0 text-dark">{{ $item->title }}</h6>
-                                        <p class="small text-muted mb-0">{{ Str::limit($item->description, 60) }}</p>
-                                    </div>
-                                    <span class="material-symbols-outlined ms-auto text-muted opacity-50">chevron_right</span>
+                        <a href="{{ route('encyclopedia.theories.show', $item->slug) }}" class="block group">
+                            <div class="upsc-card p-4 flex items-center gap-4 group-hover:border-[#9a3412] transition-colors">
+                                <div class="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center text-[#606c38]">
+                                    <span class="material-symbols-outlined">psychology</span>
                                 </div>
-                            </a>
-                        </div>
+                                <div class="flex-1">
+                                    <h6 class="font-bold text-gray-900 mb-0">{{ $item->title }}</h6>
+                                    <p class="text-gray-400 text-xs">{{ Str::limit($item->description, 80) }}</p>
+                                </div>
+                                <span class="material-symbols-outlined text-gray-300 group-hover:text-[#9a3412] transition-colors">chevron_right</span>
+                            </div>
+                        </a>
                     @endforeach
                 </div>
             </div>
@@ -322,35 +287,35 @@
 
         @if($resources->count() > 0)
         <!-- LIBRARY -->
-        <div class="mb-5">
-            <h3 class="section-title fw-bold">UPSC Library Resources</h3>
-            <div class="row g-4">
+        <div class="mb-16">
+            <h3 class="section-title text-2xl font-bold text-gray-900">UPSC Library Resources</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 @foreach($resources as $item)
-                    <div class="col-md-6 col-lg-4">
-                        <div class="upsc-card p-4">
-                            <div class="d-flex gap-3 mb-3">
-                                <div class="flex-shrink-0" style="width: 80px; height: 110px;">
-                                    @if($item->cover_image_path)
-                                        <img src="{{ Storage::url($item->cover_image_path) }}" class="w-100 h-100 rounded shadow-sm object-cover">
-                                    @else
-                                        <div class="w-100 h-100 bg-light rounded d-flex align-items-center justify-center">
-                                            <span class="material-symbols-outlined text-muted opacity-50">menu_book</span>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div>
-                                    <h6 class="fw-bold mb-1">
-                                        {{ $item->title }}
-                                        @if($item->access_type === 'member_only')
-                                            <span class="material-symbols-outlined small text-muted align-middle" title="Members Only" style="font-size: 0.9rem;">lock</span>
-                                        @endif
-                                    </h6>
-                                    <p class="text-muted x-small mb-1">{{ $item->author_display }}</p>
-                                    <p class="text-muted x-small italic">{{ Str::limit($item->abstract ?: $item->description, 60) }}</p>
-                                </div>
+                    <div class="upsc-card p-6">
+                        <div class="flex gap-4 mb-4">
+                            <div class="w-20 h-28 flex-shrink-0">
+                                @if($item->cover_image_path)
+                                    <img src="{{ Storage::url($item->cover_image_path) }}" class="w-full h-full rounded shadow-sm object-cover">
+                                @else
+                                    <div class="w-full h-full bg-gray-50 rounded flex items-center justify-center border border-gray-100">
+                                        <span class="material-symbols-outlined text-gray-200">menu_book</span>
+                                    </div>
+                                @endif
                             </div>
-                            <a href="{{ route('library.show', $item->slug) }}" class="btn btn-sm btn-outline-primary w-100">Access Resource</a>
+                            <div class="flex-1">
+                                <h6 class="font-bold text-gray-900 mb-1 leading-tight flex items-center gap-2">
+                                    {{ $item->title }}
+                                    @if($item->access_type === 'member_only')
+                                        <span class="material-symbols-outlined text-gray-400 text-xs" title="Members Only">lock</span>
+                                    @endif
+                                </h6>
+                                <p class="text-gray-400 text-[10px] uppercase tracking-wider mb-2">{{ $item->author_display }}</p>
+                                <p class="text-gray-500 text-xs italic line-clamp-2">{{ $item->abstract ?: $item->description }}</p>
+                            </div>
                         </div>
+                        <a href="{{ route('library.show', $item->slug) }}" class="mt-auto block text-center border border-[#9a3412] text-[#9a3412] hover:bg-[#9a3412] hover:text-white font-bold text-[10px] uppercase tracking-widest px-6 py-3 rounded-xl transition-all">
+                            Access Resource
+                        </a>
                     </div>
                 @endforeach
             </div>
@@ -358,12 +323,13 @@
         @endif
 
         @if($modules->count() == 0 && $exploreItems->count() == 0 && $anthropologists->count() == 0 && $concepts->count() == 0 && $theories->count() == 0 && $resources->count() == 0)
-            <div class="text-center py-5">
-                <span class="material-symbols-outlined display-1 text-muted opacity-25">search_off</span>
-                <h3 class="mt-4 text-muted">No UPSC content found matching your search.</h3>
-                <p class="text-muted">Try a different keyword or browse our general anthropology content.</p>
+            <div class="text-center py-20">
+                <span class="material-symbols-outlined text-8xl text-gray-200 mb-6">search_off</span>
+                <h3 class="text-2xl font-bold text-gray-400">No UPSC content found matching your search.</h3>
+                <p class="text-gray-500 mt-2">Try a different keyword or browse our general anthropology content.</p>
             </div>
         @endif
 
     </div>
 </div>
+
