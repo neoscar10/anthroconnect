@@ -289,11 +289,17 @@ document.addEventListener('alpine:init', () => {
             this.drawingFromNodeId = null;
 
             // 3. Persist connection through Livewire
-            const savedConnection = await this.$wire.createVisualConnection(sourceId, targetNodeId);
+            console.log('Attempting to save connection:', { sourceId, targetNodeId });
+            try {
+                const savedConnection = await this.$wire.createVisualConnection(sourceId, targetNodeId);
+                console.log('Connection saved successfully:', savedConnection);
 
-            // 4. Push saved connection into frontend state (ensure no dupes)
-            if (!this.connections.find(c => c.id === savedConnection.id)) {
-                this.connections.push(savedConnection);
+                // 4. Push saved connection into frontend state (ensure no dupes)
+                if (savedConnection && !this.connections.find(c => c.id === savedConnection.id)) {
+                    this.connections.push(savedConnection);
+                }
+            } catch (err) {
+                console.error('Failed to save connection:', err);
             }
 
             // 5. Re-render all permanent connections
@@ -454,7 +460,7 @@ document.addEventListener('alpine:init', () => {
         getDrawingConnectionPath() {
             if (!this.isDrawingConnection) return '';
             
-            const from = this.nodes.find(n => n.id == this.drawingFromNodeId);
+            const from = this.nodes.find(n => Number(n.id) === Number(this.drawingFromNodeId));
             if (!from) return '';
 
             // Start from center for active drawing preview

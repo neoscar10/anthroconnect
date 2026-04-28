@@ -356,10 +356,15 @@ class KnowledgeMapBuilder extends Component
 
     public function createVisualConnection($fromNodeId, $toNodeId)
     {
-        $fromNode = $this->map->nodes()->whereKey($fromNodeId)->firstOrFail();
-        $toNode = $this->map->nodes()->whereKey($toNodeId)->firstOrFail();
+        try {
+            $fromNode = $this->map->nodes()->whereKey($fromNodeId)->firstOrFail();
+            $toNode = $this->map->nodes()->whereKey($toNodeId)->firstOrFail();
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Connection failed: Nodes not found in current map context.', ['from' => $fromNodeId, 'to' => $toNodeId]);
+            return null;
+        }
 
-        if ((int) $fromNodeId === (int) $toNodeId) {
+        if ((int) $fromNode->id === (int) $toNode->id) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'connection' => 'A node cannot connect to itself.',
             ]);

@@ -137,9 +137,10 @@
             </div>
 
             <!-- The actual draggable canvas -->
-            <div class="km-canvas km-canvas-grid" 
+            <div class="km-canvas km-canvas-{{ $map->canvas_settings['background'] ?? 'grid' }}" 
                  wire:ignore
                  x-ref="canvas"
+                 :class="isConnectionMode ? 'cursor-crosshair' : (isPanning ? 'cursor-grabbing' : 'cursor-grab')"
                  :style="`transform: translate(${offsetX}px, ${offsetY}px) scale(${zoom})`"
                  @mousedown="startPan"
                  @click="handleCanvasClick"
