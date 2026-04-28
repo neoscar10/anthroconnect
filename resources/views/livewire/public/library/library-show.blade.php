@@ -3,7 +3,7 @@
         @include('frontend.library.partials.styles')
     @endpush
 
-    <div class="container mx-auto px-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
         <nav class="ac-breadcrumb">
             <a href="{{ route('library.index') }}">Library</a>
