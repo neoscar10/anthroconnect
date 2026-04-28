@@ -159,13 +159,6 @@ Route::prefix('admin')->name('admin.')->group(function () {
                 Route::delete('/{resourceType}', [App\Http\Controllers\Admin\Library\LibraryResourceTypeController::class, 'destroy'])->name('destroy');
             });
 
-            Route::prefix('regions')->name('regions.')->group(function () {
-                Route::get('/', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'index'])->name('index');
-                Route::post('/', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'store'])->name('store');
-                Route::put('/{region}', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'update'])->name('update');
-                Route::delete('/{region}', [App\Http\Controllers\Admin\Library\LibraryRegionController::class, 'destroy'])->name('destroy');
-            });
-
             Route::prefix('tags')->name('tags.')->group(function () {
                 Route::get('/', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'index'])->name('index');
                 Route::post('/', [App\Http\Controllers\Admin\Library\LibraryTagController::class, 'store'])->name('store');

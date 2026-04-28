@@ -25,7 +25,6 @@ class LibraryResource extends Model
         'publication_year',
         'publisher',
         'resource_type_id',
-        'region_id',
         'language',
         'isbn',
         'doi',
@@ -92,13 +91,6 @@ class LibraryResource extends Model
     public function resourceType()
     {
         return $this->belongsTo(LibraryResourceType::class, 'resource_type_id');
-    }
-
-
-
-    public function region()
-    {
-        return $this->belongsTo(LibraryRegion::class, 'region_id');
     }
 
     public function creator()

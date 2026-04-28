@@ -33,15 +33,6 @@
                         @endforeach
                     </select>
 
-                    <select wire:model.live="region">
-                        <option value="">Region</option>
-                        @foreach($regions as $regionItem)
-                            <option value="{{ $regionItem->slug }}">
-                                {{ $regionItem->name }}
-                            </option>
-                        @endforeach
-                    </select>
-
                     <select wire:model.live="year">
                         <option value="">Publication Year</option>
                         @foreach($publicationYears as $yearItem)
@@ -55,7 +46,7 @@
         </div>
     </section>
 
-    @if($search || $type || $region || $year || !empty($tagFilters))
+    @if($search || $type || $year || !empty($tagFilters))
         <section class="ac-library-section">
             <div class="container mx-auto px-4">
                 <div class="ac-section-head">

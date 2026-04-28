@@ -22,9 +22,6 @@ class LibraryIndex extends Component
     #[Url(as: 'type', except: '')]
     public $type = '';
 
-    #[Url(as: 'region', except: '')]
-    public $region = '';
-
     #[Url(as: 'year', except: '')]
     public $year = '';
 
@@ -36,7 +33,7 @@ class LibraryIndex extends Component
 
     public function updating($name)
     {
-        if (in_array($name, ['search', 'type', 'region', 'year', 'sort']) || str_starts_with($name, 'tagFilters')) {
+        if (in_array($name, ['search', 'type', 'year', 'sort']) || str_starts_with($name, 'tagFilters')) {
             $this->resetPage();
         }
     }
@@ -62,7 +59,6 @@ class LibraryIndex extends Component
         $filters = [
             'search' => $this->search,
             'type' => $this->type,
-            'region' => $this->region,
             'year' => $this->year,
             'tag_filters' => $this->tagFilters,
             'sort' => $this->sort,
@@ -77,7 +73,6 @@ class LibraryIndex extends Component
             'tagGroups' => $libraryService->getPublicTagGroups(),
             'topics' => $libraryService->getBrowseTopics(8),
             'resourceTypes' => $libraryService->getResourceTypes(),
-            'regions' => $libraryService->getRegions(),
             'publicationYears' => $libraryService->getPublicationYears(),
             'resources' => $libraryService->searchResources($filters, 12),
             'accessService' => $accessService,

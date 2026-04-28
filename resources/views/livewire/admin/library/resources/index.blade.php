@@ -295,22 +295,13 @@
                                     <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
                                     Taxonomy & Classification
                                 </h3>
-                                <div class="grid grid-cols-2 gap-3.5">
+                                <div class="grid grid-cols-1 gap-3.5">
                                     <div class="space-y-1">
                                         <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Resource Type</label>
                                         <select wire:model="resource_type_id" required class="w-full bg-white border border-outline-variant/20 rounded-xl p-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer appearance-none">
                                             <option value="">Select Type...</option>
                                             @foreach($types as $type)
                                                 <option value="{{ $type->id }}">{{ $type->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="space-y-1">
-                                        <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Geographic Region</label>
-                                        <select wire:model="region_id" class="w-full bg-white border border-outline-variant/20 rounded-xl p-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer appearance-none">
-                                            <option value="">Select Region...</option>
-                                            @foreach($regions as $reg)
-                                                <option value="{{ $reg->id }}">{{ $reg->name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -417,13 +408,19 @@
                                     </select>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3 pt-2">
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="checkbox" wire:model="is_featured" class="w-3 h-3 rounded border-stone-300 text-primary focus:ring-primary">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-outline-variant/10">
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_featured" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
                                         <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">Featured</span>
                                     </label>
-                                    <label class="flex items-center gap-2 cursor-pointer group">
-                                        <input type="checkbox" wire:model="is_recommended" class="w-3 h-3 rounded border-stone-300 text-primary focus:ring-primary">
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_recommended" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
                                         <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">Recommended</span>
                                     </label>
                                     <label class="flex items-center gap-3 cursor-pointer group w-fit">

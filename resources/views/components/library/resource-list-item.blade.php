@@ -46,10 +46,6 @@
         </p>
 
         <div class="ac-list-tags">
-            @if($resource->region)
-                <span>{{ $resource->region->name }}</span>
-            @endif
-
             @foreach($resource->topics->take(2) as $topic)
                 <span>{{ $topic->name }}</span>
             @endforeach

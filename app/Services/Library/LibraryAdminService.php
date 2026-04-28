@@ -5,7 +5,6 @@ namespace App\Services\Library;
 use App\Models\LibraryResource;
 use App\Models\LibraryResourceType;
 use App\Models\LibraryDiscipline;
-use App\Models\LibraryRegion;
 use App\Models\LibraryTag;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +17,7 @@ class LibraryAdminService
      */
     public function listResourcesForAdmin(array $filters = [])
     {
-        $query = LibraryResource::query()->with(['resourceType', 'region']);
+        $query = LibraryResource::query()->with(['resourceType']);
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {

@@ -39,7 +39,6 @@ class Index extends Component
     public $language = '';
     public $pages_count = '';
     public $resource_type_id = '';
-    public $region_id = '';
     public $abstract = '';
     public $selectedTags = [];
     public $access_type = 'public';
@@ -104,7 +103,6 @@ class Index extends Component
         $this->language = $resource->language;
         $this->pages_count = $resource->pages_count;
         $this->resource_type_id = $resource->resource_type_id;
-        $this->region_id = $resource->region_id;
         $this->abstract = $resource->abstract;
         $this->access_type = $resource->access_type;
         $this->resource_status = $resource->status;
@@ -125,7 +123,7 @@ class Index extends Component
     {
         $this->reset([
             'title', 'author_display', 'publisher', 'publication_year', 'language', 'pages_count',
-            'resource_type_id', 'region_id', 'abstract', 'access_type', 'resource_status',
+            'resource_type_id', 'abstract', 'access_type', 'resource_status',
             'is_featured', 'is_recommended', 'is_upsc_relevant', 'isbn', 'coverSource',
             'cover_image', 'resource_file', 'fetchedCoverPreview', 'fetchedCoverPath',
             'cover_external_url', 'currentCoverUrl', 'editingResourceId', 'fetchError', 'fetchSuccess', 'selectedTags'
@@ -187,7 +185,6 @@ class Index extends Component
             'isbn' => 'nullable|string|max:255',
             'publication_year' => 'nullable|integer',
             'resource_type_id' => 'required|exists:library_resource_types,id',
-            'region_id' => 'nullable|exists:library_regions,id',
             'abstract' => 'required|string',
             'resource_status' => 'required|in:draft,published,archived',
             'access_type' => 'required|in:public,member_only',
@@ -205,7 +202,6 @@ class Index extends Component
             'language' => $this->language,
             'pages_count' => $this->pages_count,
             'resource_type_id' => $this->resource_type_id,
-            'region_id' => $this->region_id,
             'abstract' => $this->abstract,
             'status' => $this->resource_status,
             'access_type' => $this->access_type,
@@ -274,10 +270,9 @@ class Index extends Component
 
         $resources = app(LibraryAdminService::class)->listResourcesForAdmin($filters)->paginate(15);
         $types = LibraryResourceType::active()->get();
-        $regions = LibraryRegion::active()->get();
         $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(LibraryResource::class);
 
-        return view('livewire.admin.library.resources.index', compact('resources', 'types', 'regions', 'filterableTagGroups'))
+        return view('livewire.admin.library.resources.index', compact('resources', 'types', 'filterableTagGroups'))
             ->layout('layouts.admin');
     }
 }

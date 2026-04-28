@@ -4,7 +4,6 @@ namespace App\Services\Library;
 
 use App\Models\LibraryResource;
 use App\Models\LibraryResourceType;
-use App\Models\LibraryRegion;
 use App\Models\Topic;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,7 +20,7 @@ class LibraryFrontendService
     public function basePublishedQuery(): Builder
     {
         return LibraryResource::query()
-            ->with(['resourceType', 'region', 'tags'])
+            ->with(['resourceType', 'tags'])
             ->where('status', 'published')
             ->where(function (Builder $query) {
                 $query->whereNull('published_at')
@@ -86,15 +85,6 @@ class LibraryFrontendService
             ->get();
     }
 
-    public function getRegions(): Collection
-    {
-        return LibraryRegion::query()
-            ->active()
-            ->orderBy('sort_order')
-            ->orderBy('name')
-            ->get();
-    }
-
     public function getPublicationYears(): Collection
     {
         return LibraryResource::query()
@@ -121,17 +111,12 @@ class LibraryFrontendService
                     ->orWhere('publisher', 'like', "%{$search}%")
                     ->orWhere('isbn', 'like', "%{$search}%")
                     ->orWhereHas('resourceType', fn (Builder $r) => $r->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('region', fn (Builder $r) => $r->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('tags', fn (Builder $t) => $t->where('name', 'like', "%{$search}%"));
             });
         }
 
         if (!empty($filters['type'])) {
             $query->whereHas('resourceType', fn (Builder $q) => $q->where('slug', $filters['type']));
-        }
-
-        if (!empty($filters['region'])) {
-            $query->whereHas('region', fn (Builder $q) => $q->where('slug', $filters['region']));
         }
 
         if (!empty($filters['tag'])) {

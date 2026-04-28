@@ -162,7 +162,6 @@
                         <x-library.meta-row label="Author" :value="$resource->author_display" />
                         <x-library.meta-row label="Publication Year" :value="$resource->publication_year" />
                         <x-library.meta-row label="Publisher" :value="$resource->publisher" />
-                        <x-library.meta-row label="Region" :value="optional($resource->region)->name" />
                         <x-library.meta-row label="Type" :value="optional($resource->resourceType)->name" />
                         <x-library.meta-row label="Language" :value="$resource->language" />
                         <x-library.meta-row label="ISBN" :value="$resource->isbn" />
