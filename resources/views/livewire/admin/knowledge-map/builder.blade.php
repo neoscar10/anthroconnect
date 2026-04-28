@@ -2,7 +2,9 @@
      x-data="knowledgeMapBuilder({ 
         nodes: @js($nodes), 
         connections: @js($connections),
-        zoom: @js($map->default_zoom)
+        zoom: @js($map->default_zoom),
+        canvasWidth: @js($map->canvas_settings['width'] ?? 4000),
+        canvasHeight: @js($map->canvas_settings['height'] ?? 3000)
      })"
      @mousemove="onMouseMove"
      @mouseup="endMove"

@@ -1,8 +1,10 @@
 document.addEventListener('alpine:init', () => {
-    Alpine.data('knowledgeMapUserCanvas', ({ nodes, connections, selectedNodeId }) => ({
+    Alpine.data('knowledgeMapUserCanvas', ({ nodes, connections, selectedNodeId, canvasWidth, canvasHeight }) => ({
         nodes: nodes || [],
         connections: connections || [],
         selectedNodeId: selectedNodeId || null,
+        canvasWidth: canvasWidth || 4000,
+        canvasHeight: canvasHeight || 3000,
         zoom: 1,
         offsetX: 0,
         offsetY: 0,

@@ -226,8 +226,8 @@
 .km-svg {
     position: absolute;
     inset: 0;
-    width: 3000px;
-    height: 2000px;
+    width: 4000px;
+    height: 3000px;
     pointer-events: none;
     z-index: 1;
 }

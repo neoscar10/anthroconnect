@@ -59,6 +59,14 @@
                                 <option value="plain">Plain</option>
                             </select>
                         </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2 ml-1">Canvas Width (px)</label>
+                            <input wire:model="canvas_width" type="number" class="w-full bg-stone-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2 ml-1">Canvas Height (px)</label>
+                            <input wire:model="canvas_height" type="number" class="w-full bg-stone-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                        </div>
                     </div>
                 </div>
             </div>

@@ -3,6 +3,8 @@ document.addEventListener('alpine:init', () => {
         nodes: config.nodes || [],
         connections: config.connections || [],
         zoom: config.zoom || 1,
+        canvasWidth: config.canvasWidth || 4000,
+        canvasHeight: config.canvasHeight || 3000,
         offsetX: 0,
         offsetY: 0,
         
@@ -96,9 +98,9 @@ document.addEventListener('alpine:init', () => {
         centerCanvas() {
             const shell = this.$refs.shell;
             if (!shell) return;
-            // Center in a 4000x3000 canvas
-            this.offsetX = (shell.offsetWidth / 2) - (2000 * this.zoom);
-            this.offsetY = (shell.offsetHeight / 2) - (1500 * this.zoom);
+            // Center based on dynamic canvas size
+            this.offsetX = (shell.offsetWidth / 2) - ((this.canvasWidth / 2) * this.zoom);
+            this.offsetY = (shell.offsetHeight / 2) - ((this.canvasHeight / 2) * this.zoom);
         },
 
         // Panning and Zooming

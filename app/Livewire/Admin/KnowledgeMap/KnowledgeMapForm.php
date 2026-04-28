@@ -21,6 +21,8 @@ class KnowledgeMapForm extends Component
     public $is_featured = true;
     public $default_zoom = 1.0;
     public $canvas_background = 'dotted';
+    public $canvas_width = 4000;
+    public $canvas_height = 3000;
 
     public function mount()
     {
@@ -46,6 +48,8 @@ class KnowledgeMapForm extends Component
         
         $settings = $map->canvas_settings ?? [];
         $this->canvas_background = $settings['background'] ?? 'dotted';
+        $this->canvas_width = $settings['width'] ?? 4000;
+        $this->canvas_height = $settings['height'] ?? 3000;
     }
 
     public function save(KnowledgeMapService $service)
@@ -57,14 +61,20 @@ class KnowledgeMapForm extends Component
             'status' => 'required|in:draft,published,archived',
             'visibility' => 'required|in:public,members_only',
             'default_zoom' => 'numeric|min:0.1|max:5',
+            'canvas_width' => 'required|integer|min:1000|max:10000',
+            'canvas_height' => 'required|integer|min:1000|max:10000',
         ];
 
         $validated = $this->validate($rules);
 
         $validated['is_featured'] = true;
-        $validated['canvas_settings'] = [
-            'background' => $this->canvas_background
-        ];
+        
+        $currentSettings = KnowledgeMap::find($this->mapId)?->canvas_settings ?? [];
+        $validated['canvas_settings'] = array_merge($currentSettings, [
+            'background' => $this->canvas_background,
+            'width' => (int) $this->canvas_width,
+            'height' => (int) $this->canvas_height,
+        ]);
 
         if ($this->mapId) {
             $map = KnowledgeMap::find($this->mapId);

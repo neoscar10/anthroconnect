@@ -50,6 +50,7 @@ class KnowledgeMapBuilder extends Component
     
     public $nodeMetadata = [];
     public $selectedAttachments = [];
+    public $connections = [];
 
     // Connection Form State
     public $showConnectionModal = false;
@@ -78,8 +79,13 @@ class KnowledgeMapBuilder extends Component
             'title' => 'Anthropology Knowledge Map',
             'status' => 'published',
             'visibility' => 'public',
+            'is_featured' => true,
             'default_zoom' => 1.0,
-            'canvas_settings' => ['background' => 'dotted']
+            'canvas_settings' => [
+                'background' => 'dotted',
+                'width' => 4000,
+                'height' => 3000
+            ]
         ]);
     }
 
