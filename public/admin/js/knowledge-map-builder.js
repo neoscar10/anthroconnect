@@ -33,6 +33,10 @@ document.addEventListener('alpine:init', () => {
         lastMouseY: 0,
         
         init() {
+            console.log('Knowledge Map Builder initialized');
+            console.log('Nodes:', this.nodes.length);
+            console.log('Connections:', this.connections.length);
+
             this.$nextTick(() => {
                 this.fitView();
             });

@@ -11,11 +11,11 @@
      @mouseleave="endMove">
     
     @push('styles')
-        <link rel="stylesheet" href="{{ asset('admin/css/knowledge-map-builder.css') }}">
+        <link rel="stylesheet" href="{{ asset('admin/css/knowledge-map-builder.css') }}?v={{ filemtime(public_path('admin/css/knowledge-map-builder.css')) }}">
     @endpush
 
     @push('scripts')
-        <script src="{{ asset('admin/js/knowledge-map-builder.js') }}"></script>
+        <script src="{{ asset('admin/js/knowledge-map-builder.js') }}?v={{ filemtime(public_path('admin/js/knowledge-map-builder.js')) }}"></script>
     @endpush
 
     <div class="km-builder-shell" :class="{ 
