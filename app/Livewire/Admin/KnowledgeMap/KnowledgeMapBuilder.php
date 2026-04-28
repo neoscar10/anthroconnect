@@ -49,6 +49,7 @@ class KnowledgeMapBuilder extends Component
     public $nodeLibraryResourceId; // For general library
     
     public $nodeMetadata = [];
+    public $selectedAttachments = [];
 
     // Connection Form State
     public $showConnectionModal = false;
@@ -155,14 +156,22 @@ class KnowledgeMapBuilder extends Component
         $this->nodeLmsLessonId = $node->lms_lesson_id;
         $this->nodeLmsResourceId = $node->lms_material_id;
         
-        $meta = $node->metadata ?? [];
-        $this->nodeLmsMaterialType = $meta['material_type'] ?? ($this->nodeLmsLessonId ? 'video' : ($this->nodeLmsResourceId ? 'module_resource' : ($node->lms_module_id ? 'module' : 'video')));
-        $this->nodeLibraryResourceId = $meta['library_resource_id'] ?? null;
-        
-        if ($this->nodeLibraryResourceId) {
-            $this->nodeLmsMaterialType = 'library_resource';
-        }
-        
+        $this->selectedAttachments = $node->attachments->map(function($att) {
+            $type = match($att->attachable_type) {
+                LmsModule::class => 'module',
+                LmsLesson::class => 'video',
+                LmsResource::class => 'module_resource',
+                LibraryResource::class => 'library_resource',
+                default => 'other'
+            };
+            
+            return [
+                'type' => $type,
+                'id' => $att->attachable_id,
+                'title' => $att->attachable?->title ?? 'Deleted Resource'
+            ];
+        })->toArray();
+
         $this->showNodeModal = true;
     }
 
@@ -208,9 +217,20 @@ class KnowledgeMapBuilder extends Component
             'lms_lesson_id' => ($this->nodeLmsMaterialType == 'video') ? $this->nodeLmsLessonId : null,
             'lms_material_id' => ($this->nodeLmsMaterialType == 'module_resource') ? $this->nodeLmsResourceId : null,
             'metadata' => [
-                'library_resource_id' => ($this->nodeLmsMaterialType == 'library_resource') ? $this->nodeLibraryResourceId : null,
                 'material_type' => $this->nodeLmsMaterialType,
-            ]
+            ],
+            'attachments' => array_map(function($att) {
+                return [
+                    'id' => $att['id'],
+                    'type' => match($att['type']) {
+                        'module' => LmsModule::class,
+                        'video' => LmsLesson::class,
+                        'module_resource' => LmsResource::class,
+                        'library_resource' => LibraryResource::class,
+                        default => null
+                    }
+                ];
+            }, $this->selectedAttachments)
         ];
 
         if ($this->editingNodeId) {
@@ -397,6 +417,61 @@ class KnowledgeMapBuilder extends Component
         ];
     }
 
+    public function addAttachment()
+    {
+        $id = null;
+        $title = '';
+        
+        if ($this->nodeLmsMaterialType === 'module' && $this->nodeLmsModuleId) {
+            $item = LmsModule::find($this->nodeLmsModuleId);
+            $id = $item->id;
+            $title = $item->title;
+        } elseif ($this->nodeLmsMaterialType === 'video' && $this->nodeLmsLessonId) {
+            $item = LmsLesson::find($this->nodeLmsLessonId);
+            $id = $item->id;
+            $title = $item->title;
+        } elseif ($this->nodeLmsMaterialType === 'module_resource' && $this->nodeLmsResourceId) {
+            $item = LmsResource::find($this->nodeLmsResourceId);
+            $id = $item->id;
+            $title = $item->title;
+        } elseif ($this->nodeLmsMaterialType === 'library_resource' && $this->nodeLibraryResourceId) {
+            $item = LibraryResource::find($this->nodeLibraryResourceId);
+            $id = $item->id;
+            $title = $item->title;
+        }
+
+        if ($id) {
+            // Check for duplicates
+            foreach ($this->selectedAttachments as $att) {
+                if ($att['type'] === $this->nodeLmsMaterialType && $att['id'] == $id) {
+                    return;
+                }
+            }
+
+            $this->selectedAttachments[] = [
+                'type' => $this->nodeLmsMaterialType,
+                'id' => $id,
+                'title' => $title
+            ];
+            
+            // Reset selection but keep module if it's needed for context
+            if (!in_array($this->nodeLmsMaterialType, ['module', 'video', 'module_resource'])) {
+                $this->nodeLmsModuleId = null;
+            }
+            $this->nodeLmsLessonId = null;
+            $this->nodeLmsResourceId = null;
+            $this->nodeLibraryResourceId = null;
+        }
+    }
+
+    public function removeAttachment($index)
+    {
+        if (isset($this->selectedAttachments[$index])) {
+            unset($this->selectedAttachments[$index]);
+            $this->selectedAttachments = array_values($this->selectedAttachments);
+        }
+    }
+
     public function deleteConnection($id, KnowledgeMapConnectionService $service)
     {
         $conn = KnowledgeMapConnection::find($id);
@@ -434,6 +509,7 @@ class KnowledgeMapBuilder extends Component
         $this->nodeLmsResourceId = null;
         $this->nodeLibraryResourceId = null;
         $this->nodeLmsMaterialType = 'video';
+        $this->selectedAttachments = [];
     }
 
     public function render()
@@ -447,7 +523,7 @@ class KnowledgeMapBuilder extends Component
             'theories' => MajorTheory::orderBy('title')->get(),
             'lmsModules' => LmsModule::orderBy('title')->get(),
             'libraryResources' => LibraryResource::orderBy('title')->get(),
-            'selectedNode' => $this->selectedNodeId ? KnowledgeMapNode::with(['tags', 'encyclopediaConcept', 'anthropologist', 'theory', 'lmsModule'])->find($this->selectedNodeId) : null,
+            'selectedNode' => $this->selectedNodeId ? KnowledgeMapNode::with(['tags', 'encyclopediaConcept', 'anthropologist', 'theory', 'lmsModule', 'attachments.attachable'])->find($this->selectedNodeId) : null,
             'selectedConnection' => $this->selectedConnectionId ? KnowledgeMapConnection::with(['fromNode', 'toNode'])->find($this->selectedConnectionId) : null,
         ])->layout('layouts.admin', ['title' => 'Canvas Builder - ' . $this->map->title]);
     }

@@ -18,6 +18,10 @@ class KnowledgeMapNodeService
         if (isset($data['tags'])) {
             $node->syncTags($data['tags']);
         }
+
+        if (isset($data['attachments'])) {
+            $this->syncAttachments($node, $data['attachments']);
+        }
         
         return $node;
     }
@@ -34,6 +38,10 @@ class KnowledgeMapNodeService
         
         if ($updated && isset($data['tags'])) {
             $node->syncTags($data['tags']);
+        }
+
+        if ($updated && isset($data['attachments'])) {
+            $this->syncAttachments($node, $data['attachments']);
         }
         
         return $updated;
@@ -68,5 +76,18 @@ class KnowledgeMapNodeService
     public function deleteNode(KnowledgeMapNode $node): bool
     {
         return $node->delete();
+    }
+
+    protected function syncAttachments(KnowledgeMapNode $node, array $attachments): void
+    {
+        $node->attachments()->delete();
+
+        foreach ($attachments as $index => $attachment) {
+            $node->attachments()->create([
+                'attachable_id' => $attachment['id'],
+                'attachable_type' => $attachment['type'],
+                'sort_order' => $index,
+            ]);
+        }
     }
 }

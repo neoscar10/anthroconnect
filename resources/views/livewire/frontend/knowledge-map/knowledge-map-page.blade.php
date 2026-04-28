@@ -227,31 +227,44 @@
                             @endif
 
                             <div class="km-detail-section">
-                                <h4>Related Lessons</h4>
+                                <h4>Study Materials & Lessons</h4>
 
-                                @if($selectedNode->lmsLesson && $selectedNode->lmsLesson->module)
-                                    <a href="{{ route('lessons.show', ['moduleSlug' => $selectedNode->lmsLesson->module->slug, 'lessonSlug' => $selectedNode->lmsLesson->slug]) }}" class="km-related-item">
-                                        <span class="material-symbols-outlined">play_circle</span>
+                                @forelse($selectedNode->attachments as $attachment)
+                                    @php
+                                        $attMeta = match($attachment->attachable_type) {
+                                            \App\Models\Lms\LmsModule::class => [
+                                                'icon' => 'school',
+                                                'label' => 'Course Module',
+                                                'url' => route('modules.show', $attachment->attachable->slug)
+                                            ],
+                                            \App\Models\Lms\LmsLesson::class => [
+                                                'icon' => 'play_circle',
+                                                'label' => 'Video Lesson',
+                                                'url' => route('lessons.show', ['moduleSlug' => $attachment->attachable->module->slug, 'lessonSlug' => $attachment->attachable->slug])
+                                            ],
+                                            \App\Models\Lms\LmsResource::class => [
+                                                'icon' => 'description',
+                                                'label' => 'PDF Resource',
+                                                'url' => route('modules.show', $attachment->attachable->module->slug)
+                                            ],
+                                            \App\Models\LibraryResource::class => [
+                                                'icon' => 'menu_book',
+                                                'label' => 'Library Book',
+                                                'url' => route('library.show', $attachment->attachable->slug)
+                                            ],
+                                            default => ['icon' => 'attachment', 'label' => 'Material', 'url' => '#']
+                                        };
+                                    @endphp
+                                    <a href="{{ $attMeta['url'] }}" class="km-related-item">
+                                        <span class="material-symbols-outlined">{{ $attMeta['icon'] }}</span>
                                         <div>
-                                            <strong>{{ $selectedNode->lmsLesson->title }}</strong>
-                                            <span>Video lesson</span>
+                                            <strong>{{ $attachment->attachable?->title ?? 'Deleted Resource' }}</strong>
+                                            <span>{{ $attMeta['label'] }}</span>
                                         </div>
                                     </a>
-                                @endif
-
-                                @if($selectedNode->lmsMaterial && $selectedNode->lmsMaterial->module)
-                                    <a href="{{ route('modules.show', $selectedNode->lmsMaterial->module->slug) }}" class="km-related-item">
-                                        <span class="material-symbols-outlined">description</span>
-                                        <div>
-                                            <strong>{{ $selectedNode->lmsMaterial->title }}</strong>
-                                            <span>Study material</span>
-                                        </div>
-                                    </a>
-                                @endif
-
-                                @unless($selectedNode->lmsLesson || $selectedNode->lmsMaterial)
-                                    <p class="km-muted">No related lessons attached yet.</p>
-                                @endunless
+                                @empty
+                                    <p class="km-muted">No specific study materials attached yet.</p>
+                                @endforelse
                             </div>
 
                             <div class="km-detail-section">

@@ -34,6 +34,7 @@ class KnowledgeMapPage extends Component
             'nodes.lmsModule',
             'nodes.lmsLesson.module',
             'nodes.lmsMaterial.module',
+            'nodes.attachments.attachable',
             'connections',
             'learningPaths.nodes',
         ]);

@@ -291,10 +291,31 @@
                                         </div>
                                         <div class="min-w-0">
                                             <p class="text-[11px] font-bold text-green-900 truncate">{{ $selectedNode->lmsModule->title }}</p>
-                                            <p class="text-[8px] uppercase font-bold text-green-400 tracking-widest mt-0.5">LMS Module</p>
+                                            <p class="text-[8px] uppercase font-bold text-green-400 tracking-widest mt-0.5">Primary Module</p>
                                         </div>
                                     </div>
                                 @endif
+
+                                @foreach($selectedNode->attachments as $attachment)
+                                    @php
+                                        $attType = match($attachment->attachable_type) {
+                                            \App\Models\Lms\LmsModule::class => ['label' => 'Module', 'icon' => 'school', 'color' => 'bg-green-50 text-green-600 border-green-100'],
+                                            \App\Models\Lms\LmsLesson::class => ['label' => 'Video', 'icon' => 'play_circle', 'color' => 'bg-red-50 text-red-600 border-red-100'],
+                                            \App\Models\Lms\LmsResource::class => ['label' => 'Resource', 'icon' => 'description', 'color' => 'bg-blue-50 text-blue-600 border-blue-100'],
+                                            \App\Models\LibraryResource::class => ['label' => 'Library', 'icon' => 'menu_book', 'color' => 'bg-amber-50 text-amber-600 border-amber-100'],
+                                            default => ['label' => 'Material', 'icon' => 'attachment', 'color' => 'bg-stone-50 text-stone-600 border-stone-100']
+                                        };
+                                    @endphp
+                                    <div class="p-4 {{ $attType['color'] }} rounded-2xl border flex items-center gap-4">
+                                        <div class="size-10 rounded-xl bg-white/50 flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-lg">{{ $attType['icon'] }}</span>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-[11px] font-bold truncate">{{ $attachment->attachable?->title ?? 'Deleted Resource' }}</p>
+                                            <p class="text-[8px] uppercase font-bold opacity-60 tracking-widest mt-0.5">{{ $attType['label'] }}</p>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         </div>
                     </div>
@@ -436,14 +457,21 @@
                                     <label class="block text-[10px] font-bold uppercase tracking-widest text-primary mb-2">Linked Study Material</label>
                                     
                                     <div class="space-y-4 bg-stone-50/50 p-4 rounded-2xl border border-stone-100">
-                                        <div>
-                                            <label class="text-[9px] uppercase font-bold text-stone-400 tracking-widest px-1">1. Material Type</label>
-                                            <select wire:model.live="nodeLmsMaterialType" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-xs font-bold shadow-sm focus:ring-2 focus:ring-primary/20">
-                                                <option value="module">Course Module</option>
-                                                <option value="video">Module Video</option>
-                                                <option value="module_resource">Module Resource (PDF)</option>
-                                                <option value="library_resource">Library Resource</option>
-                                            </select>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="text-[9px] uppercase font-bold text-stone-400 tracking-widest px-1">1. Material Type</label>
+                                                <select wire:model.live="nodeLmsMaterialType" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-xs font-bold shadow-sm focus:ring-2 focus:ring-primary/20">
+                                                    <option value="module">Course Module</option>
+                                                    <option value="video">Module Video</option>
+                                                    <option value="module_resource">Module Resource (PDF)</option>
+                                                    <option value="library_resource">Library Resource</option>
+                                                </select>
+                                            </div>
+                                            <div class="flex items-end">
+                                                <button type="button" wire:click="addAttachment" class="w-full py-3 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
+                                                    Add to List
+                                                </button>
+                                            </div>
                                         </div>
 
                                         @if($nodeLmsMaterialType === 'module')
@@ -514,6 +542,36 @@
                                             </div>
                                         @endif
                                     </div>
+
+                                    @if(count($selectedAttachments) > 0)
+                                        <div class="mt-4 space-y-2">
+                                            <p class="text-[9px] uppercase font-bold text-stone-400 tracking-widest px-1">Current Attachments</p>
+                                            @foreach($selectedAttachments as $index => $att)
+                                                <div class="flex items-center justify-between p-3 bg-white border border-stone-200 rounded-xl shadow-sm group">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="size-6 rounded-lg bg-stone-100 flex items-center justify-center">
+                                                            <span class="material-symbols-outlined text-[14px]">
+                                                                {{ match($att['type']) {
+                                                                    'module' => 'school',
+                                                                    'video' => 'play_circle',
+                                                                    'module_resource' => 'description',
+                                                                    'library_resource' => 'menu_book',
+                                                                    default => 'attachment'
+                                                                } }}
+                                                            </span>
+                                                        </div>
+                                                        <div class="min-w-0">
+                                                            <p class="text-[11px] font-bold text-stone-900 truncate">{{ $att['title'] }}</p>
+                                                            <p class="text-[8px] uppercase font-bold text-stone-400 tracking-widest">{{ $att['type'] }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" wire:click="removeAttachment({{ $index }})" class="size-8 rounded-lg hover:bg-red-50 text-stone-300 hover:text-red-500 transition-colors flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-sm">delete</span>
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
 

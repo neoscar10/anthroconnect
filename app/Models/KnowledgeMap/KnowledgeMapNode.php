@@ -103,4 +103,12 @@ class KnowledgeMapNode extends Model
     {
         return $query->where('is_members_only', true);
     }
+
+    /**
+     * Get all attachments for the node.
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(KnowledgeMapNodeAttachment::class, 'node_id')->orderBy('sort_order');
+    }
 }
