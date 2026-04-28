@@ -175,7 +175,6 @@
                         <a wire:navigate href="{{ route('admin.library.dashboard') }}" class="{{ request()->routeIs('admin.library.dashboard') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Overview</a>
                         <a wire:navigate href="{{ route('admin.library.resources.index') }}" class="{{ request()->routeIs('admin.library.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
                         <a wire:navigate href="{{ route('admin.library.resource-types.index') }}" class="{{ request()->routeIs('admin.library.resource-types.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resource Types</a>
-                        <a wire:navigate href="{{ route('admin.library.regions.index') }}" class="{{ request()->routeIs('admin.library.regions.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Regions</a>
                     </div>
                 </div>
 

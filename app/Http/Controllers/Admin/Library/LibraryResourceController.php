@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin\Library;
 use App\Http\Controllers\Controller;
 use App\Models\LibraryResource;
 use App\Models\LibraryResourceType;
-use App\Models\LibraryRegion;
 use App\Models\Topic;
 use App\Services\Library\LibraryAdminService;
 use App\Services\Library\BookMetadataLookupService;
@@ -30,10 +29,9 @@ class LibraryResourceController extends Controller
         $resources = $this->libraryService->listResourcesForAdmin($filters)->paginate(15)->withQueryString();
         
         $types = LibraryResourceType::active()->get();
-        $regions = LibraryRegion::active()->get();
         $topics = Topic::active()->get();
 
-        return view('admin.library.resources.index', compact('resources', 'filters', 'types', 'regions', 'topics'));
+        return view('admin.library.resources.index', compact('resources', 'filters', 'types', 'topics'));
     }
 
     public function create()
@@ -50,7 +48,6 @@ class LibraryResourceController extends Controller
             'isbn' => 'nullable|string|max:255',
             'publication_year' => 'nullable|integer',
             'resource_type_id' => 'required|exists:library_resource_types,id',
-            'region_id' => 'nullable|exists:library_regions,id',
             'abstract' => 'required|string',
             'language' => 'nullable|string|max:100',
             'pages_count' => 'nullable|integer',
@@ -101,13 +98,12 @@ class LibraryResourceController extends Controller
     public function edit(LibraryResource $resource)
     {
         $types = LibraryResourceType::active()->get();
-        $regions = LibraryRegion::active()->get();
         $topics = Topic::active()->get();
         
         $resource->load(['topics', 'tags']);
         $tagsString = $resource->tags->pluck('name')->implode(', ');
 
-        return view('admin.library.resources.edit', compact('resource', 'types', 'regions', 'topics', 'tagsString'));
+        return view('admin.library.resources.edit', compact('resource', 'types', 'topics', 'tagsString'));
     }
 
     public function update(Request $request, LibraryResource $resource)
@@ -119,7 +115,6 @@ class LibraryResourceController extends Controller
             'isbn' => 'nullable|string|max:255',
             'publication_year' => 'nullable|integer',
             'resource_type_id' => 'required|exists:library_resource_types,id',
-            'region_id' => 'nullable|exists:library_regions,id',
             'abstract' => 'required|string',
             'language' => 'nullable|string|max:100',
             'pages_count' => 'nullable|integer',
