@@ -20,6 +20,11 @@ class ExploreArticleService
         $data['rendered_content_html'] = $this->renderMarkdown($data['markdown_content']);
         $data['reading_time_minutes'] = $this->calculateReadingTime($data['markdown_content']);
         
+        // Handle initial sort order for new articles
+        if (!isset($data['sort_order'])) {
+            $data['sort_order'] = (ExploreArticle::max('sort_order') ?? 0) + 1;
+        }
+
         if (isset($data['status']) && $data['status'] === 'published' && empty($data['published_at'])) {
             $data['published_at'] = now();
         }
@@ -28,7 +33,13 @@ class ExploreArticleService
             $data['featured_image'] = $this->uploadImage($data['featured_image']);
         }
 
-        return ExploreArticle::create($data);
+        $article = ExploreArticle::create($data);
+
+        if (isset($data['tags'])) {
+            $article->syncTags($data['tags']);
+        }
+
+        return $article;
     }
 
     /**
@@ -56,6 +67,11 @@ class ExploreArticleService
         }
 
         $article->update($data);
+
+        if (isset($data['tags'])) {
+            $article->syncTags($data['tags']);
+        }
+
         return $article;
     }
 
@@ -91,7 +107,7 @@ class ExploreArticleService
      */
     public function listArticlesForAdmin(array $filters = [])
     {
-        $query = ExploreArticle::with('topic', 'creator')->orderBy('created_at', 'desc');
+        $query = ExploreArticle::with('tags', 'creator')->orderBy('sort_order', 'asc');
 
         if (!empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
@@ -100,8 +116,14 @@ class ExploreArticleService
             });
         }
 
-        if (!empty($filters['topic_id'])) {
-            $query->where('topic_id', $filters['topic_id']);
+        if (!empty($filters['tag_ids']) && is_array($filters['tag_ids'])) {
+            foreach ($filters['tag_ids'] as $tagId) {
+                if ($tagId) $query->withTag($tagId);
+            }
+        }
+
+        if (!empty($filters['tag_id'])) {
+            $query->withTag($filters['tag_id']);
         }
 
         if (!empty($filters['status'])) {
@@ -110,6 +132,10 @@ class ExploreArticleService
 
         if (isset($filters['is_members_only']) && !is_null($filters['is_members_only'])) {
             $query->where('is_members_only', $filters['is_members_only']);
+        }
+
+        if (isset($filters['is_upsc_relevant']) && !is_null($filters['is_upsc_relevant'])) {
+            $query->where('is_upsc_relevant', $filters['is_upsc_relevant']);
         }
 
         return $query;

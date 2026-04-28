@@ -34,6 +34,8 @@ tailwind.config = {
                 700: "#c2410c", 800: "#9a3412", 900: "#7c2d12",
               },
               primary: "#9a3412",
+              olive: "#606c38",
+              sand: "#fdf6e3",
             },
             fontFamily: {
               headline: ["Lora", "serif"],
@@ -87,29 +89,28 @@ tailwind.config = {
             </button>
 
             <!-- Brand -->
-            <a href="{{ route('home') }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
+            <a wire:navigate href="{{ route('home') }}" class="flex items-center gap-2 hover:opacity-80 transition-opacity">
                 <h1 class="text-2xl font-headline italic text-stone-900 dark:text-stone-50 tracking-tight">AnthroConnect</h1>
             </a>
 
             <!-- Desktop Navigation -->
-            <nav class="hidden lg:flex items-center gap-8">
-                <a class="text-sm font-medium hover:text-orange-700 transition-colors" href="#">Learn Anthropology</a>
-                <a class="text-sm font-medium transition-colors {{ request()->routeIs('explore.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('explore.index') }}">Explore Humanity</a>
-                <a class="text-sm font-medium transition-colors {{ request()->routeIs('modules.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('modules.index') }}">Modules</a>
-                <a class="text-sm font-medium transition-colors {{ request()->routeIs('encyclopedia.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('encyclopedia.index') }}">Encyclopedia</a>
-                <a class="text-sm font-medium transition-colors {{ request()->routeIs('community.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('community.index') }}">Community</a>
-                <a class="text-sm font-medium transition-colors {{ request()->routeIs('library.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('library.index') }}">Research Library</a>
+            <nav class="hidden lg:flex items-center gap-8 lg:ml-12">
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('modules.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('modules.index') }}">Learn Anthropology</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('explore.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('explore.index') }}">Explore Humanity</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('knowledge-map.show') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('knowledge-map.show') }}">Knowledge Map</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('upsc.hub') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('upsc.hub') }}">UPSC Anthropology</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('encyclopedia.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('encyclopedia.index') }}">Encyclopedia</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('community.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('community.index') }}">Community</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('exams.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('exams.index') }}">Practice Exams</a>
+                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('library.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('library.index') }}">Research Library</a>
             </nav>
 
             <!-- Right Actions -->
             <div class="flex items-center gap-2 sm:gap-4">
-                <button class="active:scale-95 duration-150 p-2 rounded-full hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors">
-                    <span class="material-symbols-outlined">search</span>
-                </button>
                 
                 @auth
                     <div class="flex items-center gap-3">
-                        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                        <a wire:navigate href="{{ route('dashboard') }}" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
                             <span class="text-sm font-semibold text-stone-700 hidden sm:inline-block">Hi, {{ explode(' ', Auth::user()->name)[0] }}</span>
                             <div class="h-8 w-8 rounded-full overflow-hidden border border-stone-200">
                                 <img alt="User profile" class="h-full w-full object-cover" src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.Auth::user()->name }}"/>
@@ -121,8 +122,8 @@ tailwind.config = {
                     </div>
                 @else
                     <div class="hidden sm:flex items-center gap-2">
-                        <a href="{{ route('login') }}" class="px-4 py-2 text-sm font-semibold hover:text-orange-700">Login</a>
-                        <a href="{{ route('register') }}" class="bg-stone-900 text-stone-50 px-5 py-2 rounded-xl text-sm font-bold shadow-lg shadow-stone-900/10 hover:-translate-y-0.5 transition-all">Sign Up</a>
+                        <a wire:navigate href="{{ route('login') }}" class="px-4 py-2 text-sm font-semibold hover:text-orange-700">Login</a>
+                        <a wire:navigate href="{{ route('register') }}" class="bg-stone-900 text-stone-50 px-5 py-2 rounded-xl text-sm font-bold shadow-lg shadow-stone-900/10 hover:-translate-y-0.5 transition-all">Sign Up</a>
                     </div>
                 @endauth
             </div>
@@ -144,23 +145,35 @@ tailwind.config = {
         </div>
         
         <nav class="flex flex-col space-y-2">
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('explore.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('explore.index') }}">
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('explore.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('explore.index') }}">
                 <span class="material-symbols-outlined">explore</span>
                 <span class="font-headline text-lg">Explore Humanity</span>
             </a>
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('modules.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('modules.index') }}">
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('modules.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('modules.index') }}">
                 <span class="material-symbols-outlined">school</span>
-                <span class="font-headline text-lg">Modules</span>
+                <span class="font-headline text-lg">Learn Anthropology</span>
             </a>
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('encyclopedia.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('encyclopedia.index') }}">
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('knowledge-map.show') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('knowledge-map.show') }}">
+                <span class="material-symbols-outlined">hub</span>
+                <span class="font-headline text-lg">Knowledge Map</span>
+            </a>
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('upsc.hub') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('upsc.hub') }}">
+                <span class="material-symbols-outlined">account_balance</span>
+                <span class="font-headline text-lg">UPSC Anthropology</span>
+            </a>
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('encyclopedia.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('encyclopedia.index') }}">
                 <span class="material-symbols-outlined">account_tree</span>
                 <span class="font-headline text-lg">Encyclopedia</span>
             </a>
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('community.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('community.index') }}">
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('community.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('community.index') }}">
                 <span class="material-symbols-outlined">forum</span>
                 <span class="font-headline text-lg">Community</span>
             </a>
-            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('library.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('library.index') }}">
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('exams.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('exams.index') }}">
+                <span class="material-symbols-outlined">edit_note</span>
+                <span class="font-headline text-lg">Practice Exams</span>
+            </a>
+            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('library.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('library.index') }}">
                 <span class="material-symbols-outlined">library_books</span>
                 <span class="font-headline text-lg">Research Library</span>
             </a>
@@ -177,7 +190,7 @@ tailwind.config = {
                         </div>
                     </div>
                     
-                    <a class="flex items-center gap-4 py-4 px-4 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-all" href="{{ route('dashboard') }}">
+                    <a wire:navigate class="flex items-center gap-4 py-4 px-4 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-all" href="{{ route('dashboard') }}">
                         <span class="material-symbols-outlined">dashboard</span>
                         <span class="font-headline text-lg">Dashboard</span>
                     </a>
@@ -192,8 +205,8 @@ tailwind.config = {
 
             @guest
                 <div class="pt-6 mt-6 border-t border-stone-100 flex flex-col gap-4">
-                    <a href="{{ route('login') }}" class="w-full py-4 text-center font-bold text-stone-900">Login</a>
-                    <a href="{{ route('register') }}" class="w-full py-4 bg-stone-900 text-stone-50 text-center font-bold rounded-xl shadow-lg shadow-stone-900/20">Sign Up</a>
+                    <a wire:navigate href="{{ route('login') }}" class="w-full py-4 text-center font-bold text-stone-900">Login</a>
+                    <a wire:navigate href="{{ route('register') }}" class="w-full py-4 bg-stone-900 text-stone-50 text-center font-bold rounded-xl shadow-lg shadow-stone-900/20">Sign Up</a>
                 </div>
             @endguest
         </nav>

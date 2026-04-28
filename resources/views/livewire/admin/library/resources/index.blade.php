@@ -29,19 +29,36 @@
                 <input wire:model.live.debounce.500ms="search" type="text" placeholder="Search by title or author..." class="w-full bg-surface-container-low border-none rounded-xl pl-12 pr-4 py-3 text-sm focus:ring-2 focus:ring-primary">
             </div>
             
-            <select wire:model.live="type_id" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
-                <option value="">All Types</option>
-                @foreach($types as $type)
-                    <option value="{{ $type->id }}">{{ $type->name }}</option>
+            <div class="flex gap-4 items-center flex-wrap">
+                @foreach($filterableTagGroups as $group)
+                    <select wire:model.live="tagFilters.{{ $group->id }}" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                        <option value="">All {{ $group->name }}</option>
+                        @foreach($group->activeTags as $tag)
+                            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                        @endforeach
+                    </select>
                 @endforeach
-            </select>
 
-            <select wire:model.live="status" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
-                <option value="">All Status</option>
-                <option value="draft">Draft</option>
-                <option value="published">Published</option>
-                <option value="archived">Archived</option>
-            </select>
+                <select wire:model.live="type_id" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                    <option value="">All Types</option>
+                    @foreach($types as $type)
+                        <option value="{{ $type->id }}">{{ $type->name }}</option>
+                    @endforeach
+                </select>
+
+                <select wire:model.live="status" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                    <option value="">All Status</option>
+                    <option value="draft">Draft</option>
+                    <option value="published">Published</option>
+                    <option value="archived">Archived</option>
+                </select>
+
+                <select wire:model.live="upscFilter" class="bg-surface-container-low border-none rounded-xl px-6 py-3 text-xs font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                    <option value="">All UPSC Status</option>
+                    <option value="upsc">UPSC Relevant</option>
+                    <option value="general">General</option>
+                </select>
+            </div>
 
             @if($search || $status || $type_id)
                 <button wire:click="$set('search', ''); $set('status', ''); $set('type_id', '')" class="text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-error transition-colors px-2">
@@ -100,6 +117,9 @@
                                 @endif
                                 @if($res->access_type === 'member_only')
                                     <span class="material-symbols-outlined text-xs text-secondary" title="Members Only">lock</span>
+                                @endif
+                                @if($res->is_upsc_relevant)
+                                    <span class="badge bg-warning-subtle text-warning text-[8px] uppercase font-bold px-2 py-0.5 rounded">UPSC</span>
                                 @endif
                             </div>
                         </td>
@@ -296,15 +316,8 @@
                                     </div>
                                 </div>
                                 <div class="space-y-1">
-                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Library Topics</label>
-                                    <div class="grid grid-cols-2 md:grid-cols-3 gap-2.5 bg-white border border-outline-variant/20 p-3.5 rounded-xl max-h-40 overflow-y-auto">
-                                        @foreach($topics as $topic)
-                                            <label class="flex items-center gap-2 cursor-pointer group">
-                                                <input type="checkbox" wire:model="selectedTopics" value="{{ $topic->id }}" class="w-3 h-3 rounded border-stone-300 text-primary focus:ring-primary">
-                                                <span class="text-[9px] font-medium text-on-surface-variant group-hover:text-on-surface leading-none">{{ $topic->name }}</span>
-                                            </label>
-                                        @endforeach
-                                    </div>
+                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Resource Classifications & Tags</label>
+                                    <x-admin.tag-selector id="library-tag-selector" wire:model="selectedTags" />
                                 </div>
                             </div>
                         </div>
@@ -318,10 +331,7 @@
                                 </h3>
                                 <textarea wire:model="abstract" rows="6" required class="w-full bg-white border border-outline-variant/20 rounded-2xl p-4 text-sm leading-relaxed focus:ring-2 focus:ring-primary outline-none transition-all resize-none" placeholder="Provide a scholarly abstract..."></textarea>
                                 @error('abstract') <p class="text-[9px] text-error mt-1 font-bold">{{ $message }}</p> @enderror
-                                <div class="space-y-1">
-                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Keywords / Tags</label>
-                                    <input wire:model="tags" type="text" class="w-full bg-white border border-outline-variant/20 rounded-xl p-3 text-sm focus:ring-2 focus:ring-primary outline-none" placeholder="Separate with commas...">
-                                </div>
+
                             </div>
 
                             <div class="space-y-5">
@@ -415,6 +425,13 @@
                                     <label class="flex items-center gap-2 cursor-pointer group">
                                         <input type="checkbox" wire:model="is_recommended" class="w-3 h-3 rounded border-stone-300 text-primary focus:ring-primary">
                                         <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">Recommended</span>
+                                    </label>
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_upsc_relevant" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
+                                        <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">UPSC Relevant</span>
                                     </label>
                                 </div>
                             </div>

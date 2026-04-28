@@ -9,7 +9,7 @@
                 <li>
                     <div class="flex items-center">
                         <span class="material-symbols-outlined text-stone-300 text-sm mx-1">chevron_right</span>
-                        <a href="{{ route('community.index', ['topic' => $discussion->topic?->slug]) }}" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest hover:text-primary transition-colors">{{ $discussion->topic?->name }}</a>
+                        <a href="{{ route('community.index', ['tag' => $discussion->tags->first()?->slug]) }}" class="text-[10px] font-bold text-stone-400 uppercase tracking-widest hover:text-primary transition-colors">{{ $discussion->tags->first()?->name ?? 'Discussion' }}</a>
                     </div>
                 </li>
                 <li aria-current="page">
@@ -203,11 +203,11 @@
                         @foreach($relatedDiscussions as $rd)
                             <a href="{{ route('community.show', $rd->slug) }}" class="flex gap-4 group cursor-pointer">
                                 <div class="shrink-0 w-12 h-12 rounded-2xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 group-hover:bg-primary group-hover:text-white transition-all overflow-hidden text-sm uppercase font-bold">
-                                    {{ substr($rd->topic?->name, 0, 2) }}
+                                    {{ substr($rd->tags->first()?->name ?? 'TH', 0, 2) }}
                                 </div>
                                 <div class="space-y-1">
                                     <h5 class="text-sm font-bold text-stone-800 leading-tight group-hover:text-primary transition-colors line-clamp-2">{{ $rd->title }}</h5>
-                                    <p class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">{{ $rd->replies_count }} Replies • {{ $rd->topic?->name }}</p>
+                                    <p class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">{{ $rd->replies_count }} Replies • {{ $rd->tags->first()?->name ?? 'General' }}</p>
                                 </div>
                             </a>
                         @endforeach

@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
+use App\Models\Concerns\HasTags;
+
 class ExploreArticle extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $fillable = [
-        'topic_id',
         'title',
         'slug',
         'excerpt',
@@ -23,12 +24,12 @@ class ExploreArticle extends Model
         'status',
         'is_featured',
         'is_members_only',
+        'is_upsc_relevant',
+        'sort_order',
         'reading_time_minutes',
         'published_at',
         'created_by',
         'updated_by',
-        // SEO fields are kept in migration/model to avoid DB instability 
-        // but will be ignored in the UI and business logic
         'seo_title',
         'seo_description',
     ];
@@ -36,6 +37,7 @@ class ExploreArticle extends Model
     protected $casts = [
         'is_featured' => 'boolean',
         'is_members_only' => 'boolean',
+        'is_upsc_relevant' => 'boolean',
         'published_at' => 'datetime',
     ];
 
@@ -49,14 +51,6 @@ class ExploreArticle extends Model
         }
 
         return $user && $user->isMember();
-    }
-
-    /**
-     * Relationship with Topic (Global).
-     */
-    public function topic()
-    {
-        return $this->belongsTo(Topic::class, 'topic_id');
     }
 
     /**

@@ -14,8 +14,8 @@ class ModulesIndex extends Component
 {
     use WithPagination;
 
-    #[Url(as: 'topic_id', except: '')]
-    public $topicId = '';
+    #[Url(as: 'tags')]
+    public $tagFilters = []; // group_id => tag_slug
 
     #[Url(as: 'level', except: '')]
     public $level = '';
@@ -31,30 +31,34 @@ class ModulesIndex extends Component
 
     public function updating($name)
     {
-        if (in_array($name, ['topicId', 'level', 'search'])) {
+        if (in_array($name, ['level', 'search']) || str_starts_with($name, 'tagFilters')) {
             $this->resetPage();
         }
     }
 
-    public function setTopic($id)
+    public function setTag($groupId, $slug)
     {
-        $this->topicId = $id;
+        if (($this->tagFilters[$groupId] ?? null) === $slug) {
+            unset($this->tagFilters[$groupId]);
+        } else {
+            $this->tagFilters[$groupId] = $slug;
+        }
         $this->resetPage();
     }
 
     public function render(LmsPublicService $lmsService)
     {
         $filters = [
-            'topic_id' => $this->topicId,
+            'tag_filters' => $this->tagFilters,
             'level' => $this->level,
             'search' => $this->search,
         ];
 
-        $topics = $lmsService->getActiveModuleTopics();
+        $tagGroups = $lmsService->getPublicTagGroups();
         $modules = $lmsService->getPublishedModules($filters);
 
         return view('livewire.public.lms.modules-index', [
-            'topics' => $topics,
+            'tagGroups' => $tagGroups,
             'modules' => $modules,
         ])->title('Anthropology Modules');
     }

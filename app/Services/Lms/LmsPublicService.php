@@ -95,16 +95,11 @@ class LmsPublicService
     }
 
     /**
-     * Retrieve all active topics that have associated modules.
+     * Retrieve active tag groups that should be shown as filters for LMS.
      */
-    public function getActiveModuleTopics()
+    public function getPublicTagGroups()
     {
-        return Topic::active()
-            ->whereHas('lmsModules', function($query) {
-                $query->published();
-            })
-            ->orderBy('name')
-            ->get();
+        return \App\Models\TagGroup::getGroupsWithUsage(LmsModule::class);
     }
 
     /**
@@ -112,13 +107,21 @@ class LmsPublicService
      */
     public function getPublishedModules($filters = [])
     {
-        $query = LmsModule::with(['topic', 'creator'])
+        $query = LmsModule::with(['tags', 'creator'])
             ->withCount(['lessons', 'resources'])
             ->published()
             ->orderByDesc('created_at');
 
-        if (!empty($filters['topic_id'])) {
-            $query->where('topic_id', $filters['topic_id']);
+        if (!empty($filters['tag_id'])) {
+            $query->withTag($filters['tag_id']);
+        }
+
+        if (!empty($filters['tag_filters']) && is_array($filters['tag_filters'])) {
+            foreach ($filters['tag_filters'] as $groupId => $slug) {
+                if ($slug) {
+                    $query->withTag($slug);
+                }
+            }
         }
 
         if (!empty($filters['level'])) {
@@ -141,7 +144,7 @@ class LmsPublicService
      */
     public function getModuleBySlug(string $slug): ?LmsModule
     {
-        return LmsModule::with(['topic', 'creator', 'lessons', 'resources'])
+        return LmsModule::with(['tags', 'creator', 'lessons', 'resources'])
             ->published()
             ->where('slug', $slug)
             ->first();
@@ -188,16 +191,17 @@ class LmsPublicService
         ];
     }
 
-    /**
-     * Get related modules based on topic or level.
-     */
     public function getRelatedModules(LmsModule $module, int $limit = 3)
     {
+        $tagIds = $module->tags->pluck('id');
+
         return LmsModule::published()
             ->where('id', '!=', $module->id)
-            ->where(function($q) use ($module) {
-                $q->where('topic_id', $module->topic_id)
-                  ->orWhere('level', $module->level);
+            ->where(function($q) use ($module, $tagIds) {
+                $q->whereHas('tags', function($sq) use ($tagIds) {
+                    $sq->whereIn('tags.id', $tagIds);
+                })
+                ->orWhere('level', $module->level);
             })
             ->withCount(['lessons'])
             ->limit($limit)

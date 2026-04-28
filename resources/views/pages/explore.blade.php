@@ -20,22 +20,29 @@
 </section>
 
 <!-- Theme Navigation Pills -->
-@if($topics->count() > 0)
 <div class="bg-stone-200/20 dark:bg-stone-900 py-6 border-b border-stone-200/50 dark:border-primary/10">
-    <div class="max-w-7xl mx-auto px-6 flex gap-3 overflow-x-auto no-scrollbar pb-2">
-        <a href="{{ route('explore.index') }}" 
-           class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors {{ !$topicId ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
-            All Topics
-        </a>
-        @foreach($topics as $topic)
-            <a href="{{ route('explore.index', ['topic_id' => $topic->id]) }}" 
-               class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors {{ $topicId == $topic->id ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
-                {{ $topic->name }}
-            </a>
+    <div class="max-w-7xl mx-auto px-6 space-y-4">
+        @foreach($tagGroups as $group)
+            <div class="flex items-center gap-4 overflow-x-auto no-scrollbar">
+                <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest shrink-0">{{ $group->name }}:</span>
+                <div class="flex gap-2">
+                    @if($loop->first)
+                        <a href="{{ route('explore.index') }}" 
+                           class="whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors {{ !$tagId ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
+                            All
+                        </a>
+                    @endif
+                    @foreach($group->activeTags as $tag)
+                        <a href="{{ route('explore.index', ['tag_id' => $tag->id]) }}" 
+                           class="whitespace-nowrap px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest transition-colors {{ $tagId == $tag->id ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
+                            {{ $tag->name }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         @endforeach
     </div>
 </div>
-@endif
 
 <!-- Featured Story -->
 <section class="max-w-7xl mx-auto px-6 py-16">
@@ -46,7 +53,7 @@
         </div>
         <div class="p-8 lg:p-12">
             <span class="text-primary font-bold uppercase tracking-widest text-xs mb-4 block">
-                {{ $featuredArticle->topic ? $featuredArticle->topic->name : 'Feature Story' }}
+                {{ $featuredArticle->tags->first() ? $featuredArticle->tags->first()->name : 'Feature Story' }}
             </span>
             <h2 class="font-serif text-4xl lg:text-5xl font-bold mb-6 leading-tight text-stone-900">
                 {{ $featuredArticle->title }}
@@ -65,7 +72,7 @@
                     </p>
                 </div>
             </div>
-            <a href="#" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
+            <a href="{{ route('explore.show', $featuredArticle->slug) }}" class="inline-block bg-primary text-white px-8 py-3 rounded-lg font-bold hover:bg-primary/90 transition-all">
                 Read Story
             </a>
         </div>
@@ -105,12 +112,12 @@
             </p>
             <div class="flex items-center justify-between text-xs text-stone-500 font-medium">
                 <div class="flex items-center gap-2">
-                    <span>{{ $article->published_at ? $article->published_at->format('F d, Y') : 'Unknown' }}</span> 
+                    <span>{{ $article->published_at ? $article->published_at->format('F d, Y') : 'Recently' }}</span> 
                     <span>•</span> 
                     <span>{{ $article->reading_time_minutes ?? 5 }} min read</span>
                 </div>
-                @if($article->topic)
-                <span class="text-primary font-bold uppercase tracking-widest text-[10px]">{{ $article->topic->name }}</span>
+                @if($article->tags->isNotEmpty())
+                <span class="text-primary font-bold uppercase tracking-widest text-[10px]">{{ $article->tags->first()->name }}</span>
                 @endif
             </div>
         </div>

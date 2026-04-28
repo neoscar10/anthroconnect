@@ -13,18 +13,26 @@ class DiscussionIndex extends Component
     use WithPagination;
 
     public $search = '';
-    public $topic_filter = '';
     public $status_filter = '';
+    public $tagFilters = []; // key: group_id, value: tag_id
+
+    // Edit Modal State
+    public $isModalOpen = false;
+    public $editingId = null;
+    public $editTitle = '';
+    public $editBody = '';
+    public $editStatus = 'published';
+    public $selectedTags = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
-        'topic_filter' => ['except' => ''],
+        'tagFilters' => ['except' => []],
         'status_filter' => ['except' => ''],
     ];
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['search', 'topic_filter', 'status_filter'])) {
+        if (in_array($propertyName, ['search', 'status_filter']) || str_starts_with($propertyName, 'tagFilters')) {
             $this->resetPage();
         }
     }
@@ -63,27 +71,65 @@ class DiscussionIndex extends Component
         session()->flash('success', 'Discussion moved to trash.');
     }
 
+    public function editDiscussion($id)
+    {
+        $discussion = CommunityDiscussion::with('tags')->findOrFail($id);
+        $this->editingId = $discussion->id;
+        $this->editTitle = $discussion->title;
+        $this->editBody = $discussion->body;
+        $this->editStatus = $discussion->status;
+        $this->selectedTags = $discussion->tags->pluck('id')->toArray();
+        
+        $this->isModalOpen = true;
+        $this->dispatch('set-tags', id: 'discussion-tag-selector', tags: $this->selectedTags);
+    }
+
+    public function saveDiscussion()
+    {
+        $this->validate([
+            'editTitle' => 'required|string|max:255',
+            'editBody' => 'required|string',
+            'editStatus' => 'required|in:published,hidden,archived',
+        ]);
+
+        $discussion = CommunityDiscussion::findOrFail($this->editingId);
+        $discussion->update([
+            'title' => $this->editTitle,
+            'body' => $this->editBody,
+            'status' => $this->editStatus,
+        ]);
+
+        $discussion->syncTags($this->selectedTags);
+
+        $this->isModalOpen = false;
+        session()->flash('success', 'Discussion updated successfully.');
+    }
+
     public function render(CommunityDiscussionService $service)
     {
-        $discussions = CommunityDiscussion::with(['author', 'topic'])
+        $query = CommunityDiscussion::with(['author', 'tags'])
             ->when($this->search, function($q) {
                 $q->where('title', 'like', "%{$this->search}%")
                   ->orWhere('body', 'like', "%{$this->search}%");
-            })
-            ->when($this->topic_filter, function($q) {
-                $q->where('community_topic_id', $this->topic_filter);
-            })
-            ->when($this->status_filter, function($q) {
+            });
+
+        foreach ($this->tagFilters as $groupId => $tagId) {
+            if ($tagId) {
+                $query->withTag($tagId);
+            }
+        }
+
+        $discussions = $query->when($this->status_filter, function($q) {
                 $q->where('status', $this->status_filter);
             })
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
-        $topics = CommunityTopic::orderBy('name')->get();
+        $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(CommunityDiscussion::class);
 
         return view('livewire.admin.community.discussion-index', [
             'discussions' => $discussions,
-            'topics' => $topics
+            'filterableTagGroups' => $filterableTagGroups
         ])->layout('layouts.admin', ['title' => 'Community Discussion Management']);
     }
 }

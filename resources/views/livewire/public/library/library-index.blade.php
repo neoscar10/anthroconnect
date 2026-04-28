@@ -55,12 +55,11 @@
         </div>
     </section>
 
-    @if($search || $type || $region || $year || $topic)
+    @if($search || $type || $region || $year || !empty($tagFilters))
         <section class="ac-library-section">
             <div class="container mx-auto px-4">
                 <div class="ac-section-head">
                     <h2>Search Results</h2>
-                    <button type="button" wire:click="$set('search', ''); $set('type', ''); $set('region', ''); $set('year', ''); $set('topic', '');" class="text-primary font-bold text-sm hover:underline">Clear Filters</button>
                 </div>
 
                 @if($resources->count())
@@ -148,20 +147,20 @@
                             </div>
                         </div>
 
-                        <div class="ac-sidebar-block">
-                            <h3>Browse by Topic</h3>
+                        @foreach($tagGroups as $group)
+                            <div class="ac-sidebar-block">
+                                <h3>{{ $group->name }}</h3>
 
-                            <div class="ac-topic-grid">
-                                @forelse($topics as $topicItem)
-                                    <button type="button" wire:click="setTopic('{{ $topicItem->slug }}')" class="ac-topic-card group {{ $topic === $topicItem->slug ? 'ring-2 ring-primary border-primary' : '' }}">
-                                        <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">category</span>
-                                        <span>{{ $topicItem->name }}</span>
-                                    </button>
-                                @empty
-                                    <p class="text-stone-400 text-sm italic">No topics available yet.</p>
-                                @endforelse
+                                <div class="ac-topic-grid">
+                                    @foreach($group->activeTags as $tagItem)
+                                        <button type="button" wire:click="setTag('{{ $group->id }}', '{{ $tagItem->slug }}')" class="ac-topic-card group {{ ($tagFilters[$group->id] ?? null) === $tagItem->slug ? 'ring-2 ring-primary border-primary' : '' }}">
+                                            <span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">category</span>
+                                            <span>{{ $tagItem->name }}</span>
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @endforeach
                     </aside>
                 </div>
             </div>

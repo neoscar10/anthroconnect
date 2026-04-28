@@ -14,8 +14,8 @@ class ExplorePage extends Component
 {
     use WithPagination;
 
-    #[Url(as: 'topic_id', except: '')]
-    public $topicId = '';
+    #[Url(as: 'tag_id', except: '')]
+    public $tagId = '';
 
     #[On('membership-activated')]
     public function refresh()
@@ -23,23 +23,23 @@ class ExplorePage extends Component
         // Triggers re-render
     }
 
-    public function setTopic($id)
+    public function setTag($id)
     {
-        $this->topicId = $id;
+        $this->tagId = $id;
         $this->resetPage(); // Reset pagination when filter changes
     }
 
     public function render(ExplorePublicService $exploreService)
     {
-        $filters = ['topic_id' => $this->topicId];
+        $filters = ['tag_id' => $this->tagId];
 
-        $topics = $exploreService->getPublicTopics();
-        $featuredArticles = $exploreService->getFeaturedArticles($this->topicId);
+        $tagGroups = $exploreService->getPublicTagGroups();
+        $featuredArticles = $exploreService->getFeaturedArticles($this->tagId);
         
         $featuredIds = $featuredArticles->pluck('id')->toArray();
         $articles = $exploreService->getPublishedArticles(array_merge($filters, ['exclude_ids' => $featuredIds]));
 
-        return view('livewire.public.explore-page', compact('topics', 'featuredArticles', 'articles'))
+        return view('livewire.public.explore-page', compact('tagGroups', 'featuredArticles', 'articles'))
             ->title('Explore Humanity');
     }
 }

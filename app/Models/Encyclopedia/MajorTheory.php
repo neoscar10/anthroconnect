@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Models\Concerns\HasTags;
+
 class MajorTheory extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $table = 'encyclopedia_major_theories';
 
@@ -19,5 +21,10 @@ class MajorTheory extends Model
         'body_markdown',
         'key_thinkers_text',
         'status',
+        'is_upsc_relevant',
+    ];
+
+    protected $casts = [
+        'is_upsc_relevant' => 'boolean',
     ];
 }

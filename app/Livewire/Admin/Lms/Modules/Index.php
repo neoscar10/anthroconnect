@@ -14,7 +14,9 @@ class Index extends Component
     public $search = '';
     public $statusFilter = '';
     public $levelFilter = '';
-    public $topicFilter = '';
+    public $upscFilter = 'all';
+    public $tags = [];
+    public $tagFilters = []; // key: group_id, value: tag_id
 
     // Modal State
     public $isModalOpen = false;
@@ -24,14 +26,15 @@ class Index extends Component
     public $short_description = '';
     public $overview = '';
     public $level = 'beginner';
-    public $topic_id;
     public $is_published = false;
+    public $is_upsc_relevant = false;
 
     protected $queryString = [
         'search' => ['except' => ''],
         'statusFilter' => ['except' => ''],
         'levelFilter' => ['except' => ''],
-        'topicFilter' => ['except' => ''],
+        'upscFilter' => ['except' => 'all'],
+        'tagFilters' => ['except' => []],
     ];
 
     public function updatedTitle()
@@ -44,9 +47,10 @@ class Index extends Component
     public function openCreateModal()
     {
         $this->resetValidation();
-        $this->reset(['moduleId', 'title', 'slug', 'short_description', 'level', 'topic_id', 'is_published']);
+        $this->reset(['moduleId', 'title', 'slug', 'short_description', 'level', 'tags', 'is_published', 'is_upsc_relevant']);
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
+        $this->dispatch('set-tags', id: 'lms-module-tag-selector', tags: []);
     }
 
     public function openEditModal($id)
@@ -59,10 +63,12 @@ class Index extends Component
         $this->short_description = $module->short_description;
         $this->overview = $module->overview;
         $this->level = $module->level ?? 'beginner';
-        $this->topic_id = $module->topic_id;
+        $this->tags = $module->tags->pluck('id')->toArray();
         $this->is_published = $module->is_published;
+        $this->is_upsc_relevant = $module->is_upsc_relevant;
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
+        $this->dispatch('set-tags', id: 'lms-module-tag-selector', tags: $this->tags);
     }
 
     public function saveModule()
@@ -73,7 +79,9 @@ class Index extends Component
             'short_description' => 'required|string|max:1000',
             'overview' => 'nullable|string',
             'level' => 'required|in:beginner,intermediate,advanced',
-            'topic_id' => 'nullable|exists:topics,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
+            'is_upsc_relevant' => 'boolean',
         ]);
 
         $data = [
@@ -82,25 +90,32 @@ class Index extends Component
             'short_description' => $this->short_description,
             'overview' => $this->overview,
             'level' => $this->level,
-            'topic_id' => $this->topic_id,
             'is_published' => $this->is_published,
+            'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
         ];
 
         if ($this->moduleId) {
             $module = LmsModule::findOrFail($this->moduleId);
             $module->update(array_merge($data, ['updated_by' => auth()->id()]));
+            $module->syncTags($this->tags);
             session()->flash('success', 'Module details updated.');
         } else {
             $module = LmsModule::create(array_merge($data, [
                 'created_by' => auth()->id(),
                 'updated_by' => auth()->id(),
             ]));
+            $module->syncTags($this->tags);
             session()->flash('success', 'Module created successfully.');
             return redirect()->route('admin.lms.modules.edit', $module);
         }
 
         $this->isModalOpen = false;
         $this->dispatch('close-modal');
+    }
+
+    public function updatedTagFilters()
+    {
+        $this->resetPage();
     }
 
     public function updatingSearch()
@@ -124,7 +139,7 @@ class Index extends Component
 
     public function render()
     {
-        $query = LmsModule::with(['topic', 'lessons', 'resources'])
+        $query = LmsModule::with(['tags', 'lessons', 'resources'])
             ->withCount(['lessons', 'resources']);
 
         if ($this->search) {
@@ -139,16 +154,25 @@ class Index extends Component
             $query->where('level', $this->levelFilter);
         }
 
-        if ($this->topicFilter) {
-            $query->where('topic_id', $this->topicFilter);
+        if ($this->upscFilter === 'upsc') {
+            $query->where('is_upsc_relevant', true);
+        } elseif ($this->upscFilter === 'general') {
+            $query->where('is_upsc_relevant', false);
+        }
+
+        foreach ($this->tagFilters as $groupId => $tagId) {
+            if ($tagId) {
+                $query->withTag($tagId);
+            }
         }
 
         $modules = $query->orderBy('created_at', 'desc')->paginate(10);
-        $topics = Topic::active()->orderBy('name')->get();
+        
+        $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(LmsModule::class);
 
         return view('livewire.admin.lms.modules.index', [
             'modules' => $modules,
-            'topics' => $topics,
+            'filterableTagGroups' => $filterableTagGroups,
         ])->layout('layouts.admin', ['title' => 'LMS Modules']);
     }
 }

@@ -31,8 +31,22 @@ class LibraryAdminService
             $query->where('status', $filters['status']);
         }
 
+        if (!empty($filters['tag_ids']) && is_array($filters['tag_ids'])) {
+            foreach ($filters['tag_ids'] as $tagId) {
+                if ($tagId) $query->withTag($tagId);
+            }
+        }
+
         if (!empty($filters['type_id'])) {
             $query->where('resource_type_id', $filters['type_id']);
+        }
+
+        if (isset($filters['is_upsc_relevant'])) {
+            if ($filters['is_upsc_relevant'] === 'upsc') {
+                $query->where('is_upsc_relevant', true);
+            } elseif ($filters['is_upsc_relevant'] === 'general') {
+                $query->where('is_upsc_relevant', false);
+            }
         }
 
 
@@ -48,13 +62,11 @@ class LibraryAdminService
         return DB::transaction(function () use ($data) {
             $resource = LibraryResource::create($data);
 
-            if (isset($data['topics'])) {
-                $resource->topics()->sync($data['topics']);
+            if (isset($data['tags'])) {
+                $resource->syncTags($data['tags']);
             }
 
-            if (isset($data['tags'])) {
-                $this->syncTags($resource, $data['tags']);
-            }
+
 
             if (isset($data['related_resources'])) {
                 $this->syncRelatedResources($resource, $data['related_resources']);
@@ -76,13 +88,11 @@ class LibraryAdminService
         return DB::transaction(function () use ($resource, $data) {
             $resource->update($data);
 
-            if (isset($data['topics'])) {
-                $resource->topics()->sync($data['topics']);
+            if (isset($data['tags'])) {
+                $resource->syncTags($data['tags']);
             }
 
-            if (isset($data['tags'])) {
-                $this->syncTags($resource, $data['tags']);
-            }
+
 
             if (isset($data['related_resources'])) {
                 $this->syncRelatedResources($resource, $data['related_resources']);

@@ -207,6 +207,23 @@
                     </div>
 
 
+                    <div class="space-y-4">
+                        <label class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 block px-1">Classification Taxonomy</label>
+                        <x-admin.tag-selector id="lms-editor-tag-selector" wire:model="tags" />
+                        
+                        <div class="pt-4 border-t border-outline-variant/10">
+                            <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                <div class="relative inline-flex items-center">
+                                    <input wire:model="is_upsc_relevant" type="checkbox" class="sr-only peer">
+                                    <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">UPSC Relevant</span>
+                                    <span class="text-[8px] text-stone-400 uppercase tracking-tight italic">Flag for UPSC Hub</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </section>
 

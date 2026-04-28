@@ -27,11 +27,21 @@
     <!-- Management Controls -->
     <div class="bg-surface-container-lowest rounded-3xl shadow-sm border border-outline-variant/10 overflow-hidden mb-8">
         <div class="p-6 border-b border-outline-variant/10 flex flex-wrap gap-4 items-center justify-between bg-surface-container-low/30">
-            <div class="flex gap-4 items-center flex-1 min-w-[300px]">
+            <div class="flex gap-4 items-center flex-wrap">
                 <div class="relative flex-1 max-w-sm">
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
                     <input wire:model.live.debounce.300ms="search" class="w-full bg-white border border-outline-variant/20 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm" placeholder="Search anthropologists..." type="text"/>
                 </div>
+
+                @foreach($filterableTagGroups as $group)
+                    <select wire:model.live="tagFilters.{{ $group->id }}" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                        <option value="">All {{ $group->name }}</option>
+                        @foreach($group->activeTags as $tag)
+                            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                        @endforeach
+                    </select>
+                @endforeach
+
                 <select wire:model.live="statusFilter" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
                     <option value="">All Status</option>
                     <option value="active">Active</option>
@@ -42,10 +52,15 @@
                     <option value="1">Featured Only</option>
                     <option value="0">Not Featured</option>
                 </select>
+                <select wire:model.live="upscFilter" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="">All UPSC Status</option>
+                    <option value="upsc">UPSC Relevant</option>
+                    <option value="general">General</option>
+                </select>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto pb-24">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-surface-container-low/50">
                     <tr>
@@ -76,6 +91,9 @@
                                             @if($person->is_featured)
                                                 <span class="material-symbols-outlined text-primary text-[12px]" style="font-variation-settings: 'FILL' 1;">star</span>
                                             @endif
+                                            @if($person->is_upsc_relevant)
+                                                <span class="badge bg-warning-subtle text-warning text-[8px] uppercase font-bold px-2 py-0.5 rounded">UPSC</span>
+                                            @endif
                                         </p>
                                         <p class="text-[10px] text-stone-400 font-mono italic">{{ $person->birth_year ? $person->birth_year . ' - ' : '' }}{{ $person->death_year ?? 'Present' }}</p>
                                     </div>
@@ -87,12 +105,12 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex flex-wrap gap-1">
-                                    @php $tags = $person->topics->take(3); @endphp
-                                    @foreach($tags as $topic)
-                                        <span class="px-2 py-0.5 rounded bg-surface-container-high text-[9px] font-bold text-on-surface-variant">{{ $topic->name }}</span>
+                                    @php $tags = $person->tags->take(3); @endphp
+                                    @foreach($tags as $tag)
+                                        <span class="px-2 py-0.5 rounded bg-surface-container-high text-[9px] font-bold text-on-surface-variant">{{ $tag->name }}</span>
                                     @endforeach
-                                    @if($person->topics->count() > 3)
-                                        <span class="px-2 py-0.5 rounded bg-stone-100 text-[9px] font-bold text-stone-400">+{{ $person->topics->count() - 3 }}</span>
+                                    @if($person->tags->count() > 3)
+                                        <span class="px-2 py-0.5 rounded bg-stone-100 text-[9px] font-bold text-stone-400">+{{ $person->tags->count() - 3 }}</span>
                                     @endif
                                 </div>
                             </td>
@@ -290,6 +308,15 @@
                                             <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mark as Featured Figure</span>
                                         </label>
                                     </div>
+                                    <div class="pt-2 border-t border-outline-variant/10">
+                                        <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                            <div class="relative inline-flex items-center">
+                                                <input type="checkbox" wire:model="is_upsc_relevant" class="sr-only peer">
+                                                <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                            </div>
+                                            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">UPSC Relevant</span>
+                                        </label>
+                                    </div>
                                 </div>
 
                                 <!-- Relationships: Core Concepts -->
@@ -313,40 +340,10 @@
                                     </div>
                                 </div>
 
-                                <!-- Relationships: Topics -->
+                                <!-- Relationships: Tags -->
                                 <div class="bg-surface-container-low/30 border border-outline-variant/10 rounded-[28px] p-8 space-y-4">
-                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Assigned Topics</label>
-                                    
-                                    <div class="max-h-40 overflow-y-auto no-scrollbar border rounded-xl bg-white p-3 space-y-2">
-                                        @foreach($topics as $topic)
-                                            <label class="flex items-center gap-3 cursor-pointer p-1.5 rounded hover:bg-stone-50">
-                                                <input type="checkbox" wire:model="selectedTopics" value="{{ $topic->id }}" class="rounded border-stone-300 text-primary focus:ring-primary">
-                                                <span class="text-xs font-bold text-on-surface block">{{ $topic->name }}</span>
-                                            </label>
-                                        @endforeach
-                                        @if($topics->isEmpty())
-                                            <p class="text-xs text-stone-400 italic p-2 hidden">No existing topics.</p>
-                                        @endif
-                                    </div>
-
-                                    <div class="mt-4 pt-4 border-t border-outline-variant/20 space-y-3">
-                                        <label class="text-[9px] uppercase font-bold text-stone-400 tracking-widest block">Add Custom Topics (Inline)</label>
-                                        <div class="flex gap-2">
-                                            <input wire:model="newTopicInput" type="text" class="flex-1 bg-white border border-outline-variant/20 rounded-lg px-3 py-2 text-xs focus:ring-2 focus:ring-primary shadow-sm" placeholder="Ex: Kinship">
-                                            <button type="button" wire:click="addNewTopic" class="bg-stone-200 text-stone-600 px-3 py-2 rounded-lg text-xs font-bold hover:bg-stone-300 transition-colors">Add</button>
-                                        </div>
-                                        
-                                        @if(count($newTopicsList) > 0)
-                                            <div class="flex flex-wrap gap-2 mt-3">
-                                                @foreach($newTopicsList as $index => $newTopic)
-                                                    <div class="bg-primary/10 text-primary text-[10px] px-2 py-1 rounded flex items-center gap-1 font-bold">
-                                                        {{ $newTopic }}
-                                                        <button type="button" wire:click="removeNewTopic({{ $index }})" class="hover:text-error transition-colors"><span class="material-symbols-outlined text-[12px]">close</span></button>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </div>
+                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Classifications & Tags</label>
+                                    <x-admin.tag-selector id="anthropologist-tag-selector" wire:model="tags" />
                                 </div>
                             </div>
                         </div>

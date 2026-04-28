@@ -119,4 +119,12 @@ class User extends Authenticatable
     {
         return ! is_null($this->otp_verified_at);
     }
+
+    /**
+     * Relationship to exam submissions.
+     */
+    public function examSubmissions()
+    {
+        return $this->hasMany(\App\Models\Exam\ExamAnswerSubmission::class);
+    }
 }

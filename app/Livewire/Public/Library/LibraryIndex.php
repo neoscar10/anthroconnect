@@ -28,15 +28,15 @@ class LibraryIndex extends Component
     #[Url(as: 'year', except: '')]
     public $year = '';
 
-    #[Url(as: 'topic', except: '')]
-    public $topic = '';
+    #[Url(as: 'tags')]
+    public $tagFilters = []; // group_id => tag_slug
 
     #[Url(as: 'sort', except: 'latest')]
     public $sort = 'latest';
 
     public function updating($name)
     {
-        if (in_array($name, ['search', 'type', 'region', 'year', 'topic', 'sort'])) {
+        if (in_array($name, ['search', 'type', 'region', 'year', 'sort']) || str_starts_with($name, 'tagFilters')) {
             $this->resetPage();
         }
     }
@@ -47,9 +47,13 @@ class LibraryIndex extends Component
         // Triggers re-render to reflect new access levels
     }
 
-    public function setTopic($slug)
+    public function setTag($groupId, $slug)
     {
-        $this->topic = $slug;
+        if (($this->tagFilters[$groupId] ?? null) === $slug) {
+            unset($this->tagFilters[$groupId]);
+        } else {
+            $this->tagFilters[$groupId] = $slug;
+        }
         $this->resetPage();
     }
 
@@ -60,7 +64,7 @@ class LibraryIndex extends Component
             'type' => $this->type,
             'region' => $this->region,
             'year' => $this->year,
-            'topic' => $this->topic,
+            'tag_filters' => $this->tagFilters,
             'sort' => $this->sort,
         ];
 
@@ -70,6 +74,7 @@ class LibraryIndex extends Component
             'featuredResources' => $libraryService->getFeaturedResources(3),
             'latestResources' => $libraryService->getLatestResources(6),
             'recommendedResources' => $libraryService->getRecommendedResources($user, 3),
+            'tagGroups' => $libraryService->getPublicTagGroups(),
             'topics' => $libraryService->getBrowseTopics(8),
             'resourceTypes' => $libraryService->getResourceTypes(),
             'regions' => $libraryService->getRegions(),

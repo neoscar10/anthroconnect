@@ -13,6 +13,7 @@ class Index extends Component
 
     public $search = '';
     public $statusFilter = '';
+    public $upscFilter = '';
 
     // Form fields
     public $conceptId;
@@ -20,11 +21,13 @@ class Index extends Component
     public $short_description = '';
     public $body_markdown = '';
     public $status = 'active';
+    public $is_upsc_relevant = false;
+    public $tags = [];
 
     public $isModalOpen = false;
     public $modalSessionId = '';
 
-    protected $updatesQueryString = ['search', 'statusFilter'];
+    protected $queryString = ['search', 'statusFilter', 'upscFilter', 'tagFilters'];
 
     protected function rules()
     {
@@ -33,13 +36,16 @@ class Index extends Component
             'short_description' => 'required|string|max:1000',
             'body_markdown' => 'nullable|string',
             'status' => 'required|in:active,inactive',
+            'is_upsc_relevant' => 'boolean',
+            'tags' => 'array',
+            'tags.*' => 'exists:tags,id',
         ];
     }
 
     public function openModal($id = null)
     {
         $this->resetValidation();
-        $this->reset('title', 'short_description', 'body_markdown', 'status', 'conceptId');
+        $this->reset('title', 'short_description', 'body_markdown', 'status', 'is_upsc_relevant', 'conceptId', 'tags');
 
         if ($id) {
             $concept = CoreConcept::findOrFail($id);
@@ -48,11 +54,14 @@ class Index extends Component
             $this->short_description = $concept->short_description;
             $this->body_markdown = $concept->body_markdown;
             $this->status = $concept->status;
+            $this->is_upsc_relevant = $concept->is_upsc_relevant;
+            $this->tags = $concept->tags->pluck('id')->toArray();
         }
 
         $this->modalSessionId = uniqid();
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
+        $this->dispatch('set-tags', id: 'concept-tag-selector', tags: $this->tags);
     }
 
     public function closeModal()
@@ -70,6 +79,7 @@ class Index extends Component
             'short_description' => $this->short_description,
             'body_markdown' => $this->body_markdown,
             'status' => $this->status,
+            'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
         ];
 
         if ($this->conceptId) {
@@ -80,10 +90,12 @@ class Index extends Component
             }
 
             $concept->update($data);
+            $concept->syncTags($this->tags);
             session()->flash('success', 'Core Concept updated successfully.');
         } else {
             $data['slug'] = $this->generateUniqueSlug($this->title);
-            CoreConcept::create($data);
+            $concept = CoreConcept::create($data);
+            $concept->syncTags($this->tags);
             session()->flash('success', 'Core Concept created successfully.');
         }
 
@@ -121,9 +133,18 @@ class Index extends Component
         session()->flash('success', 'Core Concept moved to trash.');
     }
 
+    public $tagFilters = []; // key: group_id, value: tag_id
+
+
+
+    public function updatedTagFilters()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $query = CoreConcept::query()->orderBy('title');
+        $query = CoreConcept::with('tags')->orderBy('title');
 
         if (!empty($this->search)) {
             $query->where(function ($q) {
@@ -136,9 +157,22 @@ class Index extends Component
             $query->where('status', $this->statusFilter);
         }
 
-        $concepts = $query->paginate(15);
+        if ($this->upscFilter === 'upsc') {
+            $query->where('is_upsc_relevant', true);
+        } elseif ($this->upscFilter === 'general') {
+            $query->where('is_upsc_relevant', false);
+        }
 
-        return view('livewire.admin.encyclopedia.core-concepts.index', compact('concepts'))
+        foreach ($this->tagFilters as $groupId => $tagId) {
+            if ($tagId) {
+                $query->withTag($tagId);
+            }
+        }
+
+        $concepts = $query->paginate(15);
+        $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(CoreConcept::class);
+
+        return view('livewire.admin.encyclopedia.core-concepts.index', compact('concepts', 'filterableTagGroups'))
             ->layout('layouts.admin', ['title' => 'Encyclopedia: Core Concepts']);
     }
 }

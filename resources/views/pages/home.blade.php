@@ -154,9 +154,9 @@
             <p class="text-stone-400 text-lg mb-10 leading-relaxed font-body">
                 Visualize the connections between global civilizations through time. Our interactive cartography tool allows you to trace migration, trade, and cultural diffusion.
             </p>
-            <button class="w-full lg:w-auto py-5 px-12 bg-orange-800 text-white font-bold rounded-2xl active:scale-95 hover:bg-orange-700 transition-all shadow-2xl shadow-orange-900/40 flex items-center justify-center gap-2">
+            <a href="{{ route('knowledge-map.show', ['from' => request()->fullUrl()]) }}" class="w-full lg:w-auto py-5 px-12 bg-orange-800 text-white font-bold rounded-2xl active:scale-95 hover:bg-orange-700 transition-all shadow-2xl shadow-orange-900/40 flex items-center justify-center gap-2 text-decoration-none">
                 Launch Explorer <span class="material-symbols-outlined text-sm">north_east</span>
-            </button>
+            </a>
         </div>
         
         <div class="aspect-video w-full bg-stone-800 rounded-3xl flex items-center justify-center border border-stone-700 relative overflow-hidden shadow-2xl">

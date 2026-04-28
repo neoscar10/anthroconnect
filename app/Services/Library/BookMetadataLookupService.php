@@ -26,18 +26,37 @@ class BookMetadataLookupService
             ];
         }
 
-        // Try Google Books First
-        $result = $this->lookupViaGoogle($normalizedIsbn);
-        if ($result['success']) return $result;
+        $errors = [];
 
-        // If Google failed due to quota (429) or no results, try Open Library
+        // Try Google Books First
+        $googleResult = $this->lookupViaGoogle($normalizedIsbn);
+        if ($googleResult['success']) return $googleResult;
+        
+        // If Google failed (quota or not found), log error but continue to Open Library
+        if (isset($googleResult['message'])) {
+            $errors[] = $googleResult['message'];
+        }
+
+        // If Google failed, try Open Library
         $olResult = $this->lookupViaOpenLibrary($normalizedIsbn);
         if ($olResult['success']) return $olResult;
 
-        // If both failed, return the first error or a generic one
+        if (isset($olResult['message'])) {
+            $errors[] = $olResult['message'];
+        }
+
+        // Determine the best error message to return
+        $finalMessage = 'No book was found for this ISBN across our metadata providers.';
+        
+        if (in_array('Google Books API quota exceeded or unavailable.', $errors) && in_array('No book found on Open Library.', $errors)) {
+            $finalMessage = 'Google Books quota exceeded and no record found on Open Library. Please try again later or enter details manually.';
+        } elseif (!empty($errors)) {
+            $finalMessage = $errors[count($errors) - 1]; // Return the last error (usually Open Library's "not found")
+        }
+
         return [
             'success' => false,
-            'message' => $result['message'] ?? 'No book was found for this ISBN.'
+            'message' => $finalMessage
         ];
     }
 
@@ -47,12 +66,24 @@ class BookMetadataLookupService
     protected function lookupViaGoogle(string $isbn)
     {
         try {
-            $response = Http::timeout(8)->get($this->googleUrl, [
+            $params = [
                 'q' => 'isbn:' . $isbn,
-            ]);
+            ];
+
+            // Use API key if available to avoid quota issues
+            $apiKey = config('services.google.books_api_key') ?: env('GOOGLE_BOOKS_API_KEY');
+            if ($apiKey) {
+                $params['key'] = $apiKey;
+            }
+
+            $response = Http::timeout(8)->get($this->googleUrl, $params);
 
             if ($response->failed()) {
-                return ['success' => false, 'message' => 'Google Books API quota exceeded or unavailable.'];
+                // If it's a 429 or 403, it's definitely a quota issue
+                if ($response->status() === 429 || $response->status() === 403) {
+                    return ['success' => false, 'message' => 'Google Books API quota exceeded or unavailable.'];
+                }
+                return ['success' => false, 'message' => 'Google Books service error (HTTP ' . $response->status() . ').'];
             }
 
             $data = $response->json();
@@ -66,7 +97,8 @@ class BookMetadataLookupService
                 'data' => $this->parseGoogleData($book, $isbn)
             ];
         } catch (\Exception $e) {
-            return ['success' => false, 'message' => $e->getMessage()];
+            Log::error('Google Books Lookup Error: ' . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred while connecting to Google Books.'];
         }
     }
 

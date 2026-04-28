@@ -8,11 +8,11 @@ use App\Models\Topic;
 class ExplorePublicService
 {
     /**
-     * Retrieve all active topics ordered by name.
+     * Retrieve active tag groups that should be shown as filters.
      */
-    public function getPublicTopics()
+    public function getPublicTagGroups()
     {
-        return Topic::active()->orderBy('name')->get();
+        return \App\Models\TagGroup::getGroupsWithUsage(ExploreArticle::class);
     }
 
     public function getFeaturedArticle($topicId = null)
@@ -24,14 +24,14 @@ class ExplorePublicService
      * Retrieve all featured articles.
      * If no featured articles exist, fall back to the most recent published article.
      */
-    public function getFeaturedArticles($topicId = null)
+    public function getFeaturedArticles($tagId = null)
     {
-        $query = ExploreArticle::with(['topic', 'creator'])
+        $query = ExploreArticle::with(['tags', 'creator'])
             ->published()
-            ->orderByDesc('published_at');
+            ->orderBy('sort_order', 'asc');
 
-        if ($topicId) {
-            $query->where('topic_id', $topicId);
+        if ($tagId) {
+            $query->withTag($tagId);
         }
 
         $featured = (clone $query)->featured()->get();
@@ -48,12 +48,12 @@ class ExplorePublicService
      */
     public function getPublishedArticles($filters = [])
     {
-        $query = ExploreArticle::with(['topic', 'creator'])
+        $query = ExploreArticle::with(['tags', 'creator'])
             ->published()
-            ->orderByDesc('published_at');
+            ->orderBy('sort_order', 'asc');
 
-        if (!empty($filters['topic_id'])) {
-            $query->where('topic_id', $filters['topic_id']);
+        if (!empty($filters['tag_id'])) {
+            $query->withTag($filters['tag_id']);
         }
 
         if (!empty($filters['exclude_ids'])) {
@@ -68,7 +68,7 @@ class ExplorePublicService
      */
     public function getArticleBySlug(string $slug): ?ExploreArticle
     {
-        $article = ExploreArticle::with(['topic', 'creator'])
+        $article = ExploreArticle::with(['tags', 'creator'])
             ->published()
             ->where('slug', $slug)
             ->first();
@@ -88,11 +88,16 @@ class ExplorePublicService
      */
     public function getRelatedArticles(ExploreArticle $article, int $limit = 2)
     {
-        // Get articles within same topic excluding current one
-        $related = ExploreArticle::with(['topic', 'creator'])
+        // Get articles sharing any tag with current one
+        $tagIds = $article->tags->pluck('id');
+
+        $related = ExploreArticle::with(['tags', 'creator'])
             ->published()
-            ->where('topic_id', $article->topic_id)
             ->where('id', '!=', $article->id)
+            ->whereHas('tags', function($q) use ($tagIds) {
+                $q->whereIn('tags.id', $tagIds);
+            })
+            ->orderBy('sort_order', 'asc')
             ->limit($limit)
             ->get();
 
@@ -100,10 +105,10 @@ class ExplorePublicService
         if ($related->count() < $limit) {
             $takenIds = $related->pluck('id')->push($article->id);
             
-            $backfill = ExploreArticle::with(['topic', 'creator'])
+            $backfill = ExploreArticle::with(['tags', 'creator'])
                 ->published()
                 ->whereNotIn('id', $takenIds)
-                ->orderByDesc('published_at')
+                ->orderBy('sort_order', 'asc')
                 ->limit($limit - $related->count())
                 ->get();
 

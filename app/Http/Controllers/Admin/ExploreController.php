@@ -4,7 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ExploreArticle;
-use App\Models\Topic;
+use App\Models\Tag;
+use App\Models\TagGroup;
 use App\Services\Explore\ExploreArticleService;
 use Illuminate\Http\Request;
 
@@ -21,14 +22,15 @@ class ExploreController extends Controller
     {
         $filters = [
             'search' => $request->query('search', ''),
-            'topic_id' => $request->query('topic_filter_id', ''),
+            'tag_ids' => $request->query('tag_ids', []),
             'status' => $request->query('status_filter', ''),
+            'is_upsc_relevant' => $request->query('upsc_filter') === 'upsc' ? true : ($request->query('upsc_filter') === 'general' ? false : null),
         ];
 
         $articles = $this->articleService->listArticlesForAdmin($filters)->paginate(15);
         $articles->appends($request->all());
 
-        $topics = Topic::orderBy('name')->active()->get();
+        $filterableTagGroups = TagGroup::getGroupsWithUsage(ExploreArticle::class);
 
         $stats = [
             'total' => ExploreArticle::count(),
@@ -37,14 +39,15 @@ class ExploreController extends Controller
             'featured' => ExploreArticle::featured()->count(),
         ];
 
-        return view('admin.explore.index', compact('articles', 'topics', 'stats', 'filters'))
+        return view('admin.explore.index', compact('articles', 'filterableTagGroups', 'stats', 'filters'))
             ->with('title', 'Explore Content Management');
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'topic_id' => 'required|exists:topics,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:explore_articles,slug',
             'excerpt' => 'required|string|max:500',
@@ -55,6 +58,7 @@ class ExploreController extends Controller
 
         $validated['is_featured'] = $request->has('is_featured');
         $validated['is_members_only'] = $request->has('is_members_only');
+        $validated['is_upsc_relevant'] = $request->has('is_upsc_relevant');
 
         $this->articleService->createArticle($validated);
 
@@ -65,7 +69,8 @@ class ExploreController extends Controller
     public function update(Request $request, ExploreArticle $exploreArticle)
     {
         $validated = $request->validate([
-            'topic_id' => 'required|exists:topics,id',
+            'tags' => 'nullable|array',
+            'tags.*' => 'exists:tags,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:explore_articles,slug,' . $exploreArticle->id,
             'excerpt' => 'required|string|max:500',
@@ -76,6 +81,7 @@ class ExploreController extends Controller
 
         $validated['is_featured'] = $request->has('is_featured');
         $validated['is_members_only'] = $request->has('is_members_only');
+        $validated['is_upsc_relevant'] = $request->has('is_upsc_relevant');
 
         $this->articleService->updateArticle($exploreArticle, $validated);
 
@@ -111,5 +117,19 @@ class ExploreController extends Controller
             'success' => true,
             'is_members_only' => $exploreArticle->is_members_only
         ]);
+    }
+
+    public function reorder(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:explore_articles,id',
+        ]);
+
+        foreach ($request->ids as $index => $id) {
+            ExploreArticle::where('id', $id)->update(['sort_order' => $index + 1]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

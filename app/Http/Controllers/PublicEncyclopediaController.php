@@ -28,23 +28,13 @@ class PublicEncyclopediaController extends Controller
         $relatedThinkers = $this->encyclopediaService->getRelatedThinkers($anthropologist, 4);
         $keyTheory = $this->encyclopediaService->getRecommendedTheory($anthropologist);
         
-        // Derive contributions from related concepts first, then topics
-        $contributions = $anthropologist->coreConcepts->map(function($concept) {
+        // Derive contributions from tags
+        $contributions = $anthropologist->tags->take(3)->map(function($tag) {
             return [
-                'title' => $concept->title,
-                'description' => $concept->short_description ?? 'A fundamental concept explored by this thinker.',
+                'title' => $tag->name,
+                'description' => "Key contributions and theoretical advancements in the field of {$tag->name}.",
             ];
-        })->take(3);
-
-        if ($contributions->count() < 3) {
-            $topicContributions = $anthropologist->topics->take(3 - $contributions->count())->map(function($topic) {
-                return [
-                    'title' => $topic->name,
-                    'description' => "Key contributions and theoretical advancements in the field of {$topic->name}.",
-                ];
-            });
-            $contributions = $contributions->concat($topicContributions);
-        }
+        });
 
         return view('pages.encyclopedia.anthropologist-detail', compact('anthropologist', 'relatedThinkers', 'keyTheory', 'contributions'));
     }

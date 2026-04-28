@@ -18,6 +18,7 @@ class Index extends Component
     public $search = '';
     public $statusFilter = '';
     public $featuredFilter = '';
+    public $upscFilter = '';
 
     // Form fields
     public $anthropologistId;
@@ -31,17 +32,16 @@ class Index extends Component
     public $profile_image;
     public $status = 'active';
     public $is_featured = false;
+    public $is_upsc_relevant = false;
 
     // Relationship fields
-    public $selectedTopics = [];
+    public $tags = [];
     public $selectedCoreConcepts = [];
-    public $newTopicInput = '';
-    public $newTopicsList = [];
 
     public $isModalOpen = false;
     public $modalSessionId = '';
 
-    protected $updatesQueryString = ['search', 'statusFilter', 'featuredFilter'];
+    protected $queryString = ['search', 'statusFilter', 'featuredFilter', 'upscFilter', 'tagFilters'];
 
     protected function rules()
     {
@@ -56,7 +56,9 @@ class Index extends Component
             'profile_image' => 'nullable|image|max:2048',
             'status' => 'required|in:active,inactive',
             'is_featured' => 'boolean',
-            'selectedTopics' => 'array',
+            'is_upsc_relevant' => 'boolean',
+            'tags' => 'array',
+            'tags.*' => 'exists:tags,id',
             'selectedCoreConcepts' => 'array',
         ];
     }
@@ -67,7 +69,7 @@ class Index extends Component
         $this->reset([
             'anthropologistId', 'full_name', 'summary', 'biography_markdown', 'birth_year', 'death_year', 
             'discipline_or_specialization', 'nationality', 'profile_image', 'status', 'is_featured', 
-            'selectedTopics', 'selectedCoreConcepts', 'newTopicInput', 'newTopicsList'
+            'is_upsc_relevant', 'tags', 'selectedCoreConcepts'
         ]);
 
         if ($id) {
@@ -82,14 +84,16 @@ class Index extends Component
             $this->nationality = $anthropologist->nationality;
             $this->status = $anthropologist->status;
             $this->is_featured = $anthropologist->is_featured;
+            $this->is_upsc_relevant = $anthropologist->is_upsc_relevant;
             
-            $this->selectedTopics = $anthropologist->topics->pluck('id')->toArray();
+            $this->tags = $anthropologist->tags->pluck('id')->toArray();
             $this->selectedCoreConcepts = $anthropologist->coreConcepts->pluck('id')->toArray();
         }
 
         $this->modalSessionId = uniqid();
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
+        $this->dispatch('set-tags', id: 'anthropologist-tag-selector', tags: $this->tags);
     }
 
     public function closeModal()
@@ -98,19 +102,7 @@ class Index extends Component
         $this->dispatch('close-modal');
     }
 
-    public function addNewTopic()
-    {
-        if (!empty(trim($this->newTopicInput))) {
-            $this->newTopicsList[] = trim($this->newTopicInput);
-            $this->newTopicInput = '';
-        }
-    }
 
-    public function removeNewTopic($index)
-    {
-        unset($this->newTopicsList[$index]);
-        $this->newTopicsList = array_values($this->newTopicsList);
-    }
 
     public function save()
     {
@@ -147,9 +139,11 @@ class Index extends Component
                 'profile_image' => $imagePath,
                 'status' => $this->status,
                 'is_featured' => $this->is_featured,
+                'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
             ]);
 
-            $this->syncRelationships($anthropologist);
+            $anthropologist->syncTags($this->tags);
+            $anthropologist->coreConcepts()->sync(array_unique($this->selectedCoreConcepts));
             session()->flash('success', 'Anthropologist updated successfully.');
         } else {
             $imagePath = null;
@@ -169,34 +163,18 @@ class Index extends Component
                 'profile_image' => $imagePath,
                 'status' => $this->status,
                 'is_featured' => $this->is_featured,
+                'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
             ]);
 
-            $this->syncRelationships($anthropologist);
+            $anthropologist->syncTags($this->tags);
+            $anthropologist->coreConcepts()->sync(array_unique($this->selectedCoreConcepts));
             session()->flash('success', 'Anthropologist created successfully.');
         }
 
         $this->closeModal();
     }
 
-    protected function syncRelationships($anthropologist)
-    {
-        // Handle new inline topics
-        $finalTopicIds = $this->selectedTopics;
-        foreach ($this->newTopicsList as $newTopicName) {
-            $topicName = trim($newTopicName);
-            if (empty($topicName)) continue;
-            
-            $slug = Str::slug($topicName);
-            $topic = Topic::firstOrCreate(
-                ['slug' => $slug],
-                ['name' => $topicName]
-            );
-            $finalTopicIds[] = $topic->id;
-        }
 
-        $anthropologist->topics()->sync(array_unique($finalTopicIds));
-        $anthropologist->coreConcepts()->sync(array_unique($this->selectedCoreConcepts));
-    }
 
     protected function generateUniqueSlug($name, $ignoreId = null)
     {
@@ -235,9 +213,18 @@ class Index extends Component
         session()->flash('success', 'Anthropologist moved to trash.');
     }
 
+    public $tagFilters = []; // key: group_id, value: tag_id
+
+
+
+    public function updatedTagFilters()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
-        $query = Anthropologist::with(['topics', 'coreConcepts'])->orderBy('full_name');
+        $query = Anthropologist::with(['tags', 'coreConcepts'])->orderBy('full_name');
 
         if (!empty($this->search)) {
             $query->where(function ($q) {
@@ -256,11 +243,23 @@ class Index extends Component
             $query->where('is_featured', $this->featuredFilter === '1');
         }
 
+        if ($this->upscFilter === 'upsc') {
+            $query->where('is_upsc_relevant', true);
+        } elseif ($this->upscFilter === 'general') {
+            $query->where('is_upsc_relevant', false);
+        }
+
+        foreach ($this->tagFilters as $groupId => $tagId) {
+            if ($tagId) {
+                $query->withTag($tagId);
+            }
+        }
+
         $anthropologists = $query->paginate(15);
         $coreConcepts = CoreConcept::orderBy('title')->get();
-        $topics = Topic::active()->orderBy('name')->get();
+        $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(Anthropologist::class);
 
-        return view('livewire.admin.encyclopedia.anthropologists.index', compact('anthropologists', 'coreConcepts', 'topics'))
+        return view('livewire.admin.encyclopedia.anthropologists.index', compact('anthropologists', 'coreConcepts', 'filterableTagGroups'))
             ->layout('layouts.admin', ['title' => 'Encyclopedia: Anthropologists']);
     }
 }

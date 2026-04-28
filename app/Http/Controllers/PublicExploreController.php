@@ -16,17 +16,17 @@ class PublicExploreController extends Controller
 
     public function index(Request $request)
     {
-        $topicId = $request->query('topic_id');
-        $filters = ['topic_id' => $topicId];
+        $tagId = $request->query('tag_id');
+        $filters = ['tag_id' => $tagId];
 
-        $topics = $this->exploreService->getPublicTopics();
-        $featuredArticle = $this->exploreService->getFeaturedArticle($topicId);
+        $tagGroups = $this->exploreService->getPublicTagGroups();
+        $featuredArticle = $this->exploreService->getFeaturedArticle($tagId);
         
         $articles = $this->exploreService->getPublishedArticles($filters);
         
         $articles->appends($request->all());
 
-        return view('pages.explore', compact('topics', 'featuredArticle', 'articles', 'topicId'));
+        return view('pages.explore', compact('tagGroups', 'featuredArticle', 'articles', 'tagId'));
     }
 
     public function show(string $slug)

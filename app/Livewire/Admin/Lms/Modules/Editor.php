@@ -24,7 +24,8 @@ class Editor extends Component
     public $short_description = '';
     public $overview = '';
     public $level = 'beginner';
-    public $topic_id;
+    public $is_upsc_relevant = false;
+    public $tags = [];
     public $cover_image;
 
     // Lesson Modal State
@@ -65,7 +66,8 @@ class Editor extends Component
         $this->short_description = $lmsModule->short_description;
         $this->overview = $lmsModule->overview;
         $this->level = $lmsModule->level;
-        $this->topic_id = $lmsModule->topic_id;
+        $this->is_upsc_relevant = $lmsModule->is_upsc_relevant;
+        $this->tags = $lmsModule->tags->pluck('id')->toArray();
     }
 
     public function updatedTitle()
@@ -80,6 +82,7 @@ class Editor extends Component
     public function saveModule()
     {
         $data = [
+            'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
             'updated_by' => auth()->id(),
         ];
 
@@ -88,6 +91,7 @@ class Editor extends Component
         }
 
         $this->module->update($data);
+        $this->module->syncTags($this->tags);
         session()->flash('success', 'Module configuration updated successfully.');
     }
 
@@ -265,8 +269,7 @@ class Editor extends Component
 
     public function render()
     {
-        return view('livewire.admin.lms.modules.editor', [
-            'topics' => Topic::active()->orderBy('name')->get(),
-        ])->layout('layouts.admin', ['title' => $this->isEdit ? 'Edit Module' : 'Create Module']);
+        return view('livewire.admin.lms.modules.editor')
+            ->layout('layouts.admin', ['title' => $this->isEdit ? 'Edit Module' : 'Create Module']);
     }
 }

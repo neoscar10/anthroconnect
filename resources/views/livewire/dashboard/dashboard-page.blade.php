@@ -12,38 +12,75 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div class="lg:col-span-9 space-y-12">
-            <!-- Hero -->
-            <section class="relative overflow-hidden rounded-xl bg-primary text-white p-6 sm:p-8 md:p-12">
-                <div class="relative z-10 max-w-2xl">
-                    <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold mb-4">
-                        Welcome Back, {{ $this->userFirstName }}
-                    </h1>
-                    <p class="text-base sm:text-lg opacity-90 mb-8 font-display">
-                        Continue exploring the depths of anthropology and humanity through our curated knowledge base and academic community.
-                    </p>
+            <!-- Profile Header -->
+            <div class="relative overflow-hidden rounded-[2rem] bg-white dark:bg-white/5 shadow-sm border border-sand/50 mb-8 transition-all duration-500 hover:shadow-xl hover:shadow-primary/5">
+                <div class="w-full h-40 bg-primary/10 relative overflow-hidden">
+                    <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(#9e5015 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <!-- Cover Glow -->
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full -mr-20 -mt-20"></div>
+                </div>
+                
+                <div class="px-8 pb-8 flex flex-col md:flex-row items-end gap-6 -mt-16 relative z-10">
+                    <div class="shrink-0 relative group">
+                        <label for="dashboard-avatar-upload" class="cursor-pointer">
+                            @if(auth()->user()->avatar)
+                                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-3xl size-32 border-4 border-white dark:border-background-dark shadow-xl" style="background-image: url('{{ str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : Storage::url(auth()->user()->avatar) }}');"></div>
+                            @else
+                                <div class="flex items-center justify-center rounded-3xl size-32 border-4 border-white dark:border-background-dark shadow-xl bg-sand text-primary text-4xl font-black font-headline">
+                                    {{ $this->userInitials }}
+                                </div>
+                            @endif
+                            
+                            <!-- Camera Overlay -->
+                            <div class="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-[1px]">
+                                <span class="material-symbols-outlined text-white text-2xl">photo_camera</span>
+                            </div>
+                        </label>
+                        <input type="file" id="dashboard-avatar-upload" wire:model="new_avatar" class="hidden" accept="image/*">
+                        
+                        <div wire:loading wire:target="new_avatar" class="absolute inset-0 bg-white/60 rounded-3xl flex items-center justify-center">
+                            <div class="animate-spin size-6 border-2 border-primary border-t-transparent rounded-full"></div>
+                        </div>
 
-                    <div class="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
-                        <button class="bg-white text-primary px-6 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-sand transition-colors">
-                            <span class="material-symbols-outlined text-sm">play_circle</span>
-                            Continue Learning
-                        </button>
+                        @if(session('status') === 'profile-updated')
+                            <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3000)" x-transition.opacity class="absolute -bottom-10 left-0 right-0 px-3 py-1.5 bg-green-500 text-white rounded-lg text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-1 shadow-lg shadow-green-500/20 z-50">
+                                <span class="material-symbols-outlined text-xs">check_circle</span>
+                                Updated
+                            </div>
+                        @endif
+                    </div>
+                    
+                    <div class="flex-1 pb-2 text-center md:text-left">
+                        <h1 class="text-3xl font-headline italic font-bold text-slate-900 dark:text-white">
+                            {{ auth()->user()->name }}
+                        </h1>
+                        <p class="text-primary font-bold text-xs uppercase tracking-[0.2em] mt-1">Scholarly Contributor | UPSC Aspirant</p>
+                        <p class="text-slate-500 dark:text-slate-400 text-sm mt-2 max-w-xl">Interested in {{ implode(', ', array_slice($userInterests, 0, 3)) }} & more • Researching from New Delhi</p>
+                    </div>
 
-                        <button class="bg-primary/20 backdrop-blur-md border border-white/30 text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/10 transition-colors">
-                            <span class="material-symbols-outlined text-sm">map</span>
-                            Explore Knowledge Map
-                        </button>
-
-                        <button class="bg-white/10 text-white px-6 py-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 hover:bg-white/20 transition-colors">
-                            <span class="material-symbols-outlined text-sm">group</span>
-                            Join Community
-                        </button>
+                    <div class="pb-2">
+                        <a wire:navigate href="{{ route('profile.edit') }}" class="flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 group">
+                            <span class="material-symbols-outlined text-sm group-hover:rotate-12 transition-transform">edit</span>
+                            Edit Profile
+                        </a>
                     </div>
                 </div>
 
-                <div class="absolute right-0 top-0 h-full w-1/3 opacity-20 pointer-events-none bg-gradient-to-l from-black/40 to-transparent">
-                    <span class="material-symbols-outlined text-[120px] sm:text-[160px] md:text-[200px] absolute -right-6 sm:-right-8 md:-right-10 -bottom-8 rotate-12">history_edu</span>
+                <div class="px-8 py-6 border-t border-sand/30 bg-sand/5 flex flex-wrap justify-center md:justify-start gap-12">
+                    <div class="flex flex-col text-center md:text-left">
+                        <span class="text-2xl font-headline italic font-bold text-primary">{{ $interestsCount }}</span>
+                        <span class="text-[9px] uppercase tracking-[0.2em] text-slate-400 font-bold">Interests Followed</span>
+                    </div>
+                    <div class="flex flex-col text-center md:text-left">
+                        <span class="text-2xl font-headline italic font-bold text-primary">{{ $modulesCompletedCount }}</span>
+                        <span class="text-[9px] uppercase tracking-[0.2em] text-slate-400 font-bold">Modules Completed</span>
+                    </div>
+                    <div class="flex flex-col text-center md:text-left">
+                        <span class="text-2xl font-headline italic font-bold text-primary">{{ $contributionsCount }}</span>
+                        <span class="text-[9px] uppercase tracking-[0.2em] text-slate-400 font-bold">Contributions</span>
+                    </div>
                 </div>
-            </section>
+            </div>
             
             <!-- Membership Status Section -->
             <section class="mt-8 transition-all duration-500">
@@ -132,104 +169,137 @@
 
             <!-- Continue Learning -->
             <section>
-                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
-                    <span class="material-symbols-outlined text-primary">school</span>
-                    Continue Learning
-                </h2>
-
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">school</span>
+                        Continue Learning
+                    </h2>
+                    @if(count($continueLearning) === 0)
+                        <a wire:navigate href="{{ route('modules.index') }}" class="text-xs font-bold text-primary uppercase tracking-widest hover:underline">Browse Modules</a>
+                    @endif
+                </div>
+ 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    @foreach($continueLearning as $item)
-                        <div class="bg-white border border-sand rounded-xl p-6 flex flex-col justify-between">
+                    @forelse($continueLearning as $item)
+                        <div class="bg-white border border-sand rounded-[1.5rem] p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all group">
                             <div>
                                 <div class="flex justify-between items-start gap-4 mb-4">
-                                    <span class="bg-sand text-primary px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="bg-primary/5 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border border-primary/10">
                                         {{ $item['tag'] }}
                                     </span>
-                                    <span class="text-xs text-slate-500 shrink-0">
-                                        {{ $item['progress'] }}% Complete
+                                    <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest shrink-0">
+                                        {{ $item['progress'] }}%
                                     </span>
                                 </div>
-
-                                <h3 class="text-xl font-bold mb-2">{{ $item['title'] }}</h3>
-                                <p class="text-sm text-slate-600 mb-6">{{ $item['description'] }}</p>
+ 
+                                <h3 class="text-lg font-bold mb-2 group-hover:text-primary transition-colors">{{ $item['title'] }}</h3>
+                                <p class="text-xs text-slate-500 mb-6 leading-relaxed">{{ $item['description'] }}</p>
                             </div>
-
-                            <div class="w-full bg-sand rounded-full h-2 mb-4">
-                                <div class="bg-primary h-2 rounded-full" style="width: {{ $item['progress'] }}%"></div>
+ 
+                            <div class="w-full bg-sand/30 rounded-full h-1.5 mb-6 overflow-hidden">
+                                <div class="bg-primary h-full transition-all duration-1000" style="width: {{ $item['progress'] }}%"></div>
                             </div>
-
-                            <button class="text-primary text-sm font-bold flex items-center gap-1 hover:underline">
-                                Resume Module
-                                <span class="material-symbols-outlined text-xs">arrow_forward</span>
-                            </button>
+ 
+                            @if($item['lesson_slug'])
+                                <a wire:navigate href="{{ route('lessons.show', ['moduleSlug' => $item['slug'], 'lessonSlug' => $item['lesson_slug']]) }}" class="text-primary text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 hover:translate-x-1 transition-transform">
+                                    Resume Module
+                                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                                </a>
+                            @else
+                                <a wire:navigate href="{{ route('modules.show', $item['slug']) }}" class="text-primary text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                                    View Module
+                                    <span class="material-symbols-outlined text-xs">arrow_forward</span>
+                                </a>
+                            @endif
                         </div>
-                    @endforeach
+                    @empty
+                        <div class="col-span-full py-12 flex flex-col items-center justify-center bg-white border border-dashed border-sand rounded-[2rem] text-center">
+                            <span class="material-symbols-outlined text-4xl text-sand mb-4">local_library</span>
+                            <h3 class="text-lg font-bold text-slate-900">Start Your Learning Journey</h3>
+                            <p class="text-sm text-slate-500 max-w-xs mt-2">Explore our curated anthropology modules and track your progress here.</p>
+                            <a wire:navigate href="{{ route('modules.index') }}" class="mt-6 px-6 py-2 bg-primary text-white rounded-xl text-xs font-bold uppercase tracking-widest shadow-lg shadow-primary/20">Explore Modules</a>
+                        </div>
+                    @endforelse
                 </div>
             </section>
 
             <!-- Recommended -->
             <section>
                 <div class="flex justify-between items-center mb-6 gap-4">
-                    <h2 class="text-2xl font-bold">Recommended for You</h2>
-                    <a class="text-sm text-primary font-medium whitespace-nowrap" href="#">View All</a>
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">bookmark</span>
+                        Recommended for You
+                    </h2>
+                    <a wire:navigate class="text-xs font-bold text-primary uppercase tracking-widest hover:underline" href="{{ route('library.index') }}">View Library</a>
                 </div>
-
+ 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    @foreach($recommendedItems as $item)
-                        <div class="flex gap-4 p-4 bg-white border border-sand rounded-xl group cursor-pointer hover:border-primary transition-colors">
-                            <div class="w-24 h-24 bg-sand rounded-lg shrink-0 overflow-hidden">
-                                <img class="w-full h-full object-cover" src="{{ $item['image'] }}" alt="{{ $item['title'] }}">
+                    @forelse($recommendedItems as $item)
+                        <a wire:navigate href="{{ route('library.show', $item['slug']) }}" class="flex gap-4 p-4 bg-white border border-sand rounded-[1.5rem] group cursor-pointer hover:border-primary transition-all hover:shadow-lg hover:shadow-primary/5">
+                            <div class="w-24 h-32 bg-sand rounded-xl shrink-0 overflow-hidden shadow-inner border border-sand/50">
+                                <img class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" src="{{ $item['image'] }}" alt="{{ $item['title'] }}">
                             </div>
-
+ 
                             <div class="flex flex-col justify-center min-w-0">
-                                <h4 class="font-bold text-lg group-hover:text-primary transition-colors">
+                                <h4 class="font-bold text-lg group-hover:text-primary transition-colors line-clamp-2">
                                     {{ $item['title'] }}
                                 </h4>
-                                <p class="text-sm text-slate-500">{{ $item['description'] }}</p>
-
-                                <div class="flex flex-wrap items-center gap-2 mt-2 text-xs text-slate-400">
-                                    <span class="flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-xs">{{ $item['meta_left_icon'] }}</span>
+                                <p class="text-xs text-slate-500 mt-1 line-clamp-1 italic">{{ $item['description'] }}</p>
+ 
+                                <div class="flex flex-wrap items-center gap-3 mt-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                                    <span class="flex items-center gap-1.5 px-2 py-1 bg-sand/20 rounded-md">
+                                        <span class="material-symbols-outlined text-[14px] text-primary">{{ $item['meta_left_icon'] }}</span>
                                         {{ $item['meta_left'] }}
                                     </span>
-                                    <span>•</span>
-                                    <span class="flex items-center gap-1">
-                                        <span class="material-symbols-outlined text-xs">{{ $item['meta_right_icon'] }}</span>
+                                    <span class="flex items-center gap-1.5 px-2 py-1 bg-sand/20 rounded-md">
+                                        <span class="material-symbols-outlined text-[14px] text-primary">{{ $item['meta_right_icon'] }}</span>
                                         {{ $item['meta_right'] }}
                                     </span>
                                 </div>
                             </div>
+                        </a>
+                    @empty
+                        <div class="col-span-full py-8 text-center text-slate-400 italic text-sm">
+                            More recommendations arriving as you explore the library.
                         </div>
-                    @endforeach
+                    @endforelse
                 </div>
             </section>
 
             <!-- Explore Humanity -->
-            <section>
-                <h2 class="text-2xl font-bold mb-6">Explore Humanity</h2>
-
-                <div class="bg-sand/20 rounded-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2">
-                    <div class="h-64 md:h-auto overflow-hidden">
-                        <img
-                            class="w-full h-full object-cover"
-                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAdXPeFId6STTdfqjvR_7DOnmClBQwVMedR4giCsf1gejHnoeh3Lt4fzJ8e6tz_4SZ5JYnKann2Xc-qqzmE9KUmh9SKlthOJz-L1batBjJprKlltJ7vf0-OcwEalDCELeIJYbR_K3e5yxXvSRHivF_gjcIykzLqWZFrlXTxhrUYX03P_m4vDDq5yEy-Ts80MkDAghDkvmpnqURdls2K2JRTuBhyODgkyG3fK46xaI945IgjPM1ITA7qsJ7GGt4Dbx5VRzQ4nYEIRU8"
-                            alt="The Anthropology of Food Traditions"
-                        >
-                    </div>
-
-                    <div class="p-6 sm:p-8 flex flex-col justify-center">
-                        <span class="text-primary font-bold text-xs uppercase tracking-widest mb-2">Long Read</span>
-                        <h3 class="text-2xl sm:text-3xl font-bold mb-4 leading-tight">The Anthropology of Food Traditions</h3>
-                        <p class="text-slate-600 mb-6 italic font-serif">
-                            "Tell me what you eat, and I will tell you who you are." Explore how culinary rituals define cultural identity in the modern era.
-                        </p>
-                        <div class="flex flex-wrap items-center gap-4">
-                            <button class="bg-primary text-white px-6 py-2 rounded font-bold text-sm">Read Article</button>
-                            <span class="text-xs text-slate-500">15 min read</span>
+            @if($featuredExploreArticle)
+                <section>
+                    <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">explore</span>
+                        Explore Humanity
+                    </h2>
+    
+                    <div class="bg-sand/10 rounded-[2.5rem] border border-sand/50 overflow-hidden grid grid-cols-1 md:grid-cols-2 group hover:border-primary/30 transition-all">
+                        <div class="h-64 md:h-auto overflow-hidden">
+                            <img
+                                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                src="{{ $featuredExploreArticle->featured_image ? Storage::url($featuredExploreArticle->featured_image) : 'https://lh3.googleusercontent.com/aida-public/AB6AXuAdXPeFId6STTdfqjvR_7DOnmClBQwVMedR4giCsf1gejHnoeh3Lt4fzJ8e6tz_4SZ5JYnKann2Xc-qqzmE9KUmh9SKlthOJz-L1batBjJprKlltJ7vf0-OcwEalDCELeIJYbR_K3e5yxXvSRHivF_gjcIykzLqWZFrlXTxhrUYX03P_m4vDDq5yEy-Ts80MkDAghDkvmpnqURdls2K2JRTuBhyODgkyG3fK46xaI945IgjPM1ITA7qsJ7GGt4Dbx5VRzQ4nYEIRU8' }}"
+                                alt="{{ $featuredExploreArticle->title }}"
+                            >
+                        </div>
+    
+                        <div class="p-8 sm:p-12 flex flex-col justify-center">
+                            <span class="text-primary font-black text-[10px] uppercase tracking-[0.3em] mb-4">Featured Ethnography</span>
+                            <h3 class="text-2xl sm:text-3xl font-headline italic font-bold mb-4 leading-tight group-hover:text-primary transition-colors">{{ $featuredExploreArticle->title }}</h3>
+                            <p class="text-slate-600 mb-8 font-serif leading-relaxed opacity-80 line-clamp-3">
+                                "{{ $featuredExploreArticle->excerpt ?: 'Explore our latest ethnographic findings and scholarly research.' }}"
+                            </p>
+                            <div class="flex flex-wrap items-center gap-6">
+                                <a wire:navigate href="{{ route('explore.show', $featuredExploreArticle->slug) }}" class="bg-primary text-white px-8 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 transition-all">Read Article</a>
+                                <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">timer</span>
+                                    {{ $featuredExploreArticle->reading_time_minutes ?: 15 }} min read
+                                </span>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+            @endif
 
             <!-- Knowledge Map -->
             <section class="bg-olive/10 rounded-2xl p-6 sm:p-8 border border-olive/20">
@@ -255,9 +325,9 @@
                             </li>
                         </ul>
 
-                        <button class="border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-bold transition-all">
+                        <a href="{{ route('knowledge-map.show', ['from' => request()->fullUrl()]) }}" class="inline-block border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 py-2 rounded-lg font-bold transition-all text-decoration-none">
                             Launch Map Viewer
-                        </button>
+                        </a>
                     </div>
 
                     <div class="bg-white/50 rounded-xl aspect-square flex items-center justify-center border border-olive/30 relative overflow-hidden">
@@ -333,7 +403,84 @@
 
         <!-- Sidebar -->
         <aside class="lg:col-span-3 space-y-8">
-            <div class="bg-white p-6 rounded-xl border border-sand">
+            <!-- My Interests -->
+            <div class="bg-white p-6 rounded-2xl border border-sand shadow-sm">
+                <h3 class="font-bold text-sm uppercase tracking-widest text-slate-900 mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-primary text-xl">interests</span>
+                    My Interests
+                </h3>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($userInterests as $interest)
+                        <span class="px-3 py-1.5 bg-primary/5 text-primary rounded-xl text-[10px] font-bold uppercase tracking-wider border border-primary/10 hover:bg-primary hover:text-white transition-all cursor-pointer">
+                            {{ $interest }}
+                        </span>
+                    @endforeach
+                    <button class="px-3 py-1.5 bg-sand/30 text-slate-500 rounded-xl text-[10px] font-bold uppercase tracking-wider flex items-center gap-1 hover:bg-sand transition-all">
+                        <span class="material-symbols-outlined text-xs">add</span>
+                        Add More
+                    </button>
+                </div>
+            </div>
+
+            <!-- Knowledge Map Discovery -->
+            <div class="bg-white p-6 rounded-2xl border border-sand shadow-sm overflow-hidden relative group">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors"></div>
+                <h3 class="font-bold text-sm uppercase tracking-widest text-slate-900 mb-6 flex items-center gap-2 relative z-10">
+                    <span class="material-symbols-outlined text-primary text-xl">account_tree</span>
+                    Discovery Map
+                </h3>
+                
+                <div class="relative flex flex-col items-center py-4">
+                    <div class="relative w-32 h-32 bg-sand/20 rounded-full border border-dashed border-primary/30 flex items-center justify-center">
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="w-12 h-12 rounded-full bg-primary/20 border-2 border-primary/50 flex items-center justify-center text-primary animate-pulse">
+                                <span class="material-symbols-outlined text-xl">hub</span>
+                            </div>
+                        </div>
+                        <!-- Decorative nodes -->
+                        <div class="absolute top-4 right-6 w-2 h-2 rounded-full bg-primary shadow-sm shadow-primary/50"></div>
+                        <div class="absolute bottom-8 left-4 w-3 h-3 rounded-full bg-primary shadow-sm shadow-primary/50"></div>
+                        <div class="absolute top-1/2 left-2 w-1.5 h-1.5 rounded-full bg-olive opacity-40"></div>
+                    </div>
+                    <div class="mt-6 text-center">
+                        <p class="text-xs font-black text-slate-900">{{ $discoveredNodes }} Nodes Discovered</p>
+                        <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">Across {{ $majorBranches }} Major Branches</p>
+                    </div>
+                    <a href="{{ route('knowledge-map.show', ['from' => request()->fullUrl()]) }}" class="w-full mt-6 py-3 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] transition-all text-center text-decoration-none">
+                        Explore Map
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Badges -->
+            <div class="bg-primary/5 rounded-2xl p-6 border border-primary/10">
+                <h3 class="font-bold text-sm uppercase tracking-widest text-primary mb-6 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-xl">workspace_premium</span>
+                    Recent Badges
+                </h3>
+                <div class="flex gap-4 justify-center">
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm border border-sand">
+                            <span class="material-symbols-outlined text-xl">verified</span>
+                        </div>
+                        <span class="text-[8px] font-bold text-center uppercase tracking-tighter text-slate-500">Fieldwork<br/>Ready</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2 opacity-50">
+                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-slate-400 shadow-sm border border-sand">
+                            <span class="material-symbols-outlined text-xl">history_edu</span>
+                        </div>
+                        <span class="text-[8px] font-bold text-center uppercase tracking-tighter text-slate-400">Theory<br/>Master</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-primary shadow-sm border border-sand">
+                            <span class="material-symbols-outlined text-xl">group_work</span>
+                        </div>
+                        <span class="text-[8px] font-bold text-center uppercase tracking-tighter text-slate-500">Contributor<br/>Lvl 2</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-sand shadow-sm">
                 <h3 class="font-bold mb-4 flex items-center gap-2">
                     <span class="material-symbols-outlined text-primary">bolt</span>
                     Quick Actions

@@ -23,6 +23,7 @@ class Index extends Component
     public $search = '';
     public $status = '';
     public $type_id = '';
+    public $upscFilter = '';
 
     // Modal State
     public $modalOpen = false;
@@ -40,12 +41,12 @@ class Index extends Component
     public $resource_type_id = '';
     public $region_id = '';
     public $abstract = '';
-    public $tags = '';
+    public $selectedTags = [];
     public $access_type = 'public';
     public $resource_status = 'published';
-    public $selectedTopics = [];
     public $is_featured = false;
     public $is_recommended = false;
+    public $is_upsc_relevant = false;
 
     // ISBN/Cover State
     public $isbn = '';
@@ -64,6 +65,7 @@ class Index extends Component
         'search' => ['except' => ''],
         'status' => ['except' => ''],
         'type_id' => ['except' => ''],
+        'upscFilter' => ['except' => ''],
         'open_modal' => ['except' => false],
     ];
 
@@ -78,6 +80,7 @@ class Index extends Component
     public function updatingSearch() { $this->resetPage(); }
     public function updatingStatus() { $this->resetPage(); }
     public function updatingTypeId() { $this->resetPage(); }
+    public function updatingUpscFilter() { $this->resetPage(); }
 
     public function openCreateModal()
     {
@@ -110,8 +113,10 @@ class Index extends Component
         $this->currentCoverUrl = $resource->cover_image_path ? Storage::url($resource->cover_image_path) : null;
         $this->is_featured = (bool)$resource->is_featured;
         $this->is_recommended = (bool)$resource->is_recommended;
-        $this->selectedTopics = $resource->topics->pluck('id')->toArray();
-        $this->tags = $resource->tags->pluck('name')->implode(', ');
+        $this->is_upsc_relevant = (bool)$resource->is_upsc_relevant;
+        $this->selectedTags = $resource->tags->pluck('id')->toArray();
+        
+        $this->dispatch('set-tags', id: 'library-tag-selector', tags: $this->selectedTags);
 
         $this->modalOpen = true;
     }
@@ -120,10 +125,10 @@ class Index extends Component
     {
         $this->reset([
             'title', 'author_display', 'publisher', 'publication_year', 'language', 'pages_count',
-            'resource_type_id', 'region_id', 'abstract', 'tags', 'access_type', 'resource_status',
-            'selectedTopics', 'is_featured', 'is_recommended', 'isbn', 'coverSource',
+            'resource_type_id', 'region_id', 'abstract', 'access_type', 'resource_status',
+            'is_featured', 'is_recommended', 'is_upsc_relevant', 'isbn', 'coverSource',
             'cover_image', 'resource_file', 'fetchedCoverPreview', 'fetchedCoverPath',
-            'cover_external_url', 'currentCoverUrl', 'editingResourceId', 'fetchError', 'fetchSuccess'
+            'cover_external_url', 'currentCoverUrl', 'editingResourceId', 'fetchError', 'fetchSuccess', 'selectedTags'
         ]);
         $this->resource_status = 'published';
         $this->access_type = 'public';
@@ -155,7 +160,7 @@ class Index extends Component
             $this->isbn = $data['normalized_isbn'];
 
             if (!empty($data['categories'])) {
-                $this->tags = implode(', ', $data['categories']);
+                // We could try to map these to tags, but for now let's keep it simple
             }
 
             if ($data['stored_cover_url']) {
@@ -206,8 +211,8 @@ class Index extends Component
             'access_type' => $this->access_type,
             'is_featured' => $this->is_featured,
             'is_recommended' => $this->is_recommended,
-            'tags' => $this->tags,
-            'topics' => $this->selectedTopics,
+            'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
+            'tags' => $this->selectedTags,
             'cover_source' => $this->coverSource,
             'cover_external_url' => $this->cover_external_url,
         ];
@@ -250,20 +255,29 @@ class Index extends Component
         session()->flash('success', 'Resource archived.');
     }
 
+    public $tagFilters = []; // key: group_id, value: tag_id
+    
+    public function updatedTagFilters()
+    {
+        $this->resetPage();
+    }
+
     public function render()
     {
         $filters = [
             'search' => $this->search,
             'status' => $this->status,
             'type_id' => $this->type_id,
+            'is_upsc_relevant' => $this->upscFilter,
+            'tag_ids' => $this->tagFilters,
         ];
 
         $resources = app(LibraryAdminService::class)->listResourcesForAdmin($filters)->paginate(15);
         $types = LibraryResourceType::active()->get();
         $regions = LibraryRegion::active()->get();
-        $topics = Topic::active()->get();
+        $filterableTagGroups = \App\Models\TagGroup::getGroupsWithUsage(LibraryResource::class);
 
-        return view('livewire.admin.library.resources.index', compact('resources', 'types', 'regions', 'topics'))
+        return view('livewire.admin.library.resources.index', compact('resources', 'types', 'regions', 'filterableTagGroups'))
             ->layout('layouts.admin');
     }
 }

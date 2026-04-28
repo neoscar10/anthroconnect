@@ -16,8 +16,8 @@
         </div>
         <div class="relative z-20 max-w-4xl mx-auto px-4 pb-16 w-full text-white">
             <div class="flex items-center gap-2 mb-4">
-                @if($article->topic)
-                    <span class="bg-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">{{ $article->topic->name }}</span>
+                @if($article->tags->isNotEmpty())
+                    <span class="bg-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">{{ $article->tags->first()->name }}</span>
                 @endif
                 <span class="text-stone-300 text-sm">• {{ $article->reading_time_minutes ?? '5+' }} min read</span>
             </div>
@@ -40,13 +40,15 @@
             {!! $article->rendered_content_html !!}
         </div>
 
-        @if($article->topic)
+        @if($article->tags->isNotEmpty())
             <div class="mt-20 pt-10 border-t border-stone-200 dark:border-stone-800">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">Related Concepts</h4>
                 <div class="flex flex-wrap gap-2">
-                    <a class="px-4 py-1.5 bg-stone-100 dark:bg-stone-800 rounded-full text-sm hover:bg-primary hover:text-white transition-colors" href="{{ route('explore.index', ['topic_id' => $article->topic_id]) }}">
-                        {{ $article->topic->name }}
-                    </a>
+                    @foreach($article->tags as $tag)
+                        <a class="px-4 py-1.5 bg-stone-100 dark:bg-stone-800 rounded-full text-sm hover:bg-primary hover:text-white transition-colors" href="{{ route('explore.index', ['tag_id' => $tag->id]) }}">
+                            {{ $tag->name }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
         @endif
@@ -68,8 +70,8 @@
                             </div>
                         @endif
                     </div>
-                    @if($related->topic)
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{{ $related->topic->name }}</span>
+                    @if($related->tags->isNotEmpty())
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{{ $related->tags->first()->name }}</span>
                     @endif
                     <h4 class="font-headline text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-stone-900 dark:text-stone-100">{{ $related->title }}</h4>
                     <p class="text-stone-600 dark:text-stone-400 line-clamp-2 text-sm">{{ $related->excerpt }}</p>

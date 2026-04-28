@@ -14,16 +14,23 @@
     <!-- Catalog Controls -->
     <div class="bg-white border-b border-stone-200 sticky top-16 z-30">
         <div class="max-w-7xl mx-auto px-4 md:px-6 py-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6">
-            <div class="flex items-center gap-6 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0">
-                <button wire:click="setTopic('')" 
-                    class="whitespace-nowrap text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors {{ !$topicId ? 'text-primary' : 'text-stone-400 hover:text-stone-600' }}">
-                    All Disciplines
-                </button>
-                @foreach($topics as $topic)
-                    <button wire:click="setTopic({{ $topic->id }})" 
-                        class="whitespace-nowrap text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors {{ $topicId == $topic->id ? 'text-primary' : 'text-stone-400 hover:text-stone-600' }}">
-                        {{ $topic->name }}
-                    </button>
+            <div class="flex flex-col gap-4 w-full">
+                @foreach($tagGroups as $group)
+                <div class="flex items-center gap-4">
+                    <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400 whitespace-nowrap min-w-[70px]">{{ $group->name }}</span>
+                    <div class="flex gap-4 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 md:mx-0 md:px-0 flex-1">
+                        <button wire:click="setTag('{{ $group->id }}', '')" 
+                            class="whitespace-nowrap text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors {{ !($tagFilters[$group->id] ?? null) ? 'text-primary border-b-2 border-primary pb-1' : 'text-stone-400 hover:text-stone-600' }}">
+                            All
+                        </button>
+                        @foreach($group->activeTags as $tag)
+                            <button wire:click="setTag('{{ $group->id }}', '{{ $tag->slug }}')" 
+                                class="whitespace-nowrap text-[10px] md:text-xs font-bold uppercase tracking-widest transition-colors {{ ($tagFilters[$group->id] ?? null) === $tag->slug ? 'text-primary border-b-2 border-primary pb-1' : 'text-stone-400 hover:text-stone-600' }}">
+                                {{ $tag->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
                 @endforeach
             </div>
 
@@ -69,7 +76,7 @@
 
                         <div class="p-6 md:p-8 flex flex-col flex-1">
                             <div class="flex items-center gap-2 mb-3 md:mb-4">
-                                <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-800">{{ $module->topic->name ?? 'Ethnography' }}</span>
+                                <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-orange-800">{{ $module->tags->first() ? $module->tags->first()->name : 'Ethnography' }}</span>
                                 <div class="h-1 w-1 rounded-full bg-stone-300"></div>
                                 <span class="text-[9px] font-bold uppercase tracking-[0.2em] text-stone-400">{{ $module->lessons_count }} Lessons</span>
                             </div>
@@ -108,7 +115,7 @@
                 <span class="material-symbols-outlined text-6xl mb-6">menu_book</span>
                 <h3 class="font-headline text-3xl italic">The catalog is quiet.</h3>
                 <p class="text-sm uppercase tracking-widest mt-2">No modules match your current filters.</p>
-                <button wire:click="$set('topicId', ''); $set('level', ''); $set('search', '')" class="mt-8 text-primary font-bold uppercase tracking-widest text-xs underline">Clear all filters</button>
+                <button wire:click="$set('tagFilters', []); $set('level', ''); $set('search', '')" class="mt-8 text-primary font-bold uppercase tracking-widest text-xs underline">Clear all filters</button>
             </div>
         @endif
     </section>

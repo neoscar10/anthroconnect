@@ -12,7 +12,7 @@ class EncyclopediaIndexPage extends Component
 
     public $search = '';
     public $category = 'All Categories';
-    public $discipline = 'All Disciplines';
+    public $tagFilters = []; // group_id => tag_slug
     public $region = 'Global';
 
     public $isFiltered = false;
@@ -20,32 +20,46 @@ class EncyclopediaIndexPage extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'category' => ['except' => 'All Categories'],
-        'discipline' => ['except' => 'All Disciplines'],
+        'tagFilters' => ['except' => []],
         'region' => ['except' => 'Global'],
     ];
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['search', 'category', 'discipline', 'region'])) {
+        if (in_array($propertyName, ['search', 'category', 'region']) || str_starts_with($propertyName, 'tagFilters')) {
             $this->isFiltered = ($this->search !== '' || 
                                $this->category !== 'All Categories' || 
-                               $this->discipline !== 'All Disciplines' || 
+                               !empty($this->tagFilters) || 
                                $this->region !== 'Global');
+            $this->resetPage();
         }
+    }
+
+    public function setTag($groupId, $slug)
+    {
+        if (($this->tagFilters[$groupId] ?? null) === $slug) {
+            unset($this->tagFilters[$groupId]);
+        } else {
+            $this->tagFilters[$groupId] = $slug;
+        }
+        $this->isFiltered = true;
+        $this->resetPage();
     }
 
     public function resetFilters()
     {
-        $this->reset(['search', 'category', 'discipline', 'region', 'isFiltered']);
+        $this->reset(['search', 'category', 'tagFilters', 'region', 'isFiltered']);
     }
 
     public function render(EncyclopediaFrontendService $service)
     {
+        $tagGroups = $service->getPublicTagGroups();
+
         if ($this->isFiltered) {
             $results = $service->search([
                 'search' => $this->search,
                 'category' => $this->category,
-                'discipline' => $this->discipline,
+                'tag_filters' => $this->tagFilters,
                 'region' => $this->region,
             ]);
 
@@ -55,6 +69,7 @@ class EncyclopediaIndexPage extends Component
                 'theories' => $results['theories'],
                 'allDisciplines' => $service->getDisciplines(),
                 'allRegions' => $service->getRegions(),
+                'tagGroups' => $tagGroups,
                 'isSearching' => true,
             ])->layout('layouts.public', ['title' => 'Encyclopedia | AnthroConnect']);
         }
@@ -65,6 +80,7 @@ class EncyclopediaIndexPage extends Component
             'theories' => $service->getMajorTheories(3),
             'allDisciplines' => $service->getDisciplines(),
             'allRegions' => $service->getRegions(),
+            'tagGroups' => $tagGroups,
             'isSearching' => false,
         ])->layout('layouts.public', ['title' => 'Encyclopedia | AnthroConnect']);
     }

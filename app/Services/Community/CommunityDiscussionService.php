@@ -13,17 +13,24 @@ use App\Models\Community\CommunityVote;
 
 class CommunityDiscussionService
 {
+    public function getPublicTagGroups()
+    {
+        return \App\Models\TagGroup::getGroupsWithUsage(CommunityDiscussion::class);
+    }
+
     /**
      * Get all active topics for browsing.
      */
     public function getBrowseTopics()
     {
-        return Topic::active()
-            ->withCount(['communityDiscussions' => function($q) {
-                $q->published();
+        return \App\Models\TagGroup::where('slug', 'topics')->first()?->tags()
+            ->active()
+            ->withCount(['taggables as discussions_count' => function ($query) {
+                $query->where('taggable_type', CommunityDiscussion::class);
             }])
+            ->orderByDesc('discussions_count')
             ->orderBy('name')
-            ->get();
+            ->get() ?? collect();
     }
 
     /**
@@ -41,9 +48,15 @@ class CommunityDiscussionService
 
         // Tag Filter
         if (!empty($filters['tag'])) {
-            $query->whereHas('tags', function($q) use ($filters) {
-                $q->where('slug', $filters['tag']);
-            });
+            $query->withTag($filters['tag']);
+        }
+
+        if (!empty($filters['tag_filters']) && is_array($filters['tag_filters'])) {
+            foreach ($filters['tag_filters'] as $groupId => $slug) {
+                if ($slug) {
+                    $query->withTag($slug);
+                }
+            }
         }
 
         // Search Filter
@@ -83,7 +96,7 @@ class CommunityDiscussionService
     public function getPopularDiscussions(int $limit = 5)
     {
         return CommunityDiscussion::published()
-            ->with(['topic'])
+            ->with(['tags'])
             ->orderBy('views_count', 'desc')
             ->orderBy('replies_count', 'desc')
             ->limit($limit)
@@ -95,11 +108,14 @@ class CommunityDiscussionService
      */
     public function getTrendingTags(int $limit = 8)
     {
-        return CommunityDiscussionTag::active()
-            ->withCount('discussions')
-            ->orderBy('discussions_count', 'desc')
+        return \App\Models\TagGroup::where('slug', 'discussion-tags')->first()?->tags()
+            ->active()
+            ->withCount(['taggables as discussions_count' => function ($query) {
+                $query->where('taggable_type', CommunityDiscussion::class);
+            }])
+            ->orderByDesc('discussions_count')
             ->limit($limit)
-            ->get();
+            ->get() ?? collect();
     }
 
     /**
@@ -108,7 +124,7 @@ class CommunityDiscussionService
     public function getExpertSpotlight()
     {
         return CommunityDiscussion::published()
-            ->with(['author', 'topic'])
+            ->with(['author', 'tags'])
             ->where('is_expert_spotlight', true)
             ->orderBy('published_at', 'desc')
             ->first();
@@ -119,7 +135,7 @@ class CommunityDiscussionService
      */
     public function getDiscussionDetailBySlug(string $slug)
     {
-        $discussion = CommunityDiscussion::with(['author', 'topic', 'tags'])
+        $discussion = CommunityDiscussion::with(['author', 'tags'])
             ->where('slug', $slug)
             ->published()
             ->firstOrFail();
@@ -168,9 +184,8 @@ class CommunityDiscussionService
         return CommunityDiscussion::published()
             ->where('id', '!=', $discussion->id)
             ->where(function($q) use ($discussion, $tagIds) {
-                $q->where('topic_id', $discussion->topic_id)
-                  ->orWhereHas('tags', function($t) use ($tagIds) {
-                      $t->whereIn('community_discussion_tags.id', $tagIds);
+                $q->whereHas('tags', function($t) use ($tagIds) {
+                      $t->whereIn('tags.id', $tagIds);
                   });
             })
             ->with(['author', 'topic'])
@@ -292,19 +307,7 @@ class CommunityDiscussionService
             ]);
 
             if (!empty($data['tags'])) {
-                $tags = is_array($data['tags']) ? $data['tags'] : explode(',', $data['tags']);
-                $tagIds = [];
-                foreach ($tags as $tagName) {
-                    $tagName = trim($tagName);
-                    if (empty($tagName)) continue;
-                    
-                    $tag = CommunityDiscussionTag::firstOrCreate(
-                        ['slug' => Str::slug($tagName)],
-                        ['name' => $tagName]
-                    );
-                    $tagIds[] = $tag->id;
-                }
-                $discussion->tags()->sync($tagIds);
+                $discussion->syncTags($data['tags']);
             }
 
             return $discussion;

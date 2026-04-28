@@ -13,10 +13,15 @@ use Illuminate\Support\Collection;
 
 class LibraryFrontendService
 {
+    public function getPublicTagGroups()
+    {
+        return \App\Models\TagGroup::getGroupsWithUsage(LibraryResource::class);
+    }
+
     public function basePublishedQuery(): Builder
     {
         return LibraryResource::query()
-            ->with(['resourceType', 'region', 'topics', 'tags'])
+            ->with(['resourceType', 'region', 'tags'])
             ->where('status', 'published')
             ->where(function (Builder $query) {
                 $query->whereNull('published_at')
@@ -61,19 +66,15 @@ class LibraryFrontendService
 
     public function getBrowseTopics(int $limit = 8): Collection
     {
-        return Topic::query()
-            ->withCount(['libraryResources as published_resources_count' => function (Builder $query) {
-                $query->where('status', 'published')
-                    ->where(function (Builder $subQuery) {
-                        $subQuery->whereNull('published_at')
-                            ->orWhere('published_at', '<=', now());
-                    });
-            }])
+        return \App\Models\TagGroup::where('slug', 'topics')->first()?->tags()
             ->active()
+            ->withCount(['taggables as published_resources_count' => function ($query) {
+                $query->where('taggable_type', LibraryResource::class);
+            }])
             ->orderByDesc('published_resources_count')
             ->orderBy('name')
             ->limit($limit)
-            ->get();
+            ->get() ?? collect();
     }
 
     public function getResourceTypes(): Collection
@@ -121,7 +122,6 @@ class LibraryFrontendService
                     ->orWhere('isbn', 'like', "%{$search}%")
                     ->orWhereHas('resourceType', fn (Builder $r) => $r->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('region', fn (Builder $r) => $r->where('name', 'like', "%{$search}%"))
-                    ->orWhereHas('topics', fn (Builder $t) => $t->where('name', 'like', "%{$search}%"))
                     ->orWhereHas('tags', fn (Builder $t) => $t->where('name', 'like', "%{$search}%"));
             });
         }
@@ -134,8 +134,16 @@ class LibraryFrontendService
             $query->whereHas('region', fn (Builder $q) => $q->where('slug', $filters['region']));
         }
 
-        if (!empty($filters['topic'])) {
-            $query->whereHas('topics', fn (Builder $q) => $q->where('slug', $filters['topic']));
+        if (!empty($filters['tag'])) {
+            $query->withTag($filters['tag']);
+        }
+
+        if (!empty($filters['tag_filters']) && is_array($filters['tag_filters'])) {
+            foreach ($filters['tag_filters'] as $groupId => $slug) {
+                if ($slug) {
+                    $query->withTag($slug);
+                }
+            }
         }
 
         if (!empty($filters['year'])) {
@@ -156,12 +164,12 @@ class LibraryFrontendService
 
     public function getRelatedResources(LibraryResource $resource, int $limit = 4): Collection
     {
-        $topicIds = $resource->topics->pluck('id')->filter()->values();
+        $tagIds = $resource->tags->pluck('id')->filter()->values();
 
         return $this->basePublishedQuery()
             ->whereKeyNot($resource->id)
-            ->when($topicIds->isNotEmpty(), function (Builder $query) use ($topicIds) {
-                $query->whereHas('topics', fn (Builder $q) => $q->whereIn('topics.id', $topicIds));
+            ->when($tagIds->isNotEmpty(), function (Builder $query) use ($tagIds) {
+                $query->whereHas('tags', fn (Builder $q) => $q->whereIn('tags.id', $tagIds));
             })
             ->limit($limit)
             ->get();

@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div x-data="articleManager()" class="relative">
+<div x-data="articleManager()" x-init="initSortable()" class="relative">
     
     <!-- Info Banner (Success Message) -->
     @if(session('success'))
@@ -61,17 +61,24 @@
                     <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm">search</span>
                     <input name="search" value="{{ request('search') }}" onchange="document.getElementById('filterForm').submit()" class="w-full bg-white border border-outline-variant/20 rounded-xl pl-10 pr-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm" placeholder="Search archives..." type="text"/>
                 </div>
-                <select name="topic_filter_id" onchange="document.getElementById('filterForm').submit()" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
-                    <option value="">All Topics</option>
-                    @foreach($topics as $topic)
-                        <option value="{{ $topic->id }}" {{ request('topic_filter_id') == $topic->id ? 'selected' : '' }}>{{ $topic->name }}</option>
-                    @endforeach
-                </select>
+                @foreach($filterableTagGroups as $group)
+                    <select name="tag_ids[]" onchange="document.getElementById('filterForm').submit()" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                        <option value="">All {{ $group->name }}</option>
+                        @foreach($group->activeTags as $tag)
+                            <option value="{{ $tag->id }}" {{ in_array($tag->id, request('tag_ids', [])) ? 'selected' : '' }}>{{ $tag->name }}</option>
+                        @endforeach
+                    </select>
+                @endforeach
                 <select name="status_filter" onchange="document.getElementById('filterForm').submit()" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
                     <option value="">All Status</option>
                     <option value="published" {{ request('status_filter') == 'published' ? 'selected' : '' }}>Published</option>
                     <option value="draft" {{ request('status_filter') == 'draft' ? 'selected' : '' }}>Drafts</option>
                     <option value="archived" {{ request('status_filter') == 'archived' ? 'selected' : '' }}>Archived</option>
+                </select>
+                <select name="upsc_filter" onchange="document.getElementById('filterForm').submit()" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="all">All UPSC Status</option>
+                    <option value="upsc" {{ request('upsc_filter') == 'upsc' ? 'selected' : '' }}>UPSC Relevant</option>
+                    <option value="general" {{ request('upsc_filter') == 'general' ? 'selected' : '' }}>General</option>
                 </select>
             </div>
             
@@ -92,17 +99,21 @@
             <table class="w-full text-left border-collapse">
                 <thead class="bg-surface-container-low/50">
                     <tr>
+                        <th class="px-6 py-4 w-10"></th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Article Details</th>
-                        <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Topic</th>
+                        <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Classification</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Status</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Feat.</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px]">Last Updated</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[10px] text-right">Actions</th>
                     </tr>
                 </thead>
-                <tbody class="divide-y divide-outline-variant/10">
+                <tbody id="explore-articles-body" class="divide-y divide-outline-variant/10">
                     @forelse($articles as $article)
-                        <tr class="hover:bg-surface-container-low/20 transition-colors group">
+                        <tr data-id="{{ $article->id }}" class="hover:bg-surface-container-low/20 transition-colors group">
+                            <td class="px-6 py-4 text-center cursor-grab active:cursor-grabbing js-drag-handle">
+                                <span class="material-symbols-outlined text-stone-300 group-hover:text-stone-400">drag_indicator</span>
+                            </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center gap-4">
                                     <div class="h-10 w-16 bg-stone-100 rounded-lg overflow-hidden shrink-0 border border-outline-variant/10">
@@ -116,12 +127,23 @@
                                     </div>
                                     <div>
                                         <p class="font-headline font-bold text-on-surface mb-0.5 leading-tight">{{ $article->title }}</p>
-                                        <p class="text-[10px] text-stone-400 font-mono italic">{{ $article->slug }}</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="text-[10px] text-stone-400 font-mono italic">{{ $article->slug }}</p>
+                                            @if($article->is_upsc_relevant)
+                                                <span class="badge bg-warning-subtle text-warning text-[8px] uppercase font-bold px-2 py-0.5 rounded">UPSC</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant">{{ $article->topic->name }}</span>
+                                <div class="flex flex-wrap gap-1">
+                                    @forelse($article->tags as $tag)
+                                        <span class="text-[9px] font-bold uppercase tracking-tighter px-2 py-0.5 rounded bg-surface-container-highest text-on-surface-variant">{{ $tag->name }}</span>
+                                    @empty
+                                        <span class="text-[9px] font-bold uppercase tracking-tighter text-stone-300">Untagged</span>
+                                    @endforelse
+                                </div>
                             </td>
                             <td class="px-6 py-4">
                                 @php
@@ -191,7 +213,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-20 text-center">
+                            <td colspan="7" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center">
                                     <span class="material-symbols-outlined text-5xl text-outline-variant/30 mb-2">auto_stories</span>
                                     <p class="text-on-surface-variant font-headline text-2xl italic font-bold">The archives are silent.</p>
@@ -293,15 +315,8 @@
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 px-4">
-                                <div class="space-y-2">
-                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Topic</label>
-                                    <select name="topic_id" x-model="form.topic_id" required class="w-full bg-surface-container-low border border-transparent rounded-xl px-5 py-4 text-xs font-bold text-on-surface focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none cursor-pointer">
-                                        <option value="">Choose Topic...</option>
-                                        @foreach($topics as $topic)
-                                            <option value="{{ $topic->id }}">{{ $topic->name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('topic_id') <span class="text-[10px] text-error font-medium">{{ $message }}</span> @enderror
+                                <div class="col-span-full">
+                                    <x-admin.tag-selector id="explore-tag-selector" @change="form.tags = $event.detail" />
                                 </div>
                                 <div class="space-y-2">
                                     <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">URL Slug</label>
@@ -387,6 +402,17 @@
                                         </div>
                                         <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mark as Featured Narrative</span>
                                     </label>
+
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit pt-2 border-t border-outline-variant/5">
+                                        <div class="relative inline-flex items-center">
+                                            <input name="is_upsc_relevant" type="checkbox" value="1" x-model="form.is_upsc_relevant" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-warning"></div>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">UPSC Relevant</span>
+                                            <span class="text-[8px] text-stone-400 uppercase tracking-tight italic">Show in UPSC Hub</span>
+                                        </div>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -412,7 +438,7 @@
                 imagePreview: null,
                 articles: @json($articles->items()),
                 form: {
-                    topic_id: '',
+                    tags: [],
                     title: '',
                     slug: '',
                     excerpt: '',
@@ -420,6 +446,7 @@
                     status: 'published',
                     is_featured: false,
                     is_members_only: false,
+                    is_upsc_relevant: false,
                     existing_image_url: null
                 },
 
@@ -461,7 +488,7 @@
                     if (id) {
                         const article = this.articles.find(a => a.id === id);
                         if (article) {
-                            this.form.topic_id = article.topic_id;
+                            this.form.tags = article.tags ? article.tags.map(t => t.id) : [];
                             this.form.title = article.title;
                             this.form.slug = article.slug;
                             this.form.excerpt = article.excerpt || '';
@@ -469,10 +496,17 @@
                             this.form.status = article.status || 'draft';
                             this.form.is_featured = article.is_featured ? true : false;
                             this.form.is_members_only = article.is_members_only ? true : false;
+                            this.form.is_upsc_relevant = article.is_upsc_relevant ? true : false;
                             this.form.existing_image_url = article.featured_image ? '/storage/' + article.featured_image : null;
+                            
+                            this.$nextTick(() => {
+                                window.dispatchEvent(new CustomEvent('set-tags', { 
+                                    detail: { id: 'explore-tag-selector', tags: this.form.tags } 
+                                }));
+                            });
                         }
                     } else {
-                        this.form.topic_id = '';
+                        this.form.tags = [];
                         this.form.title = '';
                         this.form.slug = '';
                         this.form.excerpt = '';
@@ -480,7 +514,14 @@
                         this.form.status = 'published';
                         this.form.is_featured = false;
                         this.form.is_members_only = false;
+                        this.form.is_upsc_relevant = false;
                         this.form.existing_image_url = null;
+
+                        this.$nextTick(() => {
+                            window.dispatchEvent(new CustomEvent('set-tags', { 
+                                detail: { id: 'explore-tag-selector', tags: [] } 
+                            }));
+                        });
                     }
                     this.modalOpen = true;
                     document.body.style.overflow = 'hidden';
@@ -508,6 +549,39 @@
                             location.reload(); // Refresh to update labels
                         }
                     });
+                },
+
+                initSortable() {
+                    setTimeout(() => {
+                        const el = document.getElementById('explore-articles-body');
+                        if (!el) return;
+
+                        window.exploreSortable = new Sortable(el, {
+                            handle: '.js-drag-handle',
+                            animation: 150,
+                            ghostClass: 'bg-primary/5',
+                            chosenClass: 'bg-primary/10',
+                            onEnd: (evt) => {
+                                const ids = Array.from(el.querySelectorAll('tr')).map(tr => tr.dataset.id);
+                                
+                                fetch("{{ route('admin.explore.reorder') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    },
+                                    body: JSON.stringify({ ids: ids })
+                                })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        console.log('Order updated');
+                                    }
+                                });
+                            }
+                        });
+                    }, 500);
                 }
             }));
         });

@@ -20,6 +20,7 @@ class ExploreIndex extends Component
     public $topic_filter_id = '';
     public $status_filter = '';
     public $access_filter = '';
+    public $upsc_filter = '';
 
     // Article Modal State
     public ?ExploreArticle $editingArticle = null;
@@ -34,6 +35,7 @@ class ExploreIndex extends Component
     public $status = 'draft';
     public $is_featured = false;
     public $is_members_only = false;
+    public $is_upsc_relevant = false;
     public $featured_image = null; 
     public $existing_image = null;
 
@@ -41,6 +43,7 @@ class ExploreIndex extends Component
         'search' => ['except' => ''],
         'topic_filter_id' => ['as' => 'topic', 'except' => ''],
         'status_filter' => ['as' => 'status', 'except' => ''],
+        'upsc_filter' => ['as' => 'upsc', 'except' => ''],
     ];
 
     public function updatedSearch()
@@ -74,17 +77,18 @@ class ExploreIndex extends Component
             $this->status = $this->editingArticle->status;
             $this->is_featured = $this->editingArticle->is_featured;
             $this->is_members_only = $this->editingArticle->is_members_only;
+            $this->is_upsc_relevant = $this->editingArticle->is_upsc_relevant;
             $this->existing_image = $this->editingArticle->featured_image;
         } else {
             $this->editingArticle = null;
-            $this->reset('topic_id', 'title', 'slug', 'excerpt', 'markdown_content', 'status', 'is_featured', 'is_members_only');
+            $this->reset('topic_id', 'title', 'slug', 'excerpt', 'markdown_content', 'status', 'is_featured', 'is_members_only', 'is_upsc_relevant');
             $this->status = 'draft';
         }
     }
 
     public function closeArticleModal()
     {
-        $this->reset('topic_id', 'title', 'slug', 'excerpt', 'markdown_content', 'status', 'is_featured', 'is_members_only', 'featured_image', 'existing_image', 'editingArticle');
+        $this->reset('topic_id', 'title', 'slug', 'excerpt', 'markdown_content', 'status', 'is_featured', 'is_members_only', 'is_upsc_relevant', 'featured_image', 'existing_image', 'editingArticle');
         $this->resetErrorBag();
     }
 
@@ -104,6 +108,7 @@ class ExploreIndex extends Component
             'status' => 'required|in:draft,published,archived',
             'is_featured' => 'boolean',
             'is_members_only' => 'boolean',
+            'is_upsc_relevant' => 'boolean',
             'featured_image' => 'nullable|image|max:2048',
         ]);
 
@@ -116,6 +121,7 @@ class ExploreIndex extends Component
             'status' => $this->status,
             'is_featured' => $this->is_featured,
             'is_members_only' => $this->is_members_only,
+            'is_upsc_relevant' => $this->is_upsc_relevant,
             'featured_image' => $this->featured_image,
         ];
 
@@ -162,6 +168,7 @@ class ExploreIndex extends Component
             'topic_id' => $this->topic_filter_id,
             'status' => $this->status_filter,
             'is_members_only' => $this->access_filter === 'members' ? true : ($this->access_filter === 'public' ? false : null),
+            'is_upsc_relevant' => $this->upsc_filter === 'upsc' ? true : ($this->upsc_filter === 'general' ? false : null),
         ])->paginate(15);
 
         $topics = Topic::orderBy('name')->active()->get();

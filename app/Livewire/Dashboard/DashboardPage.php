@@ -11,14 +11,29 @@ use App\Models\MembershipSetting;
 use App\Models\UserMembership;
 use Exception;
 
+use Livewire\WithFileUploads;
+use Illuminate\Support\Facades\Storage;
+
 class DashboardPage extends Component
 {
+    use WithFileUploads;
+
+    public $new_avatar;
     public array $continueLearning = [];
     public array $recommendedItems = [];
     public array $discussions = [];
     public array $quickActions = [];
     public array $recentActivities = [];
     public array $upscResources = [];
+    public array $userInterests = [];
+    public ?\App\Models\ExploreArticle $featuredExploreArticle = null;
+    
+    // Profile Stats
+    public int $interestsCount = 0;
+    public int $modulesCompletedCount = 0;
+    public int $contributionsCount = 0;
+    public int $discoveredNodes = 42; // Placeholder for now
+    public int $majorBranches = 5;    // Placeholder for now
 
     // Membership State
     public ?MembershipSetting $globalSetting = null;
@@ -28,96 +43,35 @@ class DashboardPage extends Component
     public function mount(): void
     {
         $this->loadMembershipData();
-
-        $this->continueLearning = [
-            [
-                'tag' => 'Social Anthropology',
-                'progress' => 65,
-                'title' => 'Kinship Systems in Anthropology',
-                'description' => 'Deep dive into lineage, descent, and marriage patterns across global cultures.',
-            ],
-            [
-                'tag' => 'Religion & Belief',
-                'progress' => 30,
-                'title' => 'Cultural Rituals and Belief Systems',
-                'description' => 'Understanding the structural role of rituals in maintaining social cohesion.',
-            ],
-        ];
-
-        $this->recommendedItems = [
-            [
-                'title' => 'Cultural Anthropology Foundations',
-                'description' => 'Core theories and ethnographies.',
-                'meta_left' => '12h content',
-                'meta_right' => '4.9',
-                'image' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuBdfXXOcI7ZqcSBTDF-sVH5LXKTuymNxoQbAaO7mUyph7wG5C6aVztg5Y0futoadkcBOdMt3T4yG8YeQQWe1_iCYDLksa-jzv27-2YLeF2Px8PvGNO52NpF06uOdZoqmbk6mc2vfjyD9OD8Bb6qQJ4dwP0esDGRR0mI_AEmLw3xbPgc0TQ_WreHv6Ard3AHrq8pBUtjFGs0C4RC_LIG9g4UcBQbgDfITfueWch3ubqKGOYaLl7e6ciNHDG8ZyGnb10Fz6ewC4oickc',
-                'meta_left_icon' => 'timer',
-                'meta_right_icon' => 'star',
-            ],
-            [
-                'title' => 'Indian Anthropology for UPSC',
-                'description' => 'Civilizational perspective & tribal issues.',
-                'meta_left' => '45h course',
-                'meta_right' => 'UPSC Expert',
-                'image' => 'https://lh3.googleusercontent.com/aida-public/AB6AXuAbK8qE5BOFE5q5iEPhL_0waFjGWmING_hEhRy1uSshCXZjup8szESRvnGr8Kj2tYhTd37PgQkjKAGzpA2nXQdt3FDLaMjSsX9mfyoMu_hP1El69dkj7oz3_w56aaExnm58hWCE_QSV_aXBqpWZys2COHXTSUjXMSrCobLe0eLkmaExZC9Us4QFkEkNtudGB9BOCJZycsVaa-_cG_7ZA-39NMdOMTW2X2Msq79plg_n60ki7xvEWfIIK3PILCML6djpfxp490r7_VY',
-                'meta_left_icon' => 'timer',
-                'meta_right_icon' => 'verified',
-            ],
-        ];
-
-        $this->discussions = [
-            [
-                'title' => "The role of fieldwork in the digital age: Is 'remote ethnography' valid?",
-                'replies' => '24 replies',
-                'avatars' => ['AM', 'KP', '+5'],
-                'latest' => 'Latest reply 2h ago',
-            ],
-            [
-                'title' => 'Comparing structural-functionalism and post-modernist views on kinship.',
-                'replies' => '18 replies',
-                'avatars' => ['RT', 'SL'],
-                'latest' => 'Latest reply 5h ago',
-            ],
-        ];
-
-        $this->quickActions = [
-            ['icon' => 'menu_book', 'label' => 'Reading List'],
-            ['icon' => 'edit_note', 'label' => 'Saved Notes'],
-            ['icon' => 'collections_bookmark', 'label' => 'Research Library'],
-        ];
-
-        $this->recentActivities = [
-            ['icon' => 'visibility', 'text' => 'You viewed "The Kula Ring"', 'time' => '10 minutes ago'],
-            ['icon' => 'comment', 'text' => 'Replied to "Tribal Policy"', 'time' => '2 hours ago'],
-            ['icon' => 'download', 'text' => 'Downloaded Paper-I Archive', 'time' => 'Yesterday'],
-        ];
-
-        $this->upscResources = [
-            [
-                'title' => 'Previous Year Questions',
-                'description' => 'Topic-wise segregation from 2013-2023.',
-                'cta' => 'Access Files →',
-                'border' => 'border-primary',
-            ],
-            [
-                'title' => 'Case Study Bank',
-                'description' => 'Indian tribal issues and government reports.',
-                'cta' => 'Explore →',
-                'border' => 'border-olive',
-            ],
-            [
-                'title' => 'Answer Writing Lab',
-                'description' => 'Get your daily answers peer-reviewed.',
-                'cta' => 'Start Practice →',
-                'border' => 'border-sand',
-            ],
-        ];
+        $this->loadProfileStats();
     }
 
     #[On('membership-activated')]
     public function refresh(): void
     {
         $this->loadMembershipData();
+    }
+
+    public function updatedNewAvatar()
+    {
+        $this->validate([
+            'new_avatar' => ['image', 'max:2048'],
+        ]);
+
+        $user = \App\Models\User::find(Auth::id());
+
+        // Delete old avatar if exists
+        if ($user->avatar && !str_starts_with($user->avatar, 'http')) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $this->new_avatar->store('avatars', 'public');
+        $user->avatar = $path;
+        $user->save();
+
+        $this->new_avatar = null;
+        
+        session()->flash('status', 'profile-updated');
     }
 
     protected function loadMembershipData(): void
@@ -129,6 +83,74 @@ class DashboardPage extends Component
         if ($this->isMember) {
             $this->userMembership = Auth::user()->membership;
         }
+
+        $this->loadDynamicContent();
+    }
+
+    protected function loadDynamicContent(): void
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        // 1. Continue Learning (Real LMS Progress)
+        $progress = $user->lessonProgress()
+            ->with('module.lessons')
+            ->get()
+            ->groupBy('lms_module_id');
+
+        $this->continueLearning = $progress->map(function ($items, $moduleId) {
+            $module = $items->first()->module;
+            $totalLessons = $module->lessons->count();
+            $completedLessons = $items->whereNotNull('completed_at')->count();
+            $percent = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100) : 0;
+
+            return [
+                'tag' => $module->category ?? 'General',
+                'progress' => $percent,
+                'title' => $module->title,
+                'description' => str($module->description)->stripTags()->limit(100),
+                'slug' => $module->slug,
+                'lesson_slug' => $items->sortByDesc('updated_at')->first()->lesson->slug ?? null,
+            ];
+        })->sortByDesc('progress')->take(2)->values()->toArray();
+
+        // 2. Recommended for You (Real Library Resources)
+        $this->recommendedItems = \App\Models\LibraryResource::published()
+            ->where('is_recommended', true)
+            ->latest()
+            ->take(2)
+            ->get()
+            ->map(fn ($r) => [
+                'title' => $r->title,
+                'description' => $r->author_display ?: 'Scholarly Resource',
+                'meta_left' => $r->resourceType->name ?? 'Book',
+                'meta_right' => $r->publication_year ?: 'Latest',
+                'image' => $r->cover_url,
+                'meta_left_icon' => 'menu_book',
+                'meta_right_icon' => 'calendar_today',
+                'slug' => $r->slug,
+            ])->toArray();
+
+        // 3. Explore Humanity (Featured Article)
+        $this->featuredExploreArticle = \App\Models\ExploreArticle::published()->featured()->latest()->first();
+    }
+
+    protected function loadProfileStats(): void
+    {
+        $user = Auth::user();
+        if (!$user) return;
+
+        // Calculate Contributions (Discussions + Replies + Exam Submissions)
+        $this->contributionsCount = $user->communityDiscussions()->count() + 
+                                  $user->communityReplies()->count() + 
+                                  $user->examSubmissions()->count();
+
+        // Modules Completed
+        $this->modulesCompletedCount = $user->lessonProgress()->whereNotNull('completed_at')->count();
+
+        // Interests (Placeholder tags for now)
+        $this->userInterests = ['Cultural Anthropology', 'Kinship Systems', 'Indian Tribes', 'Structuralism', 'Linguistics'];
+        $this->interestsCount = count($this->userInterests);
     }
 
     /**

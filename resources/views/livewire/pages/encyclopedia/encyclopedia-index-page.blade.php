@@ -40,16 +40,17 @@
                 </select>
             </div>
 
-            <!-- Discipline Filter -->
-            <div class="flex items-center gap-3 bg-white dark:bg-stone-900 px-5 py-3 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
-                <span class="text-[10px] font-extrabold text-primary uppercase tracking-widest">Discipline</span>
-                <select wire:model.live="discipline" class="border-none bg-transparent text-sm font-bold focus:ring-0 p-0 pr-8 cursor-pointer text-stone-700 dark:text-stone-300">
-                    <option>All Disciplines</option>
-                    @foreach($allDisciplines as $disc)
-                        <option value="{{ $disc }}">{{ $disc }}</option>
-                    @endforeach
-                </select>
-            </div>
+            @foreach($tagGroups as $group)
+                <div class="flex items-center gap-3 bg-white dark:bg-stone-900 px-5 py-3 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">
+                    <span class="text-[10px] font-extrabold text-primary uppercase tracking-widest">{{ $group->name }}</span>
+                    <select wire:change="setTag('{{ $group->id }}', $event.target.value)" class="border-none bg-transparent text-sm font-bold focus:ring-0 p-0 pr-8 cursor-pointer text-stone-700 dark:text-stone-300">
+                        <option value="">All {{ $group->name }}</option>
+                        @foreach($group->activeTags as $tag)
+                            <option value="{{ $tag->slug }}" {{ ($tagFilters[$group->id] ?? null) === $tag->slug ? 'selected' : '' }}>{{ $tag->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            @endforeach
 
             <!-- Region Filter -->
             <div class="flex items-center gap-3 bg-white dark:bg-stone-900 px-5 py-3 rounded-xl border border-stone-200 dark:border-stone-800 shadow-sm">

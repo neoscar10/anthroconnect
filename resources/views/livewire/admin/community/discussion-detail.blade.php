@@ -5,7 +5,7 @@
             <nav class="flex mb-2" aria-label="Breadcrumb">
                 <ol class="inline-flex items-center space-x-1 md:space-x-3">
                     <li class="inline-flex items-center">
-                        <a href="{{ route('admin.community.discussions') }}" class="text-xs font-medium text-gray-500 hover:text-primary">Discussions</a>
+                        <a wire:navigate href="{{ route('admin.community.discussions.index') }}" class="text-xs font-medium text-gray-500 hover:text-primary">Discussions</a>
                     </li>
                     <li>
                         <div class="flex items-center">

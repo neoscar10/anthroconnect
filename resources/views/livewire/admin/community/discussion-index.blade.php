@@ -22,15 +22,17 @@
                 <input wire:model.live.debounce.300ms="search" type="text" placeholder="Title or content..." class="w-full bg-stone-50 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary">
             </div>
         </div>
-        <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
-            <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Filter by Topic</label>
-            <select wire:model.live="topic_filter" class="w-full bg-stone-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary py-2 px-3">
-                <option value="">All Topics</option>
-                @foreach($topics as $topic)
-                    <option value="{{ $topic->id }}">{{ $topic->name }}</option>
-                @endforeach
-            </select>
-        </div>
+        @foreach($filterableTagGroups as $group)
+            <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10">
+                <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2">Filter by {{ $group->name }}</label>
+                <select wire:model.live="tagFilters.{{ $group->id }}" class="w-full bg-stone-50 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary py-2 px-3">
+                    <option value="">All {{ $group->name }}</option>
+                    @foreach($group->activeTags as $tag)
+                        <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+        @endforeach
         <div class="bg-surface-container-lowest p-5 rounded-xl shadow-sm border border-outline-variant/10 flex items-center justify-around">
              <div class="text-center">
                  <p class="text-2xl font-bold text-stone-800">{{ $discussions->total() }}</p>
@@ -70,7 +72,11 @@
                                     <div class="flex items-center gap-2 mt-1">
                                         <span class="text-[9px] font-bold uppercase tracking-wider text-stone-400">{{ $disc->author?->name ?? 'Unknown Author' }}</span>
                                         <span class="w-1 h-1 rounded-full bg-stone-300"></span>
-                                        <span class="text-[9px] font-bold text-primary italic">{{ $disc->topic?->name }}</span>
+                                        <div class="flex gap-1">
+                                            @foreach($disc->tags->take(2) as $tag)
+                                                <span class="text-[9px] font-bold text-primary italic">{{ $tag->name }}</span>
+                                            @endforeach
+                                        </div>
                                         <span class="w-1 h-1 rounded-full bg-stone-300"></span>
                                         <span class="text-[9px] font-medium text-stone-400">{{ $disc->created_at->diffForHumans() }}</span>
                                     </div>
@@ -109,7 +115,7 @@
                         </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end gap-2">
-                                    <a href="{{ route('admin.community.discussions.show', $disc->id) }}" class="p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors" title="Moderate Dialogue">
+                                    <a wire:navigate href="{{ route('admin.community.discussions.show', $disc->id) }}" class="p-2 text-primary hover:bg-gray-100 rounded-lg transition-colors" title="Moderate Dialogue">
                                         <span class="material-symbols-outlined text-sm">forum</span>
                                     </a>
                                     <button wire:click="toggleFeatured({{ $disc->id }})" class="p-2 {{ $disc->is_featured ? 'text-orange-500' : 'text-gray-400' }} hover:bg-gray-100 rounded-lg transition-colors">
@@ -128,5 +134,66 @@
 
     <div class="mt-8">
         {{ $discussions->links() }}
+    </div>
+
+    <!-- Edit Modal -->
+    <div x-data="{ open: @entangle('isModalOpen') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 transition-opacity bg-stone-900/60 backdrop-blur-sm" @click="open = false"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="open" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="inline-block w-full max-w-2xl p-8 overflow-hidden text-left align-middle transition-all transform bg-white shadow-2xl rounded-[32px] sm:my-8 border border-stone-100">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h3 class="text-2xl font-bold text-stone-900 font-headline italic">Edit Dialogue</h3>
+                        <p class="text-xs text-stone-400 font-medium uppercase tracking-widest mt-1">Refine community inquiry</p>
+                    </div>
+                    <button @click="open = false" class="text-stone-300 hover:text-stone-500 transition-colors">
+                        <span class="material-symbols-outlined">close</span>
+                    </button>
+                </div>
+
+                <form wire:submit.prevent="saveDiscussion" class="space-y-6">
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">Title</label>
+                        <input wire:model="editTitle" type="text" class="w-full bg-stone-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-stone-800">
+                        @error('editTitle') <span class="text-red-500 text-[10px] mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">Dialogue Body</label>
+                        <textarea wire:model="editBody" rows="6" class="w-full bg-stone-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all text-stone-600 leading-relaxed italic"></textarea>
+                        @error('editBody') <span class="text-red-500 text-[10px] mt-1">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">Moderation Status</label>
+                            <select wire:model="editStatus" class="w-full bg-stone-50 border-none rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary transition-all font-bold text-stone-700">
+                                <option value="published">Published</option>
+                                <option value="hidden">Hidden</option>
+                                <option value="archived">Archived</option>
+                            </select>
+                        </div>
+                        <div>
+                             <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 mb-2 px-1">Categorization</label>
+                             <div class="bg-stone-50 rounded-xl p-1">
+                                 <x-admin.tag-selector 
+                                     id="discussion-tag-selector"
+                                     wire:model="selectedTags"
+                                     :modelClass="\App\Models\Community\CommunityDiscussion::class"
+                                 />
+                             </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-10 pt-6 border-t border-stone-50">
+                        <button type="button" @click="open = false" class="px-6 py-3 text-sm font-bold text-stone-400 hover:text-stone-600 transition-colors">Cancel</button>
+                        <button type="submit" class="bg-stone-900 text-stone-50 px-8 py-3 rounded-xl text-sm font-bold shadow-lg shadow-stone-900/20 hover:-translate-y-0.5 active:scale-95 transition-all">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>

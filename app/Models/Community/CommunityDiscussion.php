@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\User;
 
+use App\Models\Concerns\HasTags;
+
 class CommunityDiscussion extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $fillable = [
         'user_id',
@@ -64,7 +66,7 @@ class CommunityDiscussion extends Model
     /**
      * Relationship: A discussion can have many tags.
      */
-    public function tags()
+    public function legacyTags()
     {
         return $this->belongsToMany(CommunityDiscussionTag::class, 'community_discussion_tag', 'community_discussion_id', 'community_discussion_tag_id');
     }

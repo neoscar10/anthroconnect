@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        view()->composer('layouts.admin', function ($view) {
+            $view->with('pendingSubmissionsCount', \App\Models\Exam\ExamAnswerSubmission::where('status', 'submitted')->whereNull('evaluated_at')->count());
+        });
     }
 }

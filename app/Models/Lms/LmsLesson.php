@@ -57,6 +57,14 @@ class LmsLesson extends Model
     }
 
     /**
+     * Scope for published lessons.
+     */
+    public function scopePublished($query)
+    {
+        return $query->where('is_published', true);
+    }
+
+    /**
      * Check if user can access this lesson.
      */
     public function canAccess(?User $user): bool

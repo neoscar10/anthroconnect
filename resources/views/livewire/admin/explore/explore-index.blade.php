@@ -65,6 +65,17 @@
                     <option value="members">Members Only</option>
                     <option value="public">Publicly Available</option>
                 </select>
+                <select wire:model.live="upsc_filter" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="">UPSC Status</option>
+                    <option value="upsc">UPSC Relevant</option>
+                    <option value="general">General</option>
+                </select>
+
+                @if($search || $topic_filter_id || $status_filter || $access_filter || $upsc_filter)
+                    <button wire:click="$set('search', ''); $set('topic_filter_id', ''); $set('status_filter', ''); $set('access_filter', ''); $set('upsc_filter', '')" class="text-[10px] font-bold uppercase tracking-widest text-stone-400 hover:text-error transition-colors px-2">
+                        Clear Filters
+                    </button>
+                @endif
             </div>
             
             <div class="flex items-center gap-6">
@@ -108,7 +119,12 @@
                                         @endif
                                     </div>
                                     <div>
-                                        <p class="font-headline font-bold text-on-surface mb-0.5 leading-tight">{{ $article->title }}</p>
+                                        <p class="font-headline font-bold text-on-surface mb-0.5 leading-tight flex items-center gap-2">
+                                            {{ $article->title }}
+                                            @if($article->is_upsc_relevant)
+                                                <span class="px-1.5 py-0.5 bg-warning-subtle text-warning text-[8px] font-bold rounded uppercase">UPSC</span>
+                                            @endif
+                                        </p>
                                         <p class="text-[10px] text-stone-400 font-mono italic">{{ $article->slug }}</p>
                                     </div>
                                 </div>
@@ -343,22 +359,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Scholar Access -->
-                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
-                                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Scholar Access</label>
-                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
-                                        <div class="relative inline-flex items-center">
-                                            <input wire:model="is_members_only" type="checkbox" class="sr-only peer">
-                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
-                                        </div>
-                                        <div class="flex flex-col">
-                                            <span class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Members Only Access</span>
-                                            <span class="text-[8px] text-stone-400 uppercase tracking-tight">Restrict to active scholars</span>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <!-- Featured Toggle -->
+                                <!-- Featured & UPSC Toggles -->
                                 <div class="space-y-4 pt-6 border-t border-outline-variant/10">
                                     <label class="flex items-center gap-3 cursor-pointer group w-fit">
                                         <div class="relative inline-flex items-center">
@@ -366,6 +367,14 @@
                                             <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
                                         </div>
                                         <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Mark as Featured</span>
+                                    </label>
+
+                                    <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                        <div class="relative inline-flex items-center">
+                                            <input wire:model="is_upsc_relevant" type="checkbox" class="sr-only peer">
+                                            <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                        </div>
+                                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">UPSC Relevant</span>
                                     </label>
                                 </div>
                             </div>

@@ -13,14 +13,14 @@ class CommunityIndexPage extends Component
 
     public $search = '';
     public $topicId = '';
-    public $tag = '';
+    public $tagFilters = []; // group_id => tag_slug
     public $tab = 'all'; // all, hot, newest, unsolved
     public $perPage = 10;
 
     protected $queryString = [
         'search' => ['except' => ''],
         'topicId' => ['as' => 'topic', 'except' => ''],
-        'tag' => ['except' => ''],
+        'tagFilters' => ['as' => 'tags', 'except' => []],
         'tab' => ['except' => 'all'],
     ];
 
@@ -29,7 +29,7 @@ class CommunityIndexPage extends Component
      */
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['search', 'topicId', 'tag', 'tab'])) {
+        if (in_array($propertyName, ['search', 'topicId', 'tab']) || str_starts_with($propertyName, 'tagFilters')) {
             $this->resetPage();
         }
     }
@@ -40,6 +40,16 @@ class CommunityIndexPage extends Component
     public function selectTopic($id)
     {
         $this->topicId = ($this->topicId == $id) ? '' : $id;
+        $this->resetPage();
+    }
+
+    public function setTag($groupId, $slug)
+    {
+        if (($this->tagFilters[$groupId] ?? null) === $slug) {
+            unset($this->tagFilters[$groupId]);
+        } else {
+            $this->tagFilters[$groupId] = $slug;
+        }
         $this->resetPage();
     }
 
@@ -57,7 +67,7 @@ class CommunityIndexPage extends Component
      */
     public function resetFilters()
     {
-        $this->reset(['search', 'topicId', 'tag', 'tab']);
+        $this->reset(['search', 'topicId', 'tagFilters', 'tab']);
         $this->resetPage();
     }
 
@@ -72,13 +82,14 @@ class CommunityIndexPage extends Component
         $discussions = $service->getDiscussionFeed([
             'search' => $this->search,
             'topic' => $this->topicId,
-            'tag' => $this->tag,
+            'tag_filters' => $this->tagFilters,
             'tab' => $this->tab,
             'per_page' => $this->perPage,
         ]);
 
         return view('livewire.public.community.community-index-page', [
             'discussions' => $discussions,
+            'tagGroups' => $service->getPublicTagGroups(),
             'browseTopics' => $service->getBrowseTopics(),
             'popularDiscussions' => $service->getPopularDiscussions(),
             'trendingTags' => $service->getTrendingTags(),

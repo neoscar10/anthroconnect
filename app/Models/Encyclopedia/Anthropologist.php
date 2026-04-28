@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Models\Concerns\HasTags;
+
 class Anthropologist extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $table = 'encyclopedia_anthropologists';
 
@@ -24,10 +26,12 @@ class Anthropologist extends Model
         'profile_image',
         'status',
         'is_featured',
+        'is_upsc_relevant',
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_upsc_relevant' => 'boolean',
         'birth_year' => 'integer',
         'death_year' => 'integer',
     ];

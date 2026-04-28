@@ -32,13 +32,15 @@
                 <input wire:model.live="search" type="text" placeholder="Search modules..." class="bg-transparent border-none focus:ring-0 text-sm w-full placeholder-stone-400 font-medium">
             </div>
             
-            <div class="flex gap-4 items-center">
-                <select wire:model.live="topicFilter" class="bg-surface-container-low border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
-                    <option value="">All Topics</option>
-                    @foreach($topics as $topic)
-                        <option value="{{ $topic->id }}">{{ $topic->name }}</option>
-                    @endforeach
-                </select>
+            <div class="flex gap-4 items-center flex-wrap">
+                @foreach($filterableTagGroups as $group)
+                    <select wire:model.live="tagFilters.{{ $group->id }}" class="bg-surface-container-low border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                        <option value="">All {{ $group->name }}</option>
+                        @foreach($group->activeTags as $tag)
+                            <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                        @endforeach
+                    </select>
+                @endforeach
 
                 <select wire:model.live="levelFilter" class="bg-surface-container-low border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
                     <option value="">All Levels</option>
@@ -52,10 +54,16 @@
                     <option value="published">Published</option>
                     <option value="draft">Draft</option>
                 </select>
+
+                <select wire:model.live="upscFilter" class="bg-surface-container-low border-none rounded-xl px-4 py-2 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-primary cursor-pointer">
+                    <option value="all">All UPSC Status</option>
+                    <option value="upsc">UPSC Relevant</option>
+                    <option value="general">General</option>
+                </select>
             </div>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto pb-24">
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-surface-container-low/50">
@@ -82,14 +90,22 @@
                                     </div>
                                     <div class="flex flex-col">
                                         <a href="{{ route('admin.lms.modules.edit', $module) }}" class="font-headline text-lg font-bold text-on-surface italic leading-tight hover:text-primary transition-colors">{{ $module->title }}</a>
-                                        <span class="text-[10px] uppercase tracking-widest text-stone-500 font-bold mt-1">{{ $module->level ?? 'General' }}</span>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-[10px] uppercase tracking-widest text-stone-500 font-bold mt-1">{{ $module->level ?? 'General' }}</span>
+                                            @if($module->is_upsc_relevant)
+                                                <span class="badge bg-warning-subtle text-warning text-[8px] uppercase font-bold px-2 py-0.5 rounded">UPSC</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </td>
                             <td class="px-8 py-6">
-                                <div class="flex flex-col gap-1">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-primary">{{ $module->topic->name ?? 'Unlinked' }}</span>
-                                    <span class="text-[9px] text-stone-400 italic">Global Taxonomy</span>
+                                <div class="flex flex-wrap gap-1">
+                                    @forelse($module->tags as $tag)
+                                        <span class="text-[9px] font-bold uppercase tracking-tighter px-2 py-0.5 rounded bg-primary/10 text-primary">{{ $tag->name }}</span>
+                                    @empty
+                                        <span class="text-[9px] font-bold uppercase tracking-tighter text-stone-300">Untagged</span>
+                                    @endforelse
                                 </div>
                             </td>
                             <td class="px-8 py-6">
@@ -228,15 +244,8 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="space-y-2">
-                            <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Classification Topic</label>
-                            <select wire:model="topic_id" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-2xl p-4 text-sm font-bold focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none appearance-none cursor-pointer">
-                                <option value="">Select Topic...</option>
-                                @foreach($topics as $topic)
-                                    <option value="{{ $topic->id }}">{{ $topic->name }}</option>
-                                @endforeach
-                            </select>
-                            @error('topic_id') <span class="text-[10px] text-error font-medium px-1">{{ $message }}</span> @enderror
+                        <div class="col-span-full">
+                            <x-admin.tag-selector id="lms-module-tag-selector" wire:model="tags" />
                         </div>
 
                         <div class="space-y-2">
@@ -257,6 +266,14 @@
                                 <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                             </div>
                             <span class="text-[10px] font-bold text-on-surface uppercase tracking-widest">Publish Immediately</span>
+                        </label>
+
+                        <label class="flex items-center gap-3 cursor-pointer group">
+                            <div class="relative inline-flex items-center">
+                                <input wire:model="is_upsc_relevant" type="checkbox" class="sr-only peer">
+                                <div class="w-11 h-6 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </div>
+                            <span class="text-[10px] font-bold text-on-surface uppercase tracking-widest">UPSC Relevant</span>
                         </label>
 
                         <div class="flex gap-4">

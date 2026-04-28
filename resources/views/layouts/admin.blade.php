@@ -109,25 +109,29 @@
             </div>
             
             <nav class="flex-1 space-y-1">
-                <a class="{{ request()->routeIs('admin.dashboard') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.dashboard') }}">
+                <a wire:navigate class="{{ request()->routeIs('admin.dashboard') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.dashboard') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">dashboard</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Dashboard</span>
                 </a>
-                <a class="{{ request()->routeIs('admin.onboarding.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.onboarding.index') }}">
+                <a wire:navigate class="{{ request()->routeIs('admin.onboarding.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.onboarding.index') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">account_tree</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Onboarding Flows</span>
                 </a>
-                <a class="{{ request()->routeIs('admin.membership.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.membership.index') }}">
+                <a wire:navigate class="{{ request()->routeIs('admin.membership.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.membership.index') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">workspace_premium</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Membership</span>
                 </a>
-                <a class="{{ request()->routeIs('admin.explore.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.explore.index') }}">
+                <a wire:navigate class="{{ request()->routeIs('admin.explore.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.explore.index') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">explore</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Explore Content</span>
                 </a>
-                <a class="{{ request()->routeIs('admin.topics.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.topics.index') }}">
-                    <span class="material-symbols-outlined mr-3 text-[20px]">category</span>
-                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Topics</span>
+                <a wire:navigate class="{{ request()->routeIs('admin.tags.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.tags.index') }}">
+                    <span class="material-symbols-outlined mr-3 text-[20px]">sell</span>
+                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Tags</span>
+                </a>
+                <a wire:navigate class="{{ request()->routeIs('admin.knowledge-maps.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.knowledge-maps.builder') }}">
+                    <span class="material-symbols-outlined mr-3 text-[20px]">account_tree</span>
+                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Knowledge Map</span>
                 </a>
 
                 <div x-data="{ lmsOpen: {{ request()->routeIs('admin.lms.*') ? 'true' : 'false' }} }" class="group w-full">
@@ -139,8 +143,8 @@
                         <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="lmsOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
                     </button>
                     <div x-show="lmsOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
-                        <a href="{{ route('admin.lms.modules.index') }}" class="{{ request()->routeIs('admin.lms.modules.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Modules</a>
-                        <a href="{{ route('admin.lms.resources.index') }}" class="{{ request()->routeIs('admin.lms.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
+                        <a wire:navigate href="{{ route('admin.lms.modules.index') }}" class="{{ request()->routeIs('admin.lms.modules.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Modules</a>
+                        <a wire:navigate href="{{ route('admin.lms.resources.index') }}" class="{{ request()->routeIs('admin.lms.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
                     </div>
                 </div>
                 
@@ -153,9 +157,9 @@
                         <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="encyOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
                     </button>
                     <div x-show="encyOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
-                        <a href="{{ route('admin.encyclopedia.anthropologists.index') }}" class="{{ request()->routeIs('admin.encyclopedia.anthropologists.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Anthropologists</a>
-                        <a href="{{ route('admin.encyclopedia.core-concepts.index') }}" class="{{ request()->routeIs('admin.encyclopedia.core-concepts.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Core Concepts</a>
-                        <a href="{{ route('admin.encyclopedia.major-theories.index') }}" class="{{ request()->routeIs('admin.encyclopedia.major-theories.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Major Theories</a>
+                        <a wire:navigate href="{{ route('admin.encyclopedia.anthropologists.index') }}" class="{{ request()->routeIs('admin.encyclopedia.anthropologists.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Anthropologists</a>
+                        <a wire:navigate href="{{ route('admin.encyclopedia.core-concepts.index') }}" class="{{ request()->routeIs('admin.encyclopedia.core-concepts.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Core Concepts</a>
+                        <a wire:navigate href="{{ route('admin.encyclopedia.major-theories.index') }}" class="{{ request()->routeIs('admin.encyclopedia.major-theories.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Major Theories</a>
                     </div>
                 </div>
 
@@ -168,9 +172,10 @@
                         <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="libOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
                     </button>
                     <div x-show="libOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
-                        <a href="{{ route('admin.library.dashboard') }}" class="{{ request()->routeIs('admin.library.dashboard') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Overview</a>
-                        <a href="{{ route('admin.library.resources.index') }}" class="{{ request()->routeIs('admin.library.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
-                        <a href="{{ route('admin.library.resource-types.index') }}" class="{{ request()->routeIs('admin.library.resource-types.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resource Types</a>
+                        <a wire:navigate href="{{ route('admin.library.dashboard') }}" class="{{ request()->routeIs('admin.library.dashboard') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Overview</a>
+                        <a wire:navigate href="{{ route('admin.library.resources.index') }}" class="{{ request()->routeIs('admin.library.resources.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resources</a>
+                        <a wire:navigate href="{{ route('admin.library.resource-types.index') }}" class="{{ request()->routeIs('admin.library.resource-types.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Resource Types</a>
+                        <a wire:navigate href="{{ route('admin.library.regions.index') }}" class="{{ request()->routeIs('admin.library.regions.*') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Regions</a>
                     </div>
                 </div>
 
@@ -180,17 +185,35 @@
                 </a>
                         <div class="px-3 py-2">
                             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-3" x-show="sidebarOpen">Community</p>
-                            <a class="flex items-center px-3 py-2.5 rounded-lg transition-colors {{ request()->routeIs('admin.community.topics.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
-                               href="{{ route('admin.community.topics.index') }}">
-                                <span class="material-symbols-outlined mr-3 text-[20px]">category</span>
-                                <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Manage Topics</span>
-                            </a>
-                            <a class="flex items-center px-3 py-2.5 rounded-lg mt-1 transition-colors {{ request()->routeIs('admin.community.discussions.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
+
+                            <a wire:navigate class="flex items-center px-3 py-2.5 rounded-lg mt-1 transition-colors {{ request()->routeIs('admin.community.discussions.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
                                href="{{ route('admin.community.discussions.index') }}">
                                 <span class="material-symbols-outlined mr-3 text-[20px]">forum</span>
                                 <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Discussions</span>
                             </a>
                         </div>
+
+                        <div class="px-3 py-2 border-t border-stone-100 mt-2">
+                            <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-3" x-show="sidebarOpen">Practice</p>
+
+                            <a wire:navigate class="flex items-center px-3 py-2.5 rounded-lg mt-1 transition-colors {{ request()->routeIs('admin.exams.questions.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
+                               href="{{ route('admin.exams.questions.index') }}">
+                                <span class="material-symbols-outlined mr-3 text-[20px]">quiz</span>
+                                <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Exams</span>
+                            </a>
+                            
+                            <a wire:navigate class="flex items-center justify-between px-3 py-2.5 rounded-lg mt-1 transition-colors {{ request()->routeIs('admin.exams.submissions.*') ? 'bg-primary/10 text-primary font-bold' : 'text-stone-600 hover:bg-stone-100' }}" 
+                               href="{{ route('admin.exams.submissions.index') }}">
+                                <div class="flex items-center">
+                                    <span class="material-symbols-outlined mr-3 text-[20px]">history_edu</span>
+                                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Submissions</span>
+                                </div>
+                                @if(isset($pendingSubmissionsCount) && $pendingSubmissionsCount > 0)
+                                    <span x-show="sidebarOpen" class="bg-orange-800 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">{{ $pendingSubmissionsCount }}</span>
+                                @endif
+                            </a>
+                        </div>
+
                 <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
                     <span class="material-symbols-outlined mr-3 text-[20px]">school</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">UPSC Hub</span>
@@ -240,7 +263,7 @@
                     </button>
                     <a class="text-stone-500 hover:text-olive-700 transition-all text-sm font-sans Inter" href="#">Support</a>
                     <div class="h-8 w-[1px] bg-stone-200"></div>
-                    <a href="{{ route('profile.edit') }}">
+                    <a wire:navigate href="{{ route('profile.edit') }}">
                         <img alt="Administrator Profile" class="w-8 h-8 rounded-full object-cover" src="{{ Auth::user()->avatar ?? 'https://ui-avatars.com/api/?name='.Auth::user()->name }}"/>
                     </a>
                 </div>

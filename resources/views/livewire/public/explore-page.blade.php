@@ -36,18 +36,27 @@
     </section>
 
     <!-- Theme Navigation Pills -->
-    @if($topics->count() > 0)
+    @if($tagGroups->count() > 0)
     <div class="bg-stone-200/20 dark:bg-stone-900 py-6 border-b border-stone-200/50 dark:border-primary/10">
-        <div class="max-w-7xl mx-auto px-6 flex gap-3 overflow-x-auto no-scrollbar pb-2">
-            <button wire:click="setTopic('')" 
-               class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors {{ !$topicId ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
-                All Topics
-            </button>
-            @foreach($topics as $topic)
-                <button wire:click="setTopic({{ $topic->id }})" 
-                   class="whitespace-nowrap px-5 py-2 rounded-full text-sm font-medium transition-colors {{ $topicId == $topic->id ? 'bg-primary text-white' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-900 dark:text-stone-100' }}">
-                    {{ $topic->name }}
-                </button>
+        <div class="max-w-7xl mx-auto px-6 space-y-4">
+            @foreach($tagGroups as $group)
+                <div class="flex items-center gap-4">
+                    <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400 whitespace-nowrap min-w-[80px]">{{ $group->name }}</span>
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 flex-1">
+                        @if($loop->first)
+                        <button wire:click="setTag('')" 
+                           class="whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-colors {{ !$tagId ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-600 dark:text-stone-100' }}">
+                            All
+                        </button>
+                        @endif
+                        @foreach($group->activeTags as $tag)
+                            <button wire:click="setTag({{ $tag->id }})" 
+                               class="whitespace-nowrap px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-widest transition-colors {{ $tagId == $tag->id ? 'bg-primary text-white shadow-md shadow-primary/20' : 'bg-white dark:bg-primary/10 border border-stone-200 dark:border-primary/20 hover:bg-stone-200/30 text-stone-600 dark:text-stone-100' }}">
+                                {{ $tag->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
             @endforeach
         </div>
     </div>
@@ -92,7 +101,7 @@
                                     <div class="p-8 lg:p-12 transition-all duration-700 {{ $isRestricted ? 'blur-md opacity-30 select-none' : '' }}">
                                         <div class="flex items-center gap-3 mb-4">
                                             <span class="text-primary font-bold uppercase tracking-widest text-[10px] bg-primary/10 px-2 py-0.5 rounded">
-                                                {{ $article->topic ? $article->topic->name : 'Feature Story' }}
+                                                {{ $article->tags->first() ? $article->tags->first()->name : 'Feature Story' }}
                                             </span>
                                             @if($article->is_members_only)
                                                 <span class="text-orange-800 font-bold uppercase tracking-widest text-[10px] bg-orange-100 px-2 py-0.5 rounded flex items-center gap-1">
@@ -239,8 +248,8 @@
                                 <span class="material-symbols-outlined text-[10px]" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
                                 Members Only
                             </span>
-                        @elseif($article->topic)
-                            <span class="text-stone-400 font-bold uppercase tracking-widest text-[10px]">{{ $article->topic->name }}</span>
+                        @elseif($article->tags->isNotEmpty())
+                            <span class="text-stone-400 font-bold uppercase tracking-widest text-[10px]">{{ $article->tags->first()->name }}</span>
                         @endif
                     </div>
 

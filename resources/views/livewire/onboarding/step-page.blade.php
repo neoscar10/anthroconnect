@@ -36,6 +36,15 @@
             <p class="text-lg text-slate-600 max-w-2xl mx-auto font-body italic leading-relaxed">
                 {{ $stepData['supporting_text'] ?? '' }}
             </p>
+
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-stone-100 text-stone-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-8 animate-in fade-in slide-in-from-bottom-2 duration-700 shadow-inner">
+                <span class="material-symbols-outlined text-sm">info</span>
+                @if(in_array($stepData['step_type'] ?? '', ['card_single', 'radio']))
+                    Please select one option to proceed
+                @else
+                    You can select multiple options that apply to you
+                @endif
+            </div>
         </div>
 
         @if ($errors->has('selection'))
@@ -93,6 +102,10 @@
                     </div>
                     Additional Interests
                 </h2>
+                <p class="text-xs text-slate-500 mb-6 font-bold uppercase tracking-widest ml-13 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-xs">info</span>
+                    Select all that apply to you
+                </p>
 
                 <div class="flex flex-wrap gap-4">
                     @foreach(($stepData['additional_interests'] ?? []) as $interest)
@@ -118,6 +131,10 @@
                     </div>
                     Regions You Are Interested In
                 </h2>
+                <p class="text-xs text-slate-500 mb-6 font-bold uppercase tracking-widest ml-13 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-xs">info</span>
+                    Select all that apply to you
+                </p>
 
                 <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                     @foreach(($stepData['regions'] ?? []) as $region)

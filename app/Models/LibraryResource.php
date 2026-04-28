@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
+use App\Models\Concerns\HasTags;
+
 class LibraryResource extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $fillable = [
         'uuid',
@@ -44,6 +46,7 @@ class LibraryResource extends Model
         'is_latest',
         'is_recommended',
         'is_editors_pick',
+        'is_upsc_relevant',
         'show_in_more_resources',
         'sort_order',
         'status',
@@ -65,6 +68,7 @@ class LibraryResource extends Model
         'is_latest' => 'boolean',
         'is_recommended' => 'boolean',
         'is_editors_pick' => 'boolean',
+        'is_upsc_relevant' => 'boolean',
         'show_in_more_resources' => 'boolean',
         'sort_order' => 'integer',
         'published_at' => 'datetime',
@@ -112,7 +116,7 @@ class LibraryResource extends Model
         return $this->belongsToMany(Topic::class, 'library_resource_topic');
     }
 
-    public function tags()
+    public function legacyTags()
     {
         return $this->belongsToMany(LibraryTag::class, 'library_resource_tag');
     }

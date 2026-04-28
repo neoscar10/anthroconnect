@@ -64,12 +64,12 @@
                     wire:click="selectTopic({{ $bt->id }})"
                     class="shrink-0 flex items-center gap-3 px-6 py-4 rounded-2xl border transition-all {{ $topicId == $bt->id ? 'bg-white shadow-xl scale-105 border-primary ring-4 ring-primary/5' : 'bg-stone-50/80 backdrop-blur-sm border-stone-200 hover:border-stone-300' }}"
                 >
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: {{ $bt->color ?? '#F97316' }}20; color: {{ $bt->color ?? '#F97316' }};">
-                        <span class="material-symbols-outlined text-xl">{{ $bt->icon ?? 'category' }}</span>
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center bg-primary/10 text-primary">
+                        <span class="material-symbols-outlined text-xl">category</span>
                     </div>
                     <div class="text-left">
                         <p class="text-sm font-bold text-stone-900 leading-none">{{ $bt->name }}</p>
-                        <p class="text-[9px] text-stone-400 font-bold uppercase mt-1">{{ $bt->community_discussions_count ?? 0 }} Threads</p>
+                        <p class="text-[9px] text-stone-400 font-bold uppercase mt-1">{{ $bt->discussions_count ?? 0 }} Threads</p>
                     </div>
                 </button>
             @endforeach
@@ -105,7 +105,7 @@
             </div>
 
             <!-- Active Filters Badge -->
-            @if($topicId || $tag || $search)
+            @if($topicId || !empty($tagFilters) || $search)
                 <div class="flex flex-wrap items-center gap-3">
                     <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">Filtering by:</span>
                     @if($topicId)
@@ -114,12 +114,16 @@
                             <button wire:click="$set('topicId', '')" class="hover:text-red-400 transition-colors"><span class="material-symbols-outlined text-[10px]">close</span></button>
                         </span>
                     @endif
-                    @if($tag)
+                    @foreach($tagFilters as $groupId => $slug)
+                        @php
+                            $group = $tagGroups->firstWhere('id', $groupId);
+                            $tagName = $group?->activeTags->firstWhere('slug', $slug)?->name ?? $slug;
+                        @endphp
                         <span class="inline-flex items-center gap-1 px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-widest">
-                            Tag: {{ $tag }}
-                            <button wire:click="$set('tag', '')" class="hover:text-stone-200 transition-colors"><span class="material-symbols-outlined text-[10px]">close</span></button>
+                            {{ $group?->name ?? 'Tag' }}: {{ $tagName }}
+                            <button wire:click="setTag('{{ $groupId }}', '{{ $slug }}')" class="hover:text-stone-200 transition-colors"><span class="material-symbols-outlined text-[10px]">close</span></button>
                         </span>
-                    @endif
+                    @endforeach
                     @if($search)
                         <span class="inline-flex items-center gap-1 px-3 py-1 bg-stone-100 text-stone-600 border border-stone-200 text-[10px] font-bold rounded-full uppercase tracking-widest">
                             "{{ $search }}"
@@ -259,13 +263,32 @@
                 </div>
             </section>
 
+            <!-- Tag Groups Widget -->
+            @foreach($tagGroups as $group)
+                @if($group->slug !== 'topics')
+                    <section class="bg-stone-50 rounded-[40px] p-8 border border-stone-200/60 h-fit">
+                        <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-6">{{ $group->name }}</h3>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($group->activeTags as $tagItem)
+                                <button 
+                                    wire:click="setTag('{{ $group->id }}', '{{ $tagItem->slug }}')"
+                                    class="px-4 py-2 {{ ($tagFilters[$group->id] ?? null) === $tagItem->slug ? 'bg-primary text-white border-primary' : 'bg-white text-stone-600 border-stone-200' }} border rounded-xl text-[10px] font-bold hover:border-primary hover:text-primary transition-all shadow-sm"
+                                >
+                                    {{ $tagItem->name }}
+                                </button>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
+            @endforeach
+
             <!-- Trending Tags Widget -->
             <section class="bg-stone-50 rounded-[40px] p-8 border border-stone-200/60 h-fit">
                 <h3 class="text-xs font-bold text-stone-900 uppercase tracking-widest mb-6">Trending Tags</h3>
                 <div class="flex flex-wrap gap-2">
                     @foreach($trendingTags as $tt)
                         <button 
-                            wire:click="$set('tag', '{{ $tt->slug }}')"
+                            wire:click="setTag('{{ $tt->tag_group_id }}', '{{ $tt->slug }}')"
                             class="px-4 py-2 bg-white border border-stone-200 rounded-xl text-[10px] font-bold text-stone-600 hover:border-primary hover:text-primary transition-all shadow-sm"
                         >
                             #{{ $tt->name }} <span class="ml-1 text-stone-300 font-medium">({{ $tt->discussions_count }})</span>

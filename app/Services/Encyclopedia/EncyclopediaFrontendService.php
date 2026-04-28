@@ -10,12 +10,33 @@ use Illuminate\Support\Facades\DB;
 
 class EncyclopediaFrontendService
 {
+    public function getPublicTagGroups()
+    {
+        // Combined usage for Encyclopedia (Anthropologists, CoreConcepts, MajorTheories)
+        $groupIds = \Illuminate\Support\Facades\DB::table('taggables')
+            ->join('tags', 'taggables.tag_id', '=', 'tags.id')
+            ->whereIn('taggables.taggable_type', [
+                Anthropologist::class,
+                CoreConcept::class,
+                MajorTheory::class
+            ])
+            ->distinct()
+            ->pluck('tags.tag_group_id');
+
+        return \App\Models\TagGroup::whereIn('id', $groupIds)
+            ->active()
+            ->with(['activeTags' => fn($q) => $q->orderBy('name')])
+            ->orderBy('display_order')
+            ->get();
+    }
+
     /**
      * Get featured anthropologists for the landing page.
      */
     public function getFeaturedAnthropologists(int $limit = 3)
     {
-        return Anthropologist::where('status', 'active')
+        return Anthropologist::with(['tags'])
+            ->where('status', 'active')
             ->orderBy('is_featured', 'desc')
             ->orderBy('full_name', 'asc')
             ->limit($limit)
@@ -51,7 +72,7 @@ class EncyclopediaFrontendService
     {
         $search = $params['search'] ?? '';
         $category = $params['category'] ?? 'All Categories';
-        $discipline = $params['discipline'] ?? 'All Disciplines';
+        $tags = $params['tags'] ?? [];
         $region = $params['region'] ?? 'Global';
 
         $results = [
@@ -71,10 +92,10 @@ class EncyclopediaFrontendService
                 });
             }
 
-            if ($discipline !== 'All Disciplines') {
-                $query->whereHas('topics', function($q) use ($discipline) {
-                    $q->where('name', $discipline);
-                });
+            if (!empty($params['tag_filters']) && is_array($params['tag_filters'])) {
+                foreach ($params['tag_filters'] as $groupId => $slug) {
+                    if ($slug) $query->withTag($slug);
+                }
             }
 
             if ($region !== 'Global') {
@@ -95,6 +116,12 @@ class EncyclopediaFrontendService
                 });
             }
 
+            if (!empty($params['tag_filters']) && is_array($params['tag_filters'])) {
+                foreach ($params['tag_filters'] as $groupId => $slug) {
+                    if ($slug) $query->withTag($slug);
+                }
+            }
+
             $results['concepts'] = $query->orderBy('title')->get();
         }
 
@@ -110,6 +137,12 @@ class EncyclopediaFrontendService
                 });
             }
 
+            if (!empty($params['tag_filters']) && is_array($params['tag_filters'])) {
+                foreach ($params['tag_filters'] as $groupId => $slug) {
+                    if ($slug) $query->withTag($slug);
+                }
+            }
+
             $results['theories'] = $query->orderBy('title')->get();
         }
 
@@ -121,12 +154,7 @@ class EncyclopediaFrontendService
      */
     public function getDisciplines()
     {
-        return Topic::whereHas('anthropologists', function($q) {
-                $q->where('status', 'active');
-            })
-            ->active()
-            ->orderBy('name')
-            ->pluck('name');
+        return \App\Models\TagGroup::where('slug', 'topics')->first()?->tags()->active()->orderBy('name')->pluck('name') ?? collect();
     }
 
     /**
@@ -145,7 +173,7 @@ class EncyclopediaFrontendService
      */
     public function getAnthropologistBySlug(string $slug): ?Anthropologist
     {
-        return Anthropologist::with(['topics', 'coreConcepts'])
+        return Anthropologist::with(['tags'])
             ->where('status', 'active')
             ->where('slug', $slug)
             ->first();
@@ -199,20 +227,14 @@ class EncyclopediaFrontendService
      */
     public function getRelatedThinkers(Anthropologist $person, int $limit = 4)
     {
-        $topicIds = $person->topics->pluck('id');
-        $conceptIds = $person->coreConcepts->pluck('id');
+        $tagIds = $person->tags->pluck('id')->toArray();
 
         $related = Anthropologist::where('status', 'active')
             ->where('id', '!=', $person->id)
-            ->where(function($query) use ($topicIds, $conceptIds) {
-                if ($topicIds->isNotEmpty()) {
-                    $query->whereHas('topics', function($q) use ($topicIds) {
-                        $q->whereIn('topics.id', $topicIds);
-                    });
-                }
-                if ($conceptIds->isNotEmpty()) {
-                    $query->orWhereHas('coreConcepts', function($q) use ($conceptIds) {
-                        $q->whereIn('encyclopedia_core_concepts.id', $conceptIds);
+            ->where(function($query) use ($tagIds) {
+                if (!empty($tagIds)) {
+                    $query->whereHas('tags', function($q) use ($tagIds) {
+                        $q->whereIn('tags.id', $tagIds);
                     });
                 }
             })
@@ -240,10 +262,7 @@ class EncyclopediaFrontendService
      */
     public function getRecommendedTheory(Anthropologist $person): ?MajorTheory
     {
-        $keywords = $person->topics->pluck('name')->toArray();
-        if ($person->discipline_or_specialization) {
-            $keywords[] = $person->discipline_or_specialization;
-        }
+        $keywords = $person->tags->pluck('name')->toArray();
 
         if (empty($keywords)) return null;
 

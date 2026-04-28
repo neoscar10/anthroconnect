@@ -8,9 +8,11 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Topic;
 use App\Models\User;
 
+use App\Models\Concerns\HasTags;
+
 class LmsModule extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $table = 'lms_modules';
 
@@ -23,12 +25,14 @@ class LmsModule extends Model
         'level',
         'topic_id',
         'is_published',
+        'is_upsc_relevant',
         'created_by',
         'updated_by',
     ];
 
     protected $casts = [
         'is_published' => 'boolean',
+        'is_upsc_relevant' => 'boolean',
         'topic_id' => 'integer',
     ];
 

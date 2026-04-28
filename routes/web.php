@@ -1,8 +1,8 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use Illuminate\Support\Facades\Route;
 use App\Livewire\Onboarding\StepPage;
+use App\Livewire\Profile\ProfilePage;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('pages.home');
@@ -21,6 +21,9 @@ Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicE
 Route::get('/encyclopedia/theories/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showTheory'])->name('encyclopedia.theories.show');
 Route::get('/encyclopedia/concepts/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showConcept'])->name('encyclopedia.concepts.show');
 
+Route::get('/knowledge-map', \App\Livewire\Frontend\KnowledgeMap\KnowledgeMapPage::class)->name('knowledge-map.show');
+Route::get('/upsc-anthropology', \App\Livewire\Pages\UpscHubPage::class)->name('upsc.hub');
+
 // Public Community Routes
 Route::get('/community', \App\Livewire\Public\Community\CommunityIndexPage::class)->name('community.index');
 Route::get('/community/{slug}', \App\Livewire\Public\Community\CommunityDiscussionShowPage::class)->name('community.show');
@@ -35,10 +38,10 @@ Route::middleware(['auth', 'otp.verified', 'onboarding'])->group(function () {
     Route::get('/dashboard', function () {
         return view('pages.dashboard');
     })->name('dashboard');
+});
 
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', ProfilePage::class)->name('profile.edit');
 });
 
 // Onboarding Flow
@@ -98,15 +101,18 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/{exploreArticle}', [App\Http\Controllers\Admin\ExploreController::class, 'destroy'])->name('destroy');
             Route::patch('/{exploreArticle}/toggle-featured', [App\Http\Controllers\Admin\ExploreController::class, 'toggleFeatured'])->name('toggle-featured');
             Route::patch('/{exploreArticle}/toggle-members-only', [App\Http\Controllers\Admin\ExploreController::class, 'toggleMembersOnly'])->name('toggle-members-only');
+            Route::post('/reorder', [App\Http\Controllers\Admin\ExploreController::class, 'reorder'])->name('reorder');
         });
 
-        // Global Topics Management
-        Route::prefix('topics')->name('topics.')->group(function () {
-            Route::get('/', [App\Http\Controllers\Admin\TopicController::class, 'index'])->name('index');
-            Route::post('/', [App\Http\Controllers\Admin\TopicController::class, 'store'])->name('store');
-            Route::put('/{topic}', [App\Http\Controllers\Admin\TopicController::class, 'update'])->name('update');
-            Route::delete('/{topic}', [App\Http\Controllers\Admin\TopicController::class, 'destroy'])->name('destroy');
-            Route::patch('/{topic}/toggle-status', [App\Http\Controllers\Admin\TopicController::class, 'toggleStatus'])->name('toggle-status');
+        // Unified Tags & Tag Groups Management
+        Route::get('/tags', \App\Livewire\Admin\Tags\TagsIndex::class)->name('tags.index');
+
+        // Knowledge Map Management
+        Route::prefix('knowledge-map')->name('knowledge-maps.')->group(function () {
+            Route::get('/', \App\Livewire\Admin\KnowledgeMap\KnowledgeMapBuilder::class)->name('index');
+            Route::get('/builder', \App\Livewire\Admin\KnowledgeMap\KnowledgeMapBuilder::class)->name('builder');
+            Route::get('/settings', \App\Livewire\Admin\KnowledgeMap\KnowledgeMapForm::class)->name('edit');
+            Route::get('/learning-paths', \App\Livewire\Admin\KnowledgeMap\KnowledgeMapLearningPaths::class)->name('learning-paths');
         });
 
         // Encyclopedia Management Module
@@ -129,6 +135,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/topics', \App\Livewire\Admin\Community\TopicIndex::class)->name('topics.index');
             Route::get('/discussions', \App\Livewire\Admin\Community\DiscussionIndex::class)->name('discussions.index');
             Route::get('/discussions/{id}', \App\Livewire\Admin\Community\DiscussionDetail::class)->name('discussions.show');
+        });
+
+        // Exams / Answer Writing Management
+        Route::prefix('exams')->name('exams.')->group(function () {
+            Route::get('/questions', \App\Livewire\Admin\Exams\Questions\ExamQuestionIndex::class)->name('questions.index');
+            Route::get('/submissions', \App\Livewire\Admin\Exams\Submissions\ExamSubmissionIndex::class)->name('submissions.index');
+            Route::get('/submissions/{id}', \App\Livewire\Admin\Exams\Submissions\ExamSubmissionDetail::class)->name('submissions.show');
         });
 
         // Research Library Management
@@ -175,3 +188,8 @@ require __DIR__.'/auth.php';
 Route::get('/library', \App\Livewire\Public\Library\LibraryIndex::class)->name('library.index');
 Route::get('/library/{slug}', \App\Livewire\Public\Library\LibraryShow::class)->name('library.show');
 Route::get('/library/{resource:slug}/download', [App\Http\Controllers\Frontend\LibraryController::class, 'download'])->name('library.download');
+
+// Public Exams / Answer Writing Routes
+Route::get('/exams', \App\Livewire\Frontend\Exams\ExamQuestionListPage::class)->name('exams.index');
+Route::get('/exams/{slug}', \App\Livewire\Frontend\Exams\ExamQuestionDetailPage::class)->name('exams.show');
+

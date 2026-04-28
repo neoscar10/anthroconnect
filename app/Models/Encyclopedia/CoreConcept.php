@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Models\Concerns\HasTags;
+
 class CoreConcept extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, HasTags;
 
     protected $table = 'encyclopedia_core_concepts';
 
@@ -19,6 +21,11 @@ class CoreConcept extends Model
         'body_markdown',
         'status',
         'featured_image',
+        'is_upsc_relevant',
+    ];
+
+    protected $casts = [
+        'is_upsc_relevant' => 'boolean',
     ];
 
     /**
