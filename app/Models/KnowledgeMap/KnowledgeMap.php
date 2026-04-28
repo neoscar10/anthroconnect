@@ -13,7 +13,7 @@ class KnowledgeMap extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'title', 'slug', 'subtitle', 'description', 'cover_image',
+        'title', 'slug', 'subtitle', 'description',
         'status', 'is_featured', 'visibility', 'default_zoom', 'canvas_settings',
         'published_at', 'created_by', 'updated_by'
     ];

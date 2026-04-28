@@ -16,11 +16,9 @@ class KnowledgeMapForm extends Component
     public $title;
     public $subtitle;
     public $description;
-    public $cover_image;
-    public $cover_image_url;
     public $status = 'draft';
     public $visibility = 'public';
-    public $is_featured = false;
+    public $is_featured = true;
     public $default_zoom = 1.0;
     public $canvas_background = 'dotted';
 
@@ -32,6 +30,7 @@ class KnowledgeMapForm extends Component
             'title' => 'Anthropology Knowledge Map',
             'status' => 'published',
             'visibility' => 'public',
+            'is_featured' => true,
             'default_zoom' => 1.0,
             'canvas_settings' => ['background' => 'dotted']
         ]);
@@ -42,9 +41,8 @@ class KnowledgeMapForm extends Component
         $this->description = $map->description;
         $this->status = $map->status;
         $this->visibility = $map->visibility;
-        $this->is_featured = $map->is_featured;
+        $this->is_featured = true;
         $this->default_zoom = $map->default_zoom;
-        $this->cover_image_url = $map->cover_image ? Storage::url($map->cover_image) : null;
         
         $settings = $map->canvas_settings ?? [];
         $this->canvas_background = $settings['background'] ?? 'dotted';
@@ -59,16 +57,11 @@ class KnowledgeMapForm extends Component
             'status' => 'required|in:draft,published,archived',
             'visibility' => 'required|in:public,members_only',
             'default_zoom' => 'numeric|min:0.1|max:5',
-            'cover_image' => 'nullable|image|max:2048',
         ];
 
         $validated = $this->validate($rules);
 
-        if ($this->cover_image) {
-            $validated['cover_image'] = $this->cover_image->store('knowledge-maps', 'public');
-        }
-
-        $validated['is_featured'] = $this->is_featured;
+        $validated['is_featured'] = true;
         $validated['canvas_settings'] = [
             'background' => $this->canvas_background
         ];

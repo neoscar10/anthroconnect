@@ -67,54 +67,11 @@
             <div class="space-y-6">
                 <div class="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-sm border border-stone-200/50">
                     <h3 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">image</span>
-                        Cover Image
-                    </h3>
-
-                    <div class="space-y-4">
-                        @if ($cover_image)
-                            <div class="relative group aspect-video rounded-xl overflow-hidden bg-stone-100">
-                                <img src="{{ $cover_image->temporaryUrl() }}" class="w-full h-full object-cover">
-                                <button type="button" wire:click="$set('cover_image', null)" class="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span class="material-symbols-outlined text-sm">close</span>
-                                </button>
-                            </div>
-                        @elseif ($cover_image_url)
-                            <div class="relative group aspect-video rounded-xl overflow-hidden bg-stone-100">
-                                <img src="{{ $cover_image_url }}" class="w-full h-full object-cover">
-                                <label for="cover_image" class="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-[10px] font-bold uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                                    Change Image
-                                </label>
-                            </div>
-                        @else
-                            <label for="cover_image" class="aspect-video rounded-xl border-2 border-dashed border-stone-200 flex flex-col items-center justify-center text-stone-400 hover:border-primary hover:text-primary transition-all cursor-pointer">
-                                <span class="material-symbols-outlined text-3xl mb-2">add_photo_alternate</span>
-                                <span class="text-[10px] font-bold uppercase tracking-widest">Upload Cover</span>
-                            </label>
-                        @endif
-                        <input wire:model="cover_image" type="file" id="cover_image" class="hidden" accept="image/*">
-                        @error('cover_image') <span class="text-red-500 text-[10px] font-bold uppercase mt-1 ml-1">{{ $message }}</span> @enderror
-                        <p class="text-[9px] text-stone-400 leading-relaxed italic">Recommended size: 1200x630px. Max 2MB.</p>
-                    </div>
-                </div>
-
-                <div class="bg-white dark:bg-stone-900 p-8 rounded-2xl shadow-sm border border-stone-200/50">
-                    <h3 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined text-sm">visibility</span>
                         Status & Visibility
                     </h3>
 
                     <div class="space-y-6">
-                        <div class="flex items-center justify-between p-4 bg-stone-50 rounded-xl">
-                            <div>
-                                <p class="text-[10px] font-bold uppercase tracking-widest text-stone-900">Featured Map</p>
-                                <p class="text-[9px] text-stone-400 mt-0.5">Show on the main dashboard</p>
-                            </div>
-                            <button type="button" @click="$wire.set('is_featured', !@js($is_featured))" class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary/20" :class="@js($is_featured) ? 'bg-primary' : 'bg-stone-200'">
-                                <span class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out" :class="@js($is_featured) ? 'translate-x-5' : 'translate-x-0'"></span>
-                            </button>
-                        </div>
-
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2 ml-1">Status</label>
