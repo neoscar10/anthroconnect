@@ -87,6 +87,11 @@ class KnowledgeMapBuilder extends Component
                 'height' => 3000
             ]
         ]);
+
+        $this->connections = KnowledgeMapConnection::where('knowledge_map_id', $this->map->id)
+            ->select('id', 'from_node_id', 'to_node_id', 'label', 'connection_type', 'direction', 'line_style', 'color')
+            ->get()
+            ->toArray();
     }
 
     public function updatedNodeLmsMaterialType()
@@ -389,7 +394,8 @@ class KnowledgeMapBuilder extends Component
             ];
         }
 
-        $connection = $this->map->connections()->create([
+        $connection = KnowledgeMapConnection::create([
+            'knowledge_map_id' => $this->map->id,
             'from_node_id' => $fromNodeId,
             'to_node_id' => $toNodeId,
             'label' => null,
@@ -399,17 +405,8 @@ class KnowledgeMapBuilder extends Component
             'color' => null,
         ]);
 
-        $this->connections = $this->map->connections()
-            ->select(
-                'id',
-                'from_node_id',
-                'to_node_id',
-                'label',
-                'connection_type',
-                'direction',
-                'line_style',
-                'color'
-            )
+        $this->connections = KnowledgeMapConnection::where('knowledge_map_id', $this->map->id)
+            ->select('id', 'from_node_id', 'to_node_id', 'label', 'connection_type', 'direction', 'line_style', 'color')
             ->get()
             ->toArray();
 
@@ -526,8 +523,8 @@ class KnowledgeMapBuilder extends Component
     public function render()
     {
         return view('livewire.admin.knowledge-map.builder', [
-            'nodes' => $this->map->nodes()->with('tags')->get(),
-            'connections' => $this->map->connections()->get(),
+            'nodes' => KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get(),
+            'connections' => KnowledgeMapConnection::where('knowledge_map_id', $this->map->id)->get(),
             'tagGroups' => TagGroup::with('tags')->get(),
             'concepts' => CoreConcept::orderBy('title')->get(),
             'anthropologists' => Anthropologist::orderBy('full_name')->get(),
