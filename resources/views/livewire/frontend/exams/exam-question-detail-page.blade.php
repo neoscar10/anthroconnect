@@ -1,156 +1,168 @@
 <div class="min-h-screen bg-stone-50 py-12" 
-    x-data="{ 
+    x-data="examPractice({ 
         timer: @entangle('time_spent_seconds'),
         targetMinutes: @entangle('target_time_minutes'),
         isStarted: @entangle('is_started'),
         isSubmitted: @entangle('is_submitted'),
-        interval: null,
-        showConfirm: false,
-        showSubmitConfirm: false,
-        showRetakeConfirm: false,
-        showModelAnswerModal: false,
-        showModelAnswerConfirm: false,
-        easyMDE: null,
-        
-        viewModelAnswer() {
-            if (this.isSubmitted) {
-                this.showModelAnswerModal = true;
-            } else {
-                this.showModelAnswerConfirm = true;
-            }
-        },
-        downloadPDF() {
-            window.print();
-        },
-        
-        initEditor() {
-            if (this.isSubmitted) {
-                if (this.easyMDE) {
-                    this.easyMDE.toTextArea();
-                    this.easyMDE = null;
-                }
-                return;
-            };
-            
-            if (this.easyMDE) {
-                this.easyMDE.value(@js($answer_text));
-                return;
-            }
-
-            this.easyMDE = new EasyMDE({
-                element: this.$refs.editor,
-                spellChecker: false,
-                autosave: { enabled: false },
-                placeholder: 'Start typing your scholarly response here...',
-                status: false,
-                toolbar: [
-                    'bold', 'italic', 'heading', '|', 
-                    'quote', 'unordered-list', 'ordered-list', '|', 
-                    'link', 'image', 'table', '|', 
-                    'preview', 'side-by-side', 'fullscreen', '|', 
-                    'guide'
-                ],
-                minHeight: '450px',
-                initialValue: @js($answer_text)
-            });
-
-            this.easyMDE.codemirror.on('change', () => {
-                @this.set('answer_text', this.easyMDE.value(), false);
-            });
-
-            // Monitor locking state via Alpine
-            this.$watch('isStarted', value => {
-                if (this.easyMDE) {
-                    this.easyMDE.codemirror.setOption('readOnly', !value);
-                }
-            });
-            
-            // Initial state
-            if (this.easyMDE) {
-                this.easyMDE.codemirror.setOption('readOnly', !this.isStarted);
-            }
-        },
-        startTimer() {
-            if (this.isStarted && !this.isSubmitted) {
-                this.interval = setInterval(() => {
-                    this.timer++;
-                    if (this.timer % 60 === 0) {
-                        $wire.incrementTimer(60);
-                    }
-                }, 1000);
-            }
-        },
-        stopTimer() {
-            if (this.interval) clearInterval(this.interval);
-        },
-        confirmStart() {
-            if (!{{ auth()->check() ? 'true' : 'false' }}) {
-                window.location.href = "{{ route('login') }}";
-                return;
-            }
-            this.showConfirm = true;
-        },
-        executeStart() {
-            this.showConfirm = false;
-            $wire.startExam().then(() => {
-                this.startTimer();
-                if (this.easyMDE) {
-                    this.easyMDE.codemirror.setOption('readOnly', false);
-                    this.easyMDE.codemirror.focus();
-                }
-            });
-        },
-        confirmSubmit() {
-            this.showSubmitConfirm = true;
-        },
-        executeSubmit() {
-            this.showSubmitConfirm = false;
-            $wire.submitAnswer().then(() => {
-                this.stopTimer();
-            });
-        },
-        confirmRetake() {
-            this.showRetakeConfirm = true;
-        },
-        executeRetake() {
-            this.showRetakeConfirm = false;
-            $wire.retakeExam();
-        },
-        formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            return [
-                h > 0 ? h : null,
-                m,
-                s
-            ].filter(v => v !== null).map(v => v < 10 ? '0' + v : v).join(':');
-        },
-        timeLeft() {
-            const total = this.targetMinutes * 60;
-            const left = total - this.timer;
-            return left > 0 ? left : 0;
-        },
-        wordCount(text) {
-            const clean = text.replace(/<\/?[^>]+(>|$)/g, '').trim();
-            return clean ? clean.split(/\s+/).length : 0;
-        }
-    }" 
-    x-init="
-        initEditor();
-        if(isStarted) startTimer();
-        $watch('isStarted', value => {
-            if (!value) stopTimer();
-        });
-        window.addEventListener('exam-reset', (e) => {
-            const newAnswer = e.detail[0]?.answer || '';
-            if (easyMDE) {
-                easyMDE.value(newAnswer);
-            }
-            initEditor();
-        });
-    "
+        answerText: @js($answer_text),
+        isLoggedIn: @js(auth()->check()),
+        loginRoute: @js(route('login'))
+    })"
 >
+    <script>
+        function examPractice(config) {
+            return {
+                timer: config.timer,
+                targetMinutes: config.targetMinutes,
+                isStarted: config.isStarted,
+                isSubmitted: config.isSubmitted,
+                interval: null,
+                showConfirm: false,
+                showSubmitConfirm: false,
+                showRetakeConfirm: false,
+                showModelAnswerModal: false,
+                showModelAnswerConfirm: false,
+                easyMDE: null,
+                
+                init() {
+                    this.initEditor();
+                    if(this.isStarted) this.startTimer();
+                    this.$watch('isStarted', value => {
+                        if (!value) this.stopTimer();
+                    });
+                    window.addEventListener('exam-reset', (e) => {
+                        const newAnswer = e.detail[0]?.answer || '';
+                        if (this.easyMDE) {
+                            this.easyMDE.value(newAnswer);
+                        }
+                        this.initEditor();
+                    });
+                },
+
+                viewModelAnswer() {
+                    if (this.isSubmitted) {
+                        this.showModelAnswerModal = true;
+                    } else {
+                        this.showModelAnswerConfirm = true;
+                    }
+                },
+                downloadPDF() {
+                    window.print();
+                },
+                
+                initEditor() {
+                    if (this.isSubmitted) {
+                        if (this.easyMDE) {
+                            this.easyMDE.toTextArea();
+                            this.easyMDE = null;
+                        }
+                        return;
+                    };
+                    
+                    if (this.easyMDE) {
+                        this.easyMDE.value(config.answerText);
+                        return;
+                    }
+
+                    this.easyMDE = new EasyMDE({
+                        element: this.$refs.editor,
+                        spellChecker: false,
+                        autosave: { enabled: false },
+                        placeholder: 'Start typing your scholarly response here...',
+                        status: false,
+                        toolbar: [
+                            'bold', 'italic', 'heading', '|', 
+                            'quote', 'unordered-list', 'ordered-list', '|', 
+                            'link', 'image', 'table', '|', 
+                            'preview', 'side-by-side', 'fullscreen', '|', 
+                            'guide'
+                        ],
+                        minHeight: '450px',
+                        initialValue: config.answerText
+                    });
+
+                    this.easyMDE.codemirror.on('change', () => {
+                        this.$wire.set('answer_text', this.easyMDE.value(), false);
+                    });
+
+                    this.$watch('isStarted', value => {
+                        if (this.easyMDE) {
+                            this.easyMDE.codemirror.setOption('readOnly', !value);
+                        }
+                    });
+                    
+                    if (this.easyMDE) {
+                        this.easyMDE.codemirror.setOption('readOnly', !this.isStarted);
+                    }
+                },
+                startTimer() {
+                    if (this.isStarted && !this.isSubmitted) {
+                        this.interval = setInterval(() => {
+                            this.timer++;
+                            if (this.timer % 60 === 0) {
+                                this.$wire.incrementTimer(60);
+                            }
+                        }, 1000);
+                    }
+                },
+                stopTimer() {
+                    if (this.interval) clearInterval(this.interval);
+                },
+                confirmStart() {
+                    if (!config.isLoggedIn) {
+                        window.location.href = config.loginRoute;
+                        return;
+                    }
+                    this.showConfirm = true;
+                },
+                executeStart() {
+                    this.showConfirm = false;
+                    this.$wire.startExam().then(() => {
+                        this.startTimer();
+                        if (this.easyMDE) {
+                            this.easyMDE.codemirror.setOption('readOnly', false);
+                            this.easyMDE.codemirror.focus();
+                        }
+                    });
+                },
+                confirmSubmit() {
+                    this.showSubmitConfirm = true;
+                },
+                executeSubmit() {
+                    this.showSubmitConfirm = false;
+                    this.$wire.submitAnswer().then(() => {
+                        this.stopTimer();
+                    });
+                },
+                confirmRetake() {
+                    this.showRetakeConfirm = true;
+                },
+                executeRetake() {
+                    this.showRetakeConfirm = false;
+                    this.$wire.retakeExam();
+                },
+                formatTime(seconds) {
+                    const h = Math.floor(seconds / 3600);
+                    const m = Math.floor((seconds % 3600) / 60);
+                    const s = seconds % 60;
+                    return [
+                        h > 0 ? h : null,
+                        m,
+                        s
+                    ].filter(v => v !== null).map(v => v < 10 ? '0' + v : v).join(':');
+                },
+                timeLeft() {
+                    const total = this.targetMinutes * 60;
+                    const left = total - this.timer;
+                    return left > 0 ? left : 0;
+                },
+                wordCount(text) {
+                    const clean = text ? text.replace(/<[^>]*>?/gm, '').trim() : '';
+                    return clean ? clean.split(/\s+/).length : 0;
+                }
+            }
+        }
+    </script>
     <!-- EasyMDE CSS -->
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
