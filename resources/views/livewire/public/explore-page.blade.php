@@ -29,9 +29,9 @@
             <p class="text-white/90 text-lg md:text-xl max-w-2xl font-light leading-relaxed">
                 Discover anthropology through immersive stories about culture, identity, traditions, and human societies around the world.
             </p>
-            <button class="mt-10 bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-lg font-bold transition-all transform hover:-translate-y-1">
-                Start Exploring
-            </button>
+            <a wire:navigate href="{{ route('modules.index') }}" class="mt-10 bg-primary hover:bg-primary/90 text-white px-8 py-4 rounded-xl font-bold transition-all transform hover:-translate-y-1 shadow-lg shadow-primary/20 inline-block">
+                Start Learning
+            </a>
         </div>
     </section>
 
