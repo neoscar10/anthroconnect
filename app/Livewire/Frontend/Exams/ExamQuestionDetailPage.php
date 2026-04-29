@@ -7,11 +7,17 @@ use App\Models\Exam\ExamAnswerSubmission;
 use App\Services\Exam\ExamQuestionFrontendService;
 use App\Services\Exam\ExamAnswerSubmissionService;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class ExamQuestionDetailPage extends Component
 {
+    use WithFileUploads;
+
     public $slug;
     public $answer_text = '';
+    public $submission_type = 'text'; // 'text' or 'file'
+    public $attachment;
+    public $attachment_path = null;
     public $time_spent_seconds = 0;
     public $target_time_minutes = 15;
     public $attempts_count = 1;
@@ -43,10 +49,19 @@ class ExamQuestionDetailPage extends Component
         }
     }
 
+    public function updatedAttachment()
+    {
+        $this->validate([
+            'attachment' => 'required|max:10240|mimes:jpg,jpeg,png,pdf',
+        ]);
+    }
+
     public function loadSubmissionData(ExamAnswerSubmission $submission)
     {
         $this->active_submission_id = $submission->id;
         $this->answer_text = $submission->answer_text ?? '';
+        $this->submission_type = $submission->submission_type ?? 'text';
+        $this->attachment_path = $submission->attachment_path;
         $this->time_spent_seconds = $submission->time_spent_seconds ?? 0;
         $this->target_time_minutes = $submission->target_time_minutes ?? 15;
         $this->attempts_count = $submission->attempts_count ?? 1;
@@ -85,7 +100,21 @@ class ExamQuestionDetailPage extends Component
             return $this->dispatch('open-upgrade-modal');
         }
 
-        $submissionService->saveDraft($question, auth()->user(), $this->answer_text, $this->time_spent_seconds, $this->target_time_minutes);
+        $path = $this->attachment_path;
+        if ($this->attachment) {
+            $path = $this->attachment->store('exam-attachments', 'public');
+            $this->attachment_path = $path;
+            $this->attachment = null; // Clear from memory
+        }
+
+        $submissionService->saveDraft($question, auth()->user(), [
+            'answer_text' => $this->answer_text,
+            'submission_type' => $this->submission_type,
+            'attachment_path' => $path,
+            'time_spent_seconds' => $this->time_spent_seconds,
+            'target_time_minutes' => $this->target_time_minutes
+        ]);
+
         $this->last_saved_at = now()->format('H:i:s');
         $this->is_started = false;
         
@@ -94,7 +123,11 @@ class ExamQuestionDetailPage extends Component
 
     public function submitAnswer(ExamQuestionFrontendService $questionService, ExamAnswerSubmissionService $submissionService)
     {
-        if (!$this->is_started) return;
+        // For text submissions, we require the session to be "started" (timer running)
+        // For file submissions, we allow direct submission without starting the timer
+        if ($this->submission_type === 'text' && !$this->is_started) {
+            return;
+        }
 
         if (!auth()->check()) {
             return redirect()->route('login');
@@ -106,8 +139,27 @@ class ExamQuestionDetailPage extends Component
             return $this->dispatch('open-upgrade-modal');
         }
 
-        $submissionService->submitAnswer($question, auth()->user(), $this->answer_text, $this->time_spent_seconds, $this->target_time_minutes);
+        // Validation for file if type is file
+        if ($this->submission_type === 'file' && !$this->attachment && !$this->attachment_path) {
+            return $this->dispatch('notify', ['message' => 'Please upload an attachment for file submission.', 'type' => 'error']);
+        }
+
+        $path = $this->attachment_path;
+        if ($this->attachment) {
+            $path = $this->attachment->store('exam-attachments', 'public');
+            $this->attachment_path = $path;
+        }
+
+        $submissionService->submitAnswer($question, auth()->user(), [
+            'answer_text' => $this->answer_text,
+            'submission_type' => $this->submission_type,
+            'attachment_path' => $path,
+            'time_spent_seconds' => $this->time_spent_seconds,
+            'target_time_minutes' => $this->target_time_minutes
+        ]);
+
         $this->is_submitted = true;
+        $this->is_started = false; // Ensure it's locked
         
         $this->dispatch('notify', ['message' => 'Answer submitted successfully.', 'type' => 'success']);
     }

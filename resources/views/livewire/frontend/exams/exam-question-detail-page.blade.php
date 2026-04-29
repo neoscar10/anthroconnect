@@ -30,6 +30,9 @@
                     this.$watch('isStarted', value => {
                         if (!value) this.stopTimer();
                     });
+                    this.$watch('$wire.submission_type', value => {
+                        this.initEditor();
+                    });
                     window.addEventListener('exam-reset', (e) => {
                         const newAnswer = e.detail[0]?.answer || '';
                         if (this.easyMDE) {
@@ -51,7 +54,7 @@
                 },
                 
                 initEditor() {
-                    if (this.isSubmitted) {
+                    if (this.isSubmitted || this.$wire.submission_type === 'file') {
                         if (this.easyMDE) {
                             this.easyMDE.toTextArea();
                             this.easyMDE = null;
@@ -282,8 +285,8 @@
                     </div>
                 </section>
 
-                <!-- Timer & Tools -->
-                <div class="flex flex-wrap items-center justify-between gap-4 bg-orange-800/5 p-5 rounded-2xl border border-orange-800/10">
+                <!-- Timer & Tools (Only for Typed Responses) -->
+                <div x-show="$wire.submission_type === 'text'" class="flex flex-wrap items-center justify-between gap-4 bg-orange-800/5 p-5 rounded-2xl border border-orange-800/10">
                     <div class="flex flex-wrap items-center gap-6">
                         <div class="flex items-center gap-4">
                             <span class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Duration:</span>
@@ -331,45 +334,137 @@
                     </div>
                 </div>
 
+                <!-- Submission Mode Toggle -->
+                <div class="flex items-center gap-2 mb-4 bg-white/50 p-1.5 rounded-2xl border border-stone-200 w-fit">
+                    <button 
+                        @click="$wire.set('submission_type', 'text')" 
+                        :disabled="isStarted || isSubmitted"
+                        class="px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2"
+                        :class="$wire.submission_type == 'text' ? 'bg-orange-800 text-white shadow-lg' : 'text-stone-500 hover:bg-stone-100'"
+                    >
+                        <span class="material-symbols-outlined text-sm">edit_note</span>
+                        Typed Scholarly Response
+                    </button>
+                    <button 
+                        @click="$wire.set('submission_type', 'file')" 
+                        :disabled="isStarted || isSubmitted"
+                        class="px-6 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all flex items-center gap-2"
+                        :class="$wire.submission_type == 'file' ? 'bg-orange-800 text-white shadow-lg' : 'text-stone-500 hover:bg-stone-100'"
+                    >
+                        <span class="material-symbols-outlined text-sm">add_photo_alternate</span>
+                        Handwritten / Attachment
+                    </button>
+                </div>
+
                 <!-- Editor Area -->
-                <div class="relative bg-white border border-stone-200 rounded-[2rem] shadow-xl flex flex-col min-h-[600px] overflow-hidden transition-all" :class="!isStarted && !isSubmitted ? 'opacity-50 grayscale-[0.5]' : 'focus-within:ring-2 focus-within:ring-orange-800/20'">
+                <div class="relative bg-white border border-stone-200 rounded-[2rem] shadow-xl flex flex-col min-h-[600px] overflow-hidden transition-all" :class="($wire.submission_type === 'text' && !isStarted && !isSubmitted) ? 'opacity-50 grayscale-[0.5]' : 'focus-within:ring-2 focus-within:ring-orange-800/20'">
                     <!-- Text Area / Markdown Editor -->
-                    <div class="flex-1 relative" wire:ignore>
-                        @if($is_submitted)
-                            <div class="absolute inset-0 p-10 bg-stone-50 overflow-y-auto prose prose-stone max-w-none">
-                                {!! Str::markdown($answer_text) !!}
+                    <div class="flex-1 relative">
+                        @if($submission_type === 'file')
+                            <div wire:key="file-submission-zone" class="p-12 flex flex-col items-center justify-center h-full min-h-[500px]">
+                                @if($attachment_path)
+                                    <div class="mb-8 w-full max-w-md">
+                                        <div class="p-6 bg-stone-50 rounded-[2rem] border border-stone-200 flex items-center justify-between group">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                                                    <span class="material-symbols-outlined text-orange-800">
+                                                        {{ str_ends_with($attachment_path, '.pdf') ? 'picture_as_pdf' : 'image' }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs font-bold text-stone-700">Attachment Ready</span>
+                                                    <a href="{{ Storage::url($attachment_path) }}" target="_blank" class="text-[9px] text-orange-800 font-bold uppercase tracking-widest hover:underline flex items-center gap-1 mt-1">
+                                                        Preview Submission <span class="material-symbols-outlined text-[10px]">open_in_new</span>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                            @if(!$is_submitted)
+                                                <button @click="$wire.set('attachment_path', null)" class="w-8 h-8 rounded-full hover:bg-red-50 hover:text-red-600 flex items-center justify-center transition-colors text-stone-300">
+                                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endif
+
+                                @if(!$is_submitted)
+                                    <label class="w-full max-w-md border-2 border-dashed border-stone-200 rounded-[3rem] p-16 flex flex-col items-center justify-center cursor-pointer hover:border-orange-800/30 transition-all group bg-stone-50/30">
+                                        <input type="file" wire:model="attachment" class="hidden" accept="image/*,application/pdf">
+                                        
+                                        <div class="w-20 h-20 bg-white rounded-3xl shadow-sm flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+                                            <span class="material-symbols-outlined text-4xl text-stone-300 group-hover:text-orange-800 transition-colors">
+                                                {{ $attachment ? 'check_circle' : 'cloud_upload' }}
+                                            </span>
+                                        </div>
+                                        
+                                        <h5 class="text-lg font-bold text-stone-800 mb-1 font-headline italic">
+                                            {{ $attachment ? 'File Selected' : 'Upload Handwritten Answer' }}
+                                        </h5>
+                                        <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest text-center max-w-[200px]">
+                                            {{ $attachment ? 'Ready for upload' : 'Snap a photo of your work or upload a PDF document' }}
+                                        </p>
+                                        
+                                        <div wire:loading wire:target="attachment" class="mt-8">
+                                            <div class="flex items-center gap-3 px-4 py-2 bg-orange-800 rounded-full">
+                                                <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                <span class="text-[8px] text-white font-bold uppercase tracking-widest">Uploading to server...</span>
+                                            </div>
+                                        </div>
+
+                                        @error('attachment')
+                                            <div class="mt-4 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-[10px] font-bold uppercase tracking-widest border border-red-100">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                    </label>
+                                @endif
                             </div>
                         @else
-                            <textarea x-ref="editor" class="hidden"></textarea>
-                            
-                            <!-- Alpine-managed Overlay -->
-                            <div x-show="!isStarted" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-stone-100/10 backdrop-blur-[2px] cursor-not-allowed pointer-events-none">
-                                <span class="material-symbols-outlined text-4xl text-stone-300 mb-2">lock</span>
-                                <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Editor Locked</p>
+                            <div wire:key="text-submission-zone" class="h-full" wire:ignore>
+                                @if($is_submitted)
+                                    <div class="absolute inset-0 p-10 bg-stone-50 overflow-y-auto prose prose-stone max-w-none">
+                                        {!! Str::markdown($answer_text) !!}
+                                    </div>
+                                @else
+                                    <textarea x-ref="editor" class="hidden"></textarea>
+                                    
+                                    <!-- Alpine-managed Overlay -->
+                                    <div x-show="!isStarted" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-stone-100/10 backdrop-blur-[2px] cursor-not-allowed pointer-events-none">
+                                        <span class="material-symbols-outlined text-4xl text-stone-300 mb-2">lock</span>
+                                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Editor Locked</p>
+                                    </div>
+                                @endif
                             </div>
                         @endif
                     </div>
 
                     <!-- Status Bar -->
-                    <div class="flex items-center justify-between px-8 py-4 border-t border-stone-100 text-[10px] text-stone-500 font-bold uppercase tracking-widest bg-stone-50/30">
-                        <div class="flex gap-6">
-                            <span class="flex items-center gap-1.5"><span class="text-stone-900" x-text="wordCount($wire.answer_text)"></span> Words</span>
-                            <span class="flex items-center gap-1.5"><span class="text-stone-900" x-text="$wire.answer_text.length"></span> Characters</span>
+                    @if($submission_type === 'text')
+                        <div class="flex items-center justify-between px-8 py-4 border-t border-stone-100 text-[10px] text-stone-500 font-bold uppercase tracking-widest bg-stone-50/30">
+                            <div class="flex gap-6">
+                                <span class="flex items-center gap-1.5"><span class="text-stone-900" x-text="wordCount($wire.answer_text)"></span> Words</span>
+                                <span class="flex items-center gap-1.5"><span class="text-stone-900" x-text="$wire.answer_text.length"></span> Characters</span>
+                            </div>
+                            <div class="flex gap-4 items-center">
+                                @if($last_saved_at)
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                        <span>Last synced: {{ $last_saved_at }}</span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
-                        <div class="flex gap-4 items-center">
-                            @if($last_saved_at)
-                                <div class="flex items-center gap-2">
-                                    <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                    <span>Last synced: {{ $last_saved_at }}</span>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
+                    @endif
                 </div>
 
                 <!-- Actions -->
                 <div class="flex justify-end gap-4">
-                    @if($is_started && !$is_submitted)
+                    @if($submission_type === 'file' && !$is_submitted)
+                        <button @click="executeSubmit()" class="px-10 py-3.5 bg-orange-800 text-white font-bold rounded-2xl hover:bg-orange-900 transition-all shadow-xl shadow-orange-900/20 text-xs uppercase tracking-widest flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">send</span>
+                            Submit Final Attachment
+                        </button>
+                    @elseif($is_started && !$is_submitted)
                         <button wire:click="saveDraft" wire:loading.attr="disabled" class="group px-8 py-3.5 border-2 border-orange-800/20 text-orange-800 font-bold rounded-2xl hover:bg-orange-800 transition-all hover:text-white text-xs uppercase tracking-widest flex items-center gap-2">
                             <span class="material-symbols-outlined text-sm group-hover:scale-110 transition-transform">save</span>
                             Save & Lock Draft
@@ -430,27 +525,46 @@
                     </div>
                     <div class="flex flex-col gap-4">
                         @if($is_submitted && $submission && $submission->evaluated_at)
-                            <div class="p-8 bg-stone-900 text-white rounded-[2rem] border border-stone-800 relative overflow-hidden shadow-2xl">
-                                <div class="absolute top-0 right-0 p-8 opacity-10">
-                                    <span class="material-symbols-outlined text-7xl text-orange-800">verified</span>
-                                </div>
-                                <div class="flex items-center gap-4 mb-8">
-                                    <div class="w-12 h-12 rounded-2xl bg-orange-800/20 flex items-center justify-center">
-                                        <span class="material-symbols-outlined text-orange-800">school</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-white">Faculty Evaluation</h4>
-                                        <p class="text-[10px] text-stone-400 uppercase font-bold tracking-widest">Evaluated on {{ $submission->evaluated_at->format('M d, Y') }}</p>
-                                    </div>
-                                    <div class="ml-auto text-center">
-                                        <div class="text-3xl font-black text-orange-800 font-headline">{{ $submission->score }}</div>
-                                        <div class="text-[8px] font-bold uppercase tracking-widest text-stone-500">Score / {{ $submission->question->marks ?: 100 }}</div>
+                            <div class="p-8 bg-white rounded-[2rem] border border-stone-200 relative overflow-hidden shadow-sm">
+                                <!-- Evaluation Metadata -->
+                            <div class="grid grid-cols-2 gap-4 mb-8">
+                                <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                                    <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Scholar Score</span>
+                                    <div class="flex items-end gap-1">
+                                        <span class="text-2xl font-bold text-stone-900 leading-none">{{ $submission->score }}</span>
+                                        <span class="text-xs font-bold text-stone-400 mb-0.5">/ {{ $question->marks ?: 100 }}</span>
                                     </div>
                                 </div>
-                                <div class="prose prose-invert prose-sm max-w-none text-stone-300 leading-relaxed italic">
-                                    {{ $submission->feedback_text }}
+                                <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                                    <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Evaluation Date</span>
+                                    <span class="text-xs font-bold text-stone-900 leading-none">{{ $submission->evaluated_at->format('M d, Y') }}</span>
                                 </div>
                             </div>
+
+                            @if($submission->evaluation_attachment_path)
+                                <div class="mb-8 p-5 bg-orange-800/5 rounded-[2rem] border border-orange-800/10 flex items-center justify-between group">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                                            <span class="material-symbols-outlined text-orange-800">
+                                                {{ str_ends_with($submission->evaluation_attachment_path, '.pdf') ? 'picture_as_pdf' : 'description' }}
+                                            </span>
+                                        </div>
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold text-stone-700 leading-none mb-1">Evaluation Document</span>
+                                            <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Marked-up Response Attached</span>
+                                        </div>
+                                    </div>
+                                    <a href="{{ Storage::url($submission->evaluation_attachment_path) }}" download class="px-6 py-2.5 bg-orange-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-orange-900 transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2">
+                                        <span class="material-symbols-outlined text-sm">download</span>
+                                        Download
+                                    </a>
+                                </div>
+                            @endif
+
+                            <div class="prose prose-stone max-w-none prose-p:text-sm prose-p:leading-relaxed prose-p:text-stone-600 italic">
+                                {!! Str::markdown($submission->feedback_text) !!}
+                            </div>
+                        </div>      
                         @else
                             <div class="p-10 bg-stone-100/50 rounded-[2rem] border border-stone-200 border-dashed flex flex-col items-center text-center">
                                 <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6">
@@ -504,20 +618,27 @@
                     <h4 class="text-sm font-bold text-stone-400 uppercase tracking-[0.2em] mb-6">Practice History</h4>
                     
                     <div class="space-y-3 mb-6 max-h-[300px] overflow-y-auto no-scrollbar pr-1">
-                        @foreach($allSubmissions as $sub)
+                        @foreach($allSubmissions as $historySub)
                             <button 
-                                wire:click="selectSubmission({{ $sub->id }})" 
+                                wire:click="selectSubmission({{ $historySub->id }})" 
                                 class="w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left"
-                                :class="$wire.active_submission_id == {{ $sub->id }} ? 'bg-orange-800 border-orange-800 text-white shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-600 hover:border-orange-800/30'"
+                                :class="$wire.active_submission_id == {{ $historySub->id }} ? 'bg-orange-800 border-orange-800 text-white shadow-lg' : 'bg-stone-50 border-stone-100 text-stone-600 hover:border-orange-800/30'"
                             >
-                                <div>
-                                    <div class="text-[10px] font-bold uppercase tracking-widest opacity-60">Attempt #{{ $sub->attempts_count }}</div>
-                                    <div class="text-xs font-bold">{{ $sub->created_at->format('M d, Y') }}</div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-stone-50 flex items-center justify-center transition-colors group-hover:bg-white">
+                                        <span class="material-symbols-outlined text-stone-400 group-hover:text-orange-800">
+                                            {{ $historySub->submission_type === 'file' ? 'attachment' : 'history_edu' }}
+                                        </span>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[10px] font-bold text-stone-800">Attempt #{{ $historySub->attempts_count }}</span>
+                                        <span class="text-[8px] text-stone-400 uppercase font-bold tracking-widest">{{ $historySub->created_at->diffForHumans() }}</span>
+                                    </div>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    @if($sub->status === 'submitted')
-                                        @if($sub->evaluated_at)
-                                            <span class="text-xs font-black">{{ $sub->score }}/{{ $question->marks ?: 100 }}</span>
+                                    @if($historySub->status === 'submitted')
+                                        @if($historySub->evaluated_at)
+                                            <span class="text-xs font-black">{{ $historySub->score }}/{{ $question->marks ?: 100 }}</span>
                                         @else
                                             <span class="material-symbols-outlined text-sm">schedule</span>
                                         @endif

@@ -32,29 +32,33 @@ class ExamAnswerSubmissionService
         return $latest;
     }
 
-    public function saveDraft(ExamQuestion $question, User $user, string $answerText, int $timeSpentSeconds = 0, int $targetTimeMinutes = 15): ExamAnswerSubmission
+    public function saveDraft(ExamQuestion $question, User $user, array $data): ExamAnswerSubmission
     {
         $submission = $this->getActiveSubmission($question, $user);
 
-        // If the latest is already submitted, we shouldn't be saving a draft to it.
-        // This case shouldn't happen with proper UI flow, but we handle it.
         if ($submission->status === 'submitted') {
             return $submission;
         }
 
-        $submission->update([
+        $answerText = $data['answer_text'] ?? '';
+        
+        $updateData = [
+            'submission_type' => $data['submission_type'] ?? 'text',
+            'attachment_path' => $data['attachment_path'] ?? $submission->attachment_path,
             'answer_text' => $answerText,
             'word_count' => $this->calculateWordCount($answerText),
             'character_count' => mb_strlen(strip_tags($answerText)),
-            'time_spent_seconds' => $timeSpentSeconds,
-            'target_time_minutes' => $targetTimeMinutes,
+            'time_spent_seconds' => $data['time_spent_seconds'] ?? 0,
+            'target_time_minutes' => $data['target_time_minutes'] ?? 15,
             'status' => 'draft',
-        ]);
+        ];
+
+        $submission->update($updateData);
 
         return $submission;
     }
 
-    public function submitAnswer(ExamQuestion $question, User $user, string $answerText, int $timeSpentSeconds = 0, int $targetTimeMinutes = 15): ExamAnswerSubmission
+    public function submitAnswer(ExamQuestion $question, User $user, array $data): ExamAnswerSubmission
     {
         $submission = $this->getActiveSubmission($question, $user);
 
@@ -62,12 +66,16 @@ class ExamAnswerSubmissionService
             return $submission;
         }
 
+        $answerText = $data['answer_text'] ?? '';
+
         $submission->update([
+            'submission_type' => $data['submission_type'] ?? 'text',
+            'attachment_path' => $data['attachment_path'] ?? $submission->attachment_path,
             'answer_text' => $answerText,
             'word_count' => $this->calculateWordCount($answerText),
             'character_count' => mb_strlen(strip_tags($answerText)),
-            'time_spent_seconds' => $timeSpentSeconds,
-            'target_time_minutes' => $targetTimeMinutes,
+            'time_spent_seconds' => $data['time_spent_seconds'] ?? 0,
+            'target_time_minutes' => $data['target_time_minutes'] ?? 15,
             'status' => 'submitted',
             'submitted_at' => now(),
         ]);
