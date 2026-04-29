@@ -231,42 +231,36 @@
                             <div class="km-detail-section">
                                 <h4>Study Materials & Lessons</h4>
 
-                                @forelse($selectedNode->attachments as $attachment)
-                                    @php
-                                        $attMeta = match($attachment->attachable_type) {
-                                            \App\Models\Lms\LmsModule::class => [
-                                                'icon' => 'school',
-                                                'label' => 'Course Module',
-                                                'url' => route('modules.show', $attachment->attachable->slug)
-                                            ],
-                                            \App\Models\Lms\LmsLesson::class => [
-                                                'icon' => 'play_circle',
-                                                'label' => 'Video Lesson',
-                                                'url' => route('lessons.show', ['moduleSlug' => $attachment->attachable->module->slug, 'lessonSlug' => $attachment->attachable->slug])
-                                            ],
-                                            \App\Models\Lms\LmsResource::class => [
-                                                'icon' => 'description',
-                                                'label' => 'PDF Resource',
-                                                'url' => route('modules.show', $attachment->attachable->module->slug)
-                                            ],
-                                            \App\Models\LibraryResource::class => [
-                                                'icon' => 'menu_book',
-                                                'label' => 'Library Book',
-                                                'url' => route('library.show', $attachment->attachable->slug)
-                                            ],
-                                            default => ['icon' => 'attachment', 'label' => 'Material', 'url' => '#']
-                                        };
-                                    @endphp
-                                    <a href="{{ $attMeta['url'] }}" class="km-related-item">
-                                        <span class="material-symbols-outlined">{{ $attMeta['icon'] }}</span>
+                                @php
+                                    $primaryMaterials = $this->getPrimaryMaterials($selectedNode);
+                                    $hasAnyMaterials = count($primaryMaterials) > 0 || $selectedNode->attachments->isNotEmpty();
+                                @endphp
+
+                                {{-- Primary Materials --}}
+                                @foreach($primaryMaterials as $material)
+                                    <a href="{{ $material['url'] }}" class="km-related-item">
+                                        <span class="material-symbols-outlined">{{ $material['icon'] }}</span>
                                         <div>
-                                            <strong>{{ $attachment->attachable?->title ?? 'Deleted Resource' }}</strong>
-                                            <span>{{ $attMeta['label'] }}</span>
+                                            <strong>{{ $material['title'] }}</strong>
+                                            <span>{{ $material['label'] }}</span>
                                         </div>
                                     </a>
-                                @empty
+                                @endforeach
+
+                                {{-- Attachments --}}
+                                @foreach($selectedNode->attachments as $attachment)
+                                    <a href="{{ $this->getAttachmentMeta($attachment)['url'] }}" class="km-related-item">
+                                        <span class="material-symbols-outlined">{{ $this->getAttachmentMeta($attachment)['icon'] }}</span>
+                                        <div>
+                                            <strong>{{ $attachment->attachable?->title ?? 'Deleted Resource' }}</strong>
+                                            <span>{{ $this->getAttachmentMeta($attachment)['label'] }}</span>
+                                        </div>
+                                    </a>
+                                @endforeach
+
+                                @if(!$hasAnyMaterials)
                                     <p class="km-muted">No specific study materials attached yet.</p>
-                                @endforelse
+                                @endif
                             </div>
 
                             <div class="km-detail-section">

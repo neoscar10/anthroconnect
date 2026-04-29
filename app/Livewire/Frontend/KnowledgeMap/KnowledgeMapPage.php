@@ -215,6 +215,86 @@ class KnowledgeMapPage extends Component
             ->get();
     }
 
+    /**
+     * Get metadata for a specific attachment.
+     */
+    public function getAttachmentMeta($attachment)
+    {
+        if (!$attachment || !$attachment->attachable) {
+            return ['icon' => 'attachment', 'label' => 'Material', 'url' => '#'];
+        }
+
+        switch ($attachment->attachable_type) {
+            case \App\Models\Lms\LmsModule::class:
+                return [
+                    'icon' => 'school',
+                    'label' => 'Course Module',
+                    'url' => route('modules.show', $attachment->attachable->slug)
+                ];
+            case \App\Models\Lms\LmsLesson::class:
+                $moduleSlug = optional($attachment->attachable->module)->slug ?: 'unknown';
+                return [
+                    'icon' => 'play_circle',
+                    'label' => 'Video Lesson',
+                    'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $attachment->attachable->slug])
+                ];
+            case \App\Models\Lms\LmsResource::class:
+                $moduleSlug = optional($attachment->attachable->module)->slug ?: 'unknown';
+                return [
+                    'icon' => 'description',
+                    'label' => 'PDF Resource',
+                    'url' => route('modules.show', $moduleSlug)
+                ];
+            case \App\Models\LibraryResource::class:
+                return [
+                    'icon' => 'menu_book',
+                    'label' => 'Library Book',
+                    'url' => route('library.show', $attachment->attachable->slug)
+                ];
+            default:
+                return ['icon' => 'attachment', 'label' => 'Material', 'url' => '#'];
+        }
+    }
+
+    /**
+     * Get primary materials for a node.
+     */
+    public function getPrimaryMaterials($node)
+    {
+        $materials = [];
+        
+        if ($node->lmsModule) {
+            $materials[] = [
+                'icon' => 'school',
+                'label' => 'Course Module',
+                'title' => $node->lmsModule->title,
+                'url' => route('modules.show', $node->lmsModule->slug)
+            ];
+        }
+
+        if ($node->lmsLesson) {
+            $moduleSlug = optional($node->lmsLesson->module)->slug ?: 'unknown';
+            $materials[] = [
+                'icon' => 'play_circle',
+                'label' => 'Video Lesson',
+                'title' => $node->lmsLesson->title,
+                'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $node->lmsLesson->slug])
+            ];
+        }
+
+        if ($node->lmsMaterial) {
+            $moduleSlug = optional($node->lmsMaterial->module)->slug ?: 'unknown';
+            $materials[] = [
+                'icon' => 'description',
+                'label' => 'PDF Resource',
+                'title' => $node->lmsMaterial->title,
+                'url' => route('modules.show', $moduleSlug)
+            ];
+        }
+        
+        return $materials;
+    }
+
     protected function syncSelectedNodeAfterFiltering()
     {
         $visibleIds = collect($this->visibleNodes)->pluck('id');
