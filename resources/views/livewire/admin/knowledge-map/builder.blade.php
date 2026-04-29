@@ -427,7 +427,7 @@
                             <div class="space-y-4">
                                 <div>
                                     <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Encyclopedia Concept</label>
-                                    <select wire:model="nodeConceptId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                                    <select wire:model="nodeConceptId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-700 focus:ring-2 focus:ring-primary/20">
                                         <option value="">None</option>
                                         @foreach($concepts as $concept)
                                             <option value="{{ $concept->id }}">{{ $concept->title }}</option>
@@ -437,17 +437,17 @@
 
                                 <div>
                                     <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Influential Thinker</label>
-                                    <select wire:model="nodeAnthropologistId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                                    <select wire:model="nodeAnthropologistId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-700 focus:ring-2 focus:ring-primary/20">
                                         <option value="">None</option>
                                         @foreach($anthropologists as $thinker)
-                                            <option value="{{ $thinker->id }}">{{ $thinker->name }}</option>
+                                            <option value="{{ $thinker->id }}">{{ $thinker->full_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
 
                                 <div>
                                     <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Major Theory</label>
-                                    <select wire:model="nodeTheoryId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
+                                    <select wire:model="nodeTheoryId" class="w-full bg-white border border-stone-200 rounded-xl px-4 py-3 text-sm text-stone-700 focus:ring-2 focus:ring-primary/20">
                                         <option value="">None</option>
                                         @foreach($theories as $theory)
                                             <option value="{{ $theory->id }}">{{ $theory->title }}</option>
