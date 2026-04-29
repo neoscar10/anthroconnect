@@ -17,6 +17,13 @@ class LibraryFrontendService
         return \App\Models\TagGroup::getGroupsWithUsage(LibraryResource::class);
     }
 
+    public function getResourceBySlug(string $slug): ?LibraryResource
+    {
+        return LibraryResource::where('slug', $slug)
+            ->orWhere('id', $slug)
+            ->first();
+    }
+
     public function basePublishedQuery(): Builder
     {
         return LibraryResource::query()

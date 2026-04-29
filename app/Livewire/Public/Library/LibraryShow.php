@@ -21,11 +21,13 @@ class LibraryShow extends Component
 
     public function mount(string $slug, LibraryFrontendService $libraryService, LibraryAccessService $accessService)
     {
-        $this->resource = $libraryService->getResourceBySlug($slug);
-
-        if (!$this->resource) {
+        $resource = $libraryService->getResourceBySlug($slug);
+        
+        if (!$resource) {
             abort(404);
         }
+
+        $this->resource = $resource;
 
         abort_unless($libraryService->isPublished($this->resource), 404);
 
@@ -45,7 +47,6 @@ class LibraryShow extends Component
 
         $this->resource->load([
             'resourceType',
-            'region',
             'topics',
             'tags',
         ]);
