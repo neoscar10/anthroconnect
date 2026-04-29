@@ -121,7 +121,7 @@
                     <span class="material-symbols-outlined mr-3 text-[20px]">workspace_premium</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Membership</span>
                 </a>
-                <a wire:navigate class="{{ request()->routeIs('admin.explore.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.explore.index') }}">
+                <a class="{{ request()->routeIs('admin.explore.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.explore.index') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">explore</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Explore Content</span>
                 </a>
