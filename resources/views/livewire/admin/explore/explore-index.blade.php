@@ -1,4 +1,4 @@
-<div x-data="articleManager()"
+<div x-data="articleManager"
      x-on:article-saved.window="modalOpen = false; document.body.style.overflow = 'auto'"
      class="relative">
     
@@ -404,21 +404,21 @@
         </div>
     </div>
 
+    @script
     <script>
-        function articleManager() {
-            return {
-                modalOpen: false,
-                openModal(id = null) {
-                    this.modalOpen = true;
-                    document.body.style.overflow = 'hidden';
-                    this.$wire.openArticleModal(id);
-                },
-                closeModal() {
-                    this.modalOpen = false;
-                    document.body.style.overflow = 'auto';
-                    this.$wire.closeArticleModal();
-                }
+        Alpine.data('articleManager', () => ({
+            modalOpen: false,
+            openModal(id = null) {
+                this.modalOpen = true;
+                document.body.style.overflow = 'hidden';
+                $wire.openArticleModal(id);
+            },
+            closeModal() {
+                this.modalOpen = false;
+                document.body.style.overflow = 'auto';
+                $wire.closeArticleModal();
             }
-        }
+        }));
     </script>
+    @endscript
 </div>
