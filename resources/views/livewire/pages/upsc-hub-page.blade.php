@@ -1,4 +1,4 @@
-@push('styles')
+<div class="upsc-hub-page min-h-screen py-8">
     <style>
         :root {
             --ac-primary: #9a3412;
@@ -6,9 +6,6 @@
             --ac-stone-50: #fafaf9;
             --ac-stone-200: #e7e5e4;
             --ac-stone-600: #57534e;
-        }
-        .upsc-hub-page {
-            background-color: var(--ac-stone-50);
         }
         .upsc-hub-page h1, .upsc-hub-page h2, .upsc-hub-page h3, .upsc-hub-page h4, .upsc-hub-page h5, .upsc-hub-page h6 {
             font-family: 'Lora', serif;
@@ -100,10 +97,8 @@
             margin-bottom: 1rem;
         }
     </style>
-@endpush
 
-<div class="upsc-hub-page min-h-screen py-12">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
         
         <!-- HERO -->
         <div class="upsc-hero shadow-sm">

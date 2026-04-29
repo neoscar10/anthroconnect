@@ -76,7 +76,7 @@ class ExamQuestionDetailPage extends Component
     public function saveDraft(ExamQuestionFrontendService $questionService, ExamAnswerSubmissionService $submissionService)
     {
         if (!auth()->check()) {
-            return $this->dispatch('open-upgrade-modal');
+            return redirect()->route('login');
         }
 
         $question = $questionService->findPublishedBySlug($this->slug);
@@ -97,7 +97,7 @@ class ExamQuestionDetailPage extends Component
         if (!$this->is_started) return;
 
         if (!auth()->check()) {
-            return $this->dispatch('open-upgrade-modal');
+            return redirect()->route('login');
         }
 
         $question = $questionService->findPublishedBySlug($this->slug);

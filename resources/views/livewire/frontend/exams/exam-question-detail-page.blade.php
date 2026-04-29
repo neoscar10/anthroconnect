@@ -85,7 +85,7 @@
         },
         confirmStart() {
             if (!{{ auth()->check() ? 'true' : 'false' }}) {
-                $dispatch('open-upgrade-modal');
+                window.location.href = "{{ route('login') }}";
                 return;
             }
             this.showConfirm = true;

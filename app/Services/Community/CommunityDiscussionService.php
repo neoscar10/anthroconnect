@@ -310,7 +310,10 @@ class CommunityDiscussionService
                 $tagIds = [];
                 if (is_string($data['tags'])) {
                     $tagNames = array_filter(array_map('trim', explode(',', $data['tags'])));
-                    $group = \App\Models\TagGroup::where('slug', 'discussion-tags')->first();
+                    $group = \App\Models\TagGroup::firstOrCreate(
+                        ['slug' => 'discussion-tags'],
+                        ['name' => 'Discussion Tags', 'description' => 'Tags for community discussions']
+                    );
                     
                     foreach ($tagNames as $name) {
                         $tag = \App\Models\Tag::firstOrCreate(

@@ -72,6 +72,7 @@ class CommunityIndexPage extends Component
     }
 
     #[On('membership-activated')]
+    #[On('discussion-created')]
     public function refresh()
     {
         // Triggers re-render

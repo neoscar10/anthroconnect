@@ -4,7 +4,7 @@
     @endpush
 
     <section class="ac-library-hero">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
             <div class="ac-library-hero-inner">
                 <h1>Anthropology Research Library</h1>
                 <p>
@@ -48,7 +48,7 @@
 
     @if($search || $type || $year || !empty($tagFilters))
         <section class="ac-library-section">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
                 <div class="ac-section-head">
                     <h2>Search Results</h2>
                 </div>
@@ -75,7 +75,7 @@
     @endif
 
     <section class="ac-library-section">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
             <div class="ac-section-head">
                 <h2>Featured Academic Resources</h2>
                 <button type="button" wire:click="$set('sort', 'featured')" class="text-primary font-bold text-sm">View All Collection →</button>
@@ -97,7 +97,7 @@
     </section>
 
     <section class="ac-library-section ac-soft-section">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
                 <div class="lg:col-span-2">
                     <h2 class="ac-block-title mb-8">Latest Research Resources</h2>
@@ -159,7 +159,7 @@
     </section>
 
     <section class="ac-connect-section">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-[1400px] mx-auto px-6 lg:px-20">
             <div class="ac-connect-card">
                 <div class="ac-connect-content">
                     <h2>Connect Your Research</h2>
