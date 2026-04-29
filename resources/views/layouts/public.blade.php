@@ -101,7 +101,7 @@ tailwind.config = {
                 <a class="text-sm font-medium transition-colors {{ request()->routeIs('upsc.hub') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('upsc.hub') }}">UPSC Anthropology</a>
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('encyclopedia.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('encyclopedia.index') }}">Encyclopedia</a>
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('community.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('community.index') }}">Community</a>
-                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('exams.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('exams.index') }}">Practice Exams</a>
+
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('library.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('library.index') }}">Research Library</a>
             </nav>
 
@@ -169,10 +169,7 @@ tailwind.config = {
                 <span class="material-symbols-outlined">forum</span>
                 <span class="font-headline text-lg">Community</span>
             </a>
-            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('exams.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('exams.index') }}">
-                <span class="material-symbols-outlined">edit_note</span>
-                <span class="font-headline text-lg">Practice Exams</span>
-            </a>
+
             <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('library.*') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('library.index') }}">
                 <span class="material-symbols-outlined">library_books</span>
                 <span class="font-headline text-lg">Research Library</span>

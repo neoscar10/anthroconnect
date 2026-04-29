@@ -114,8 +114,11 @@
                         <a href="#modules" class="bg-[#9a3412] hover:bg-[#7c2d12] text-white font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl shadow-lg shadow-orange-900/20 transition-all">
                             Start Prep Journey
                         </a>
-                        <a href="{{ route('knowledge-map.show') }}" class="bg-white border border-gray-200 text-gray-700 font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl hover:bg-gray-50 transition-all">
-                            Explore Knowledge Map
+                        <a wire:navigate href="{{ route('exams.index') }}" class="bg-stone-900 text-white font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl shadow-lg shadow-stone-900/20 transition-all">
+                            Practice Exams
+                        </a>
+                        <a wire:navigate href="{{ route('knowledge-map.show') }}" class="bg-white border border-gray-200 text-gray-700 font-bold uppercase tracking-wider text-xs px-8 py-4 rounded-xl hover:bg-gray-50 transition-all">
+                            Knowledge Map
                         </a>
                     </div>
                 </div>

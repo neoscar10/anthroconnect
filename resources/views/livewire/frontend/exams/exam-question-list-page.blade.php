@@ -101,8 +101,8 @@
         <!-- Questions List -->
         <div class="flex flex-col gap-6">
             @forelse($questions as $question)
-                <div class="bg-white rounded-[2rem] border border-stone-200 overflow-hidden flex group hover:shadow-2xl hover:shadow-stone-200/30 hover:border-orange-800/20 transition-all duration-500 min-h-[140px]">
-                    <div class="p-6 lg:p-8 flex-1 flex items-center gap-4 lg:gap-10">
+                <div class="bg-white rounded-[2rem] border border-stone-200 overflow-hidden flex group hover:shadow-2xl hover:shadow-stone-200/30 hover:border-orange-800/20 transition-all duration-500 min-h-[110px]">
+                    <div class="p-4 lg:py-6 lg:px-10 flex-1 flex items-center gap-4 lg:gap-10">
                         <!-- Date/Marks Badge -->
                         <div class="flex flex-col gap-2 shrink-0 text-center w-16 lg:w-24">
                             <span class="text-[10px] font-bold text-stone-400 uppercase tracking-widest">{{ $question->year ?: 'General' }}</span>
@@ -148,7 +148,7 @@
                     </div>
                 </div>
             @endforelse
-        </div>v>
+        </div>
 
         <!-- Pagination -->
         <div class="mt-16">
