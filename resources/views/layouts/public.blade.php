@@ -97,11 +97,10 @@ tailwind.config = {
             <nav class="hidden lg:flex items-center gap-8 lg:ml-12">
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('modules.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('modules.index') }}">Learn Anthropology</a>
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('explore.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('explore.index') }}">Explore Humanity</a>
-                <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('knowledge-map.show') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('knowledge-map.show') }}">Knowledge Map</a>
+                <a class="text-sm font-medium transition-colors {{ request()->routeIs('knowledge-map.show') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('knowledge-map.show') }}">Knowledge Map</a>
                 <a class="text-sm font-medium transition-colors {{ request()->routeIs('upsc.hub') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('upsc.hub') }}">UPSC Anthropology</a>
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('encyclopedia.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('encyclopedia.index') }}">Encyclopedia</a>
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('community.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('community.index') }}">Community</a>
-
                 <a wire:navigate class="text-sm font-medium transition-colors {{ request()->routeIs('library.*') ? 'text-orange-800 font-bold border-b-2 border-orange-800 pb-1' : 'hover:text-orange-700' }}" href="{{ route('library.index') }}">Research Library</a>
             </nav>
 
@@ -153,7 +152,7 @@ tailwind.config = {
                 <span class="material-symbols-outlined">school</span>
                 <span class="font-headline text-lg">Learn Anthropology</span>
             </a>
-            <a wire:navigate class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('knowledge-map.show') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('knowledge-map.show') }}">
+            <a class="flex items-center gap-4 py-4 px-4 {{ request()->routeIs('knowledge-map.show') ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-900 dark:text-orange-100 font-bold' : 'text-stone-700 dark:text-stone-300 hover:bg-stone-100' }} rounded-xl transition-all" href="{{ route('knowledge-map.show') }}">
                 <span class="material-symbols-outlined">hub</span>
                 <span class="font-headline text-lg">Knowledge Map</span>
             </a>
