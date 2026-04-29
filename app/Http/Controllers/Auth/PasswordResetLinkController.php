@@ -27,19 +27,54 @@ class PasswordResetLinkController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'email' => ['required', 'email'],
+            'whatsapp_phone' => ['required', 'string'],
         ]);
 
-        // We will send the password reset link to this user. Once we have attempted
-        // to send the link, we will examine the response then see the message we
-        // need to show to the user. Finally, we'll send out a proper response.
-        $status = Password::sendResetLink(
-            $request->only('email')
-        );
+        $phone = trim($request->whatsapp_phone);
+        $phone = preg_replace('/\s+/', '', $phone);
 
-        return $status == Password::RESET_LINK_SENT
-                    ? back()->with('status', __($status))
-                    : back()->withInput($request->only('email'))
-                        ->withErrors(['email' => __($status)]);
+        $user = \App\Models\User::where('whatsapp_phone', $phone)->first();
+
+        if (!$user) {
+            return back()->withInput($request->only('whatsapp_phone'))
+                ->withErrors(['whatsapp_phone' => 'We could not find a user with that WhatsApp number.']);
+        }
+
+        // Store phone in session for OTP verification
+        session(['password_reset_phone' => $phone]);
+
+        return redirect()->route('password.otp.verify');
+    }
+
+    /**
+     * Display the OTP verification view.
+     */
+    public function showOtpForm(): View|RedirectResponse
+    {
+        if (!session()->has('password_reset_phone')) {
+            return redirect()->route('password.request');
+        }
+
+        return view('auth.forgot-password-otp');
+    }
+
+    /**
+     * Verify the dummy OTP.
+     */
+    public function verifyOtp(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'otp' => ['required', 'digits:6'],
+        ]);
+
+        // Logic for dummy OTP (any 6 digit number works as per user requirement)
+        // In a real app, you would check against a stored OTP.
+        
+        session(['password_reset_authorized' => true]);
+
+        return redirect()->route('password.reset', [
+            'token' => 'otp-verified',
+            'whatsapp_phone' => session('password_reset_phone')
+        ]);
     }
 }

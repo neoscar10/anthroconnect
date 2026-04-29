@@ -127,4 +127,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(\App\Models\Exam\ExamAnswerSubmission::class);
     }
+    /**
+     * Get the email address that should be used for password resets.
+     *
+     * @return string
+     */
+    public function getEmailForPasswordReset()
+    {
+        return $this->email ?? $this->whatsapp_phone;
+    }
+
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new \App\Notifications\Auth\ResetPasswordNotification($token));
+    }
 }
