@@ -28,12 +28,24 @@
                 init() {
                     this.initEditor();
                     if(this.isStarted) this.startTimer();
+                    
                     this.$watch('isStarted', value => {
-                        if (!value) this.stopTimer();
+                        if (value) {
+                            this.startTimer();
+                        } else {
+                            this.stopTimer();
+                        }
+                        
+                        if (this.easyMDE) {
+                            this.easyMDE.codemirror.setOption('readOnly', !value);
+                            if (value) {
+                                this.$nextTick(() => {
+                                    this.easyMDE.codemirror.focus();
+                                });
+                            }
+                        }
                     });
-                    this.$watch('$wire.submission_type', value => {
-                        this.initEditor();
-                    });
+
                     window.addEventListener('exam-reset', (e) => {
                         const newAnswer = e.detail[0]?.answer || '';
                         if (this.easyMDE) {
@@ -106,6 +118,7 @@
                     
                     if (this.easyMDE) {
                         this.easyMDE.value(config.answerText);
+                        this.easyMDE.codemirror.setOption('readOnly', !this.isStarted);
                         return;
                     }
 
@@ -126,19 +139,11 @@
                         initialValue: config.answerText
                     });
 
+                    this.easyMDE.codemirror.setOption('readOnly', !this.isStarted);
+
                     this.easyMDE.codemirror.on('change', () => {
                         this.$wire.set('answer_text', this.easyMDE.value(), false);
                     });
-
-                    this.$watch('isStarted', value => {
-                        if (this.easyMDE) {
-                            this.easyMDE.codemirror.setOption('readOnly', !value);
-                        }
-                    });
-                    
-                    if (this.easyMDE) {
-                        this.easyMDE.codemirror.setOption('readOnly', !this.isStarted);
-                    }
                 },
                 startTimer() {
                     if (this.isStarted && !this.isSubmitted) {
@@ -163,11 +168,7 @@
                 executeStart() {
                     this.showConfirm = false;
                     this.$wire.startExam().then(() => {
-                        this.startTimer();
-                        if (this.easyMDE) {
-                            this.easyMDE.codemirror.setOption('readOnly', false);
-                            this.easyMDE.codemirror.focus();
-                        }
+                        // The watch on isStarted will handle the readOnly and timer toggle
                     });
                 },
                 confirmSubmit() {
@@ -422,24 +423,26 @@
                     </div>
                 </section>
 
-                <!-- Timer & Tools (Only for Typed Responses) -->
-                <div x-show="$wire.submission_type === 'text'" class="flex flex-wrap items-center justify-between gap-4 bg-orange-800/5 p-5 rounded-2xl border border-orange-800/10">
+                <!-- Timer & Tools (Visible for Typed OR when Submitted) -->
+                <div x-show="$wire.submission_type === 'text' || isSubmitted" class="flex flex-wrap items-center justify-between gap-4 bg-orange-800/5 p-5 rounded-2xl border border-orange-800/10">
                     <div class="flex flex-wrap items-center gap-6">
-                        <div class="flex items-center gap-4">
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Duration:</span>
-                            <div class="flex gap-2">
-                                @foreach([5, 10, 15, 20, 30] as $min)
-                                    <button 
-                                        @click="targetMinutes = {{ $min }}" 
-                                        :disabled="isStarted || isSubmitted"
-                                        class="px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-widest border"
-                                        :class="targetMinutes == {{ $min }} ? 'bg-orange-800 text-white border-orange-800 shadow-md' : 'bg-white border-orange-800/20 text-stone-600 hover:bg-orange-800 hover:text-white'"
-                                    >
-                                        {{ $min }}m
-                                    </button>
-                                @endforeach
+                        @if(!$is_submitted)
+                            <div class="flex items-center gap-4">
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-stone-500">Duration:</span>
+                                <div class="flex gap-2">
+                                    @foreach([5, 10, 15, 20, 30] as $min)
+                                        <button 
+                                            @click="targetMinutes = {{ $min }}" 
+                                            :disabled="isStarted || isSubmitted"
+                                            class="px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all uppercase tracking-widest border"
+                                            :class="targetMinutes == {{ $min }} ? 'bg-orange-800 text-white border-orange-800 shadow-md' : 'bg-white border-orange-800/20 text-stone-600 hover:bg-orange-800 hover:text-white'"
+                                        >
+                                            {{ $min }}m
+                                        </button>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
+                        @endif
 
                         @if(!$is_submitted)
                             <div class="h-6 w-px bg-stone-200"></div>
@@ -452,23 +455,38 @@
                                 Session Active
                             </div>
                         @else
-                            <div class="h-6 w-px bg-stone-200"></div>
-                            <button @click="confirmRetake()" class="px-8 py-3 bg-orange-800 text-white font-bold rounded-xl hover:bg-orange-900 transition-all shadow-lg shadow-orange-900/10 flex items-center gap-2 active:scale-95 text-[10px] uppercase tracking-widest">
-                                <span class="material-symbols-outlined text-sm">restart_alt</span>
-                                Start New Attempt
-                            </button>
+                            <div class="flex items-center gap-4">
+                                <div class="px-4 py-2 bg-green-100 text-green-700 font-bold rounded-xl text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                                    Attempt Completed
+                                </div>
+                                <button @click="confirmRetake()" class="px-8 py-3 bg-orange-800 text-white font-bold rounded-xl hover:bg-orange-900 transition-all shadow-lg shadow-orange-900/10 flex items-center gap-2 active:scale-95 text-[10px] uppercase tracking-widest">
+                                    <span class="material-symbols-outlined text-sm">restart_alt</span>
+                                    Start New Attempt
+                                </button>
+                            </div>
                         @endif
                     </div>
 
-                    <div class="flex items-center gap-6">
-                        <div class="flex flex-col items-end">
-                            <span class="text-[8px] uppercase font-bold text-stone-400 tracking-widest">Time Remaining</span>
-                            <div class="flex items-center gap-2 text-orange-800 font-mono text-2xl font-bold">
-                                <span class="material-symbols-outlined text-xl">timer</span>
-                                <span x-text="formatTime(timeLeft())"></span>
+                    @if(!$is_submitted)
+                        <div class="flex items-center gap-6">
+                            <div class="flex flex-col items-end">
+                                <span class="text-[8px] uppercase font-bold text-stone-400 tracking-widest">Time Remaining</span>
+                                <div class="flex items-center gap-2 text-orange-800 font-mono text-2xl font-bold">
+                                    <span class="material-symbols-outlined text-xl">timer</span>
+                                    <span x-text="formatTime(timeLeft())"></span>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="flex flex-col items-end">
+                            <span class="text-[8px] uppercase font-bold text-stone-400 tracking-widest">Time Invested</span>
+                            <div class="flex items-center gap-2 text-stone-900 font-mono text-2xl font-bold">
+                                <span class="material-symbols-outlined text-xl">history</span>
+                                <span x-text="formatTime(timer)"></span>
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Submission Mode Toggle -->
