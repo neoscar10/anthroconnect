@@ -11,6 +11,14 @@ use App\Models\User;
 class ExamQuestion extends Model
 {
     use HasFactory, SoftDeletes, HasTags;
+    
+    public const KIND_MODEL = 'model';
+    public const KIND_PAST = 'past';
+
+    public const QUESTION_KINDS = [
+        self::KIND_MODEL => 'Model Question',
+        self::KIND_PAST => 'Past Question',
+    ];
 
     protected $fillable = [
         'title',
@@ -35,6 +43,7 @@ class ExamQuestion extends Model
         'is_members_only',
         'is_question_of_day',
         'question_of_day_date',
+        'question_kind',
         'created_by',
         'updated_by',
         'published_at',
@@ -178,5 +187,20 @@ class ExamQuestion extends Model
             'reason' => 'membership_required',
             'cta' => 'membership',
         ];
+    }
+
+    public function isModelQuestion(): bool
+    {
+        return $this->question_kind === self::KIND_MODEL;
+    }
+
+    public function isPastQuestion(): bool
+    {
+        return $this->question_kind === self::KIND_PAST;
+    }
+
+    public function getQuestionKindLabelAttribute(): string
+    {
+        return self::QUESTION_KINDS[$this->question_kind] ?? 'Model Question';
     }
 }

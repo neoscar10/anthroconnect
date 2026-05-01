@@ -12,9 +12,10 @@ class ExamSubmissionIndex extends Component
 
     public $search = '';
     public $status = '';
+    public $question_kind = '';
     public $perPage = 10;
 
-    protected $queryString = ['search', 'status'];
+    protected $queryString = ['search', 'status', 'question_kind'];
 
     public function updatingSearch()
     {
@@ -47,6 +48,11 @@ class ExamSubmissionIndex extends Component
                 } elseif ($this->status === 'draft') {
                     $query->where('status', 'draft');
                 }
+            })
+            ->when($this->question_kind, function ($query) {
+                $query->whereHas('question', function ($q) {
+                    $q->where('question_kind', $this->question_kind);
+                });
             })
             ->latest()
             ->paginate($this->perPage);

@@ -27,11 +27,16 @@ class ExamQuestionDetailPage extends Component
     public $is_submitted = false;
     public $last_saved_at = null;
     
+    // Peer Evaluation
+    public $comment_content = '';
+    
     // Active submission we are working on or viewing
     public $active_submission_id = null;
+    public $is_past_question = false;
 
     public function startExam()
     {
+        if ($this->is_past_question) return;
         $this->is_started = true;
         $this->dispatch('exam-started');
     }
@@ -42,7 +47,12 @@ class ExamQuestionDetailPage extends Component
     {
         $this->slug = $slug;
         $question = $questionService->findPublishedBySlug($slug);
+        $this->is_past_question = $question->question_kind === 'past';
         
+        if ($this->is_past_question) {
+            $this->show_model_answer = true;
+        }
+
         if (auth()->check()) {
             $submission = $submissionService->getActiveSubmission($question, auth()->user());
             $this->loadSubmissionData($submission);
@@ -176,6 +186,28 @@ class ExamQuestionDetailPage extends Component
         $this->dispatch('notify', ['message' => 'New practice session started. Attempt #' . $this->attempts_count, 'type' => 'success']);
     }
 
+    public function addComment(ExamQuestionFrontendService $service)
+    {
+        $this->validate([
+            'comment_content' => 'required|min:3|max:1000',
+        ]);
+
+        if (!auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        $question = $service->findPublishedBySlug($this->slug);
+
+        \App\Models\Exam\ExamQuestionComment::create([
+            'user_id' => auth()->id(),
+            'exam_question_id' => $question->id,
+            'content' => $this->comment_content,
+        ]);
+
+        $this->comment_content = '';
+        $this->dispatch('notify', ['message' => 'Peer evaluation posted successfully.', 'type' => 'success']);
+    }
+
     public function render(ExamQuestionFrontendService $service)
     {
         $question = $service->findPublishedBySlug($this->slug);
@@ -196,6 +228,11 @@ class ExamQuestionDetailPage extends Component
         $next = $service->nextQuestion($question);
         $prev = $service->previousQuestion($question);
 
+        $comments = \App\Models\Exam\ExamQuestionComment::where('exam_question_id', $question->id)
+            ->with('user')
+            ->latest()
+            ->get();
+
         return view('livewire.frontend.exams.exam-question-detail-page', [
             'question' => $question,
             'restriction' => $restriction,
@@ -204,6 +241,7 @@ class ExamQuestionDetailPage extends Component
             'relatedQuestions' => $relatedQuestions,
             'next' => $next,
             'prev' => $prev,
+            'comments' => $comments,
         ])->layout('layouts.public', ['title' => $question->title ?: 'Practice Question']);
     }
 }

@@ -14,11 +14,13 @@ class ExamQuestionListPage extends Component
 
     public $search = '';
     public $year = '';
+    public $kind = '';
     public $selectedTags = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
         'year' => ['except' => ''],
+        'kind' => ['except' => ''],
     ];
 
     public function updated($propertyName)
@@ -33,6 +35,7 @@ class ExamQuestionListPage extends Component
         $questions = $service->paginatePublished([
             'search' => $this->search,
             'year' => $this->year,
+            'kind' => $this->kind,
             'tags' => $this->selectedTags,
         ]);
 

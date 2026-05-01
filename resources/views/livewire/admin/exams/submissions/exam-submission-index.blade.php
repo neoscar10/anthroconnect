@@ -21,6 +21,12 @@
                     <option value="draft">Draft</option>
                     <option value="submitted">Submitted</option>
                 </select>
+
+                <select wire:model.live="question_kind" class="block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                    <option value="">All Question Types</option>
+                    <option value="model">Model Questions</option>
+                    <option value="past">Past Questions</option>
+                </select>
                 
                 <select wire:model.live="perPage" class="block w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
                     <option value="10">10 per page</option>

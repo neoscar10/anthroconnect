@@ -22,6 +22,9 @@ class ExamQuestionIndex extends Component
     public $exam_type = 'UPSC';
     public $year = '';
     public $tagFilters = [];
+    public $filters = [
+        'question_kind' => '',
+    ];
 
     // Modal State
     public $isModalOpen = false;
@@ -43,17 +46,19 @@ class ExamQuestionIndex extends Component
     public $learning_resources = []; // [{title: '', type: '', url: ''}]
     public $form_status = 'published';
     public $access_type = 'public';
+    public $question_kind = 'model';
 
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
         'year' => ['except' => ''],
         'tagFilters' => ['except' => []],
+        'filters' => ['except' => ['question_kind' => '']],
     ];
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['search', 'status', 'year']) || str_starts_with($propertyName, 'tagFilters')) {
+        if (in_array($propertyName, ['search', 'status', 'year']) || str_starts_with($propertyName, 'tagFilters') || $propertyName === 'filters.question_kind') {
             $this->resetPage();
         }
 
@@ -94,6 +99,7 @@ class ExamQuestionIndex extends Component
         $this->learning_resources = $question->learning_resources ?? [];
         $this->form_status = $question->status;
         $this->access_type = $question->access_type ?? 'public';
+        $this->question_kind = $question->question_kind ?? 'model';
 
         $this->isModalOpen = true;
         $this->dispatch('set-tags', id: 'exam-tag-selector', tags: $this->selectedTags);
@@ -104,12 +110,13 @@ class ExamQuestionIndex extends Component
         $this->reset([
             'editingId', 'title', 'question_text', 'short_context', 'form_exam_type',
             'form_year', 'marks', 'word_limit', 'selectedTags', 'answer_guidelines', 'model_answer',
-            'evaluation_rubric', 'learning_resources', 'form_status', 'access_type',
+            'evaluation_rubric', 'learning_resources', 'form_status', 'access_type', 'question_kind',
             'activeTab'
         ]);
         $this->form_exam_type = 'UPSC';
         $this->form_status = 'published';
         $this->access_type = 'public';
+        $this->question_kind = 'model';
         $this->activeTab = 'question';
         $this->evaluation_rubric = [];
         $this->learning_resources = [];
@@ -200,6 +207,7 @@ class ExamQuestionIndex extends Component
             'learning_resources' => $processedResources,
             'status' => $this->form_status,
             'access_type' => $this->access_type,
+            'question_kind' => $this->question_kind,
         ];
 
         try {
@@ -236,6 +244,13 @@ class ExamQuestionIndex extends Component
         }
     }
 
+    public function duplicate($id, ExamQuestionService $service)
+    {
+        $question = ExamQuestion::findOrFail($id);
+        $service->duplicate($question, auth()->user());
+        session()->flash('success', 'Question duplicated successfully.');
+    }
+
     public function render()
     {
         $service = app(ExamQuestionService::class);
@@ -245,12 +260,15 @@ class ExamQuestionIndex extends Component
             'exam_type' => 'UPSC',
             'year' => $this->year,
             'tag_ids' => $this->tagFilters,
+            'question_kind' => $this->filters['question_kind'] ?? '',
         ]);
 
         $stats = [
             'total' => ExamQuestion::count(),
             'published' => ExamQuestion::published()->count(),
             'drafts' => ExamQuestion::draft()->count(),
+            'model' => ExamQuestion::where('question_kind', 'model')->count(),
+            'past' => ExamQuestion::where('question_kind', 'past')->count(),
         ];
 
         $filterableTagGroups = TagGroup::getGroupsWithUsage(ExamQuestion::class);

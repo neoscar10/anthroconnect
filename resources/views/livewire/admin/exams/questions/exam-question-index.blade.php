@@ -30,7 +30,7 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
         <div class="bg-surface-container-lowest p-6 rounded-[32px] border border-outline-variant/10 shadow-sm flex items-center gap-4">
             <div class="h-12 w-12 bg-stone-100 rounded-2xl flex items-center justify-center text-stone-500">
                 <span class="material-symbols-outlined">quiz</span>
@@ -58,6 +58,24 @@
                 <p class="text-[10px] uppercase font-bold text-stone-400 tracking-widest">Drafts</p>
             </div>
         </div>
+        <div class="bg-surface-container-lowest p-6 rounded-[32px] border border-outline-variant/10 shadow-sm flex items-center gap-4">
+            <div class="h-12 w-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                <span class="material-symbols-outlined">edit_square</span>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-on-surface">{{ $stats['model'] }}</p>
+                <p class="text-[10px] uppercase font-bold text-stone-400 tracking-widest">Model Questions</p>
+            </div>
+        </div>
+        <div class="bg-surface-container-lowest p-6 rounded-[32px] border border-outline-variant/10 shadow-sm flex items-center gap-4">
+            <div class="h-12 w-12 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600">
+                <span class="material-symbols-outlined">archive</span>
+            </div>
+            <div>
+                <p class="text-2xl font-bold text-on-surface">{{ $stats['past'] }}</p>
+                <p class="text-[10px] uppercase font-bold text-stone-400 tracking-widest">Past Questions</p>
+            </div>
+        </div>
     </div>
 
     <!-- Management Controls -->
@@ -74,6 +92,19 @@
                     <option value="draft">Draft</option>
                     <option value="published">Published</option>
                     <option value="archived">Archived</option>
+                </select>
+
+                <select wire:model.live="filters.question_kind" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="">All Question Types</option>
+                    <option value="model">Model Questions</option>
+                    <option value="past">Past Questions</option>
+                </select>
+
+                <select wire:model.live="year" class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs focus:ring-2 focus:ring-primary transition-all shadow-sm cursor-pointer">
+                    <option value="">All Years</option>
+                    @foreach(range(date('Y'), 2010) as $y)
+                        <option value="{{ $y }}">{{ $y }}</option>
+                    @endforeach
                 </select>
 
                 <div class="bg-white border border-outline-variant/20 rounded-xl px-4 py-2.5 text-xs font-bold text-on-surface shadow-sm">
@@ -97,6 +128,7 @@
                     <tr>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold">Question Preview</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold">Metadata</th>
+                        <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold text-center">Type</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold text-center">Marks/Words</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold">Status</th>
                         <th class="px-6 py-4 label-md text-on-surface-variant uppercase tracking-widest text-[9px] font-bold text-right">Actions</th>
@@ -119,10 +151,20 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="flex flex-col gap-0.5">
                                     <p class="text-xs font-bold text-on-surface">UPSC</p>
                                     <p class="text-[10px] text-stone-400">{{ $question->year ?: 'No Year' }}</p>
                                 </div>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                @if($question->question_kind === 'past')
+                                    <span class="badge bg-warning/10 text-warning text-[8px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">
+                                        <i class="ri-archive-line align-middle me-1"></i> Past
+                                    </span>
+                                @else
+                                    <span class="badge bg-primary/10 text-primary text-[8px] font-bold uppercase tracking-widest px-2 py-1 rounded-lg">
+                                        <i class="ri-edit-2-line align-middle me-1"></i> Model
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex flex-col">
@@ -160,6 +202,10 @@
                                          <button type="button" wire:click="toggleStatus({{ $question->id }})" @click="open = false" class="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors flex items-center gap-2 border-t border-outline-variant/10">
                                              <span class="material-symbols-outlined text-sm">{{ $question->status == 'published' ? 'archive' : 'publish' }}</span>
                                              {{ $question->status == 'published' ? 'Archive' : 'Publish' }}
+                                         </button>
+                                         <button type="button" wire:click="duplicate({{ $question->id }})" @click="open = false" class="w-full text-left px-4 py-3 text-[10px] uppercase tracking-widest font-bold text-on-surface-variant hover:bg-surface-container-low transition-all flex items-center gap-2 border-t border-outline-variant/10">
+                                             <span class="material-symbols-outlined text-sm text-blue-500">content_copy</span>
+                                             Duplicate
                                          </button>
                                          <button type="button" @click="open = false; $dispatch('open-delete-modal', { 
                                                      title: 'Delete Question', 
@@ -499,55 +545,103 @@
                         </div>
 
                         <!-- TAB: Publishing -->
-                        <div x-show="activeTab === 'publishing'" class="animate-in fade-in duration-300 space-y-12">
-                            <div class="max-w-2xl mx-auto space-y-12 text-center py-12">
-                                <div class="space-y-4">
-                                    <div class="h-20 w-20 bg-primary/5 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <span class="material-symbols-outlined text-4xl">rocket_launch</span>
+                        <div x-show="activeTab === 'publishing'" class="animate-in fade-in duration-300">
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                                <!-- Left Column: Question Type (Main Configuration) -->
+                                <div class="lg:col-span-7 bg-stone-50/50 rounded-[2rem] p-6 border border-stone-100 flex flex-col justify-center">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center text-lg">
+                                            <i class="ri-question-answer-line"></i>
+                                        </div>
+                                        <h4 class="font-headline italic text-lg font-bold leading-tight">Define Question Mode</h4>
                                     </div>
-                                    <h4 class="text-3xl font-headline font-black italic">Ready to go live?</h4>
-                                    <p class="text-stone-400 text-sm">Review your question content and scoring criteria before publishing. Questions are set to "Published" by default to be immediately available for practice.</p>
+
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <label class="exam-question-type-option {{ $question_kind === 'model' ? 'active' : '' }}">
+                                            <input type="radio" class="d-none" wire:model.live="question_kind" value="model">
+                                            <div class="option-card p-4 rounded-2xl border bg-white h-full flex flex-col justify-between">
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                        <div class="option-icon !w-8 !h-8 !text-base !rounded-lg shrink-0">
+                                                            <i class="ri-edit-2-line"></i>
+                                                        </div>
+                                                        <h5 class="font-bold text-xs uppercase tracking-wider">Model</h5>
+                                                    </div>
+                                                    <p class="text-stone-500 text-[10px] leading-relaxed mb-3 italic">Answer practice with timer and submissions.</p>
+                                                </div>
+                                                <div class="flex flex-wrap gap-1">
+                                                    <span class="badge bg-primary/5 text-primary text-[7px] px-1.5 py-0.5 rounded uppercase tracking-tighter">Practice</span>
+                                                    <span class="badge bg-success/5 text-success text-[7px] px-1.5 py-0.5 rounded uppercase tracking-tighter">Timer</span>
+                                                </div>
+                                            </div>
+                                        </label>
+
+                                        <label class="exam-question-type-option {{ $question_kind === 'past' ? 'active' : '' }}">
+                                            <input type="radio" class="d-none" wire:model.live="question_kind" value="past">
+                                            <div class="option-card p-4 rounded-2xl border bg-white h-full flex flex-col justify-between">
+                                                <div>
+                                                    <div class="flex items-center gap-2 mb-2">
+                                                        <div class="option-icon !w-8 !h-8 !text-base !rounded-lg shrink-0">
+                                                            <i class="ri-archive-line"></i>
+                                                        </div>
+                                                        <h5 class="font-bold text-xs uppercase tracking-wider">Past</h5>
+                                                    </div>
+                                                    <p class="text-stone-500 text-[10px] leading-relaxed mb-3 italic">Reference question with model answer only.</p>
+                                                </div>
+                                                <div class="flex flex-wrap gap-1">
+                                                    <span class="badge bg-warning/5 text-warning text-[7px] px-1.5 py-0.5 rounded uppercase tracking-tighter">Past Paper</span>
+                                                    <span class="badge bg-dark/5 text-dark text-[7px] px-1.5 py-0.5 rounded uppercase tracking-tighter">Read Only</span>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
 
-                                <div class="flex flex-wrap justify-center gap-6">
-                                    <label class="relative cursor-pointer">
-                                        <input type="radio" wire:model="form_status" value="published" class="peer sr-only">
-                                        <div class="px-10 py-6 rounded-[32px] border-2 border-stone-100 peer-checked:border-primary peer-checked:bg-primary/5 transition-all group">
-                                            <span class="material-symbols-outlined text-2xl mb-2 text-stone-300 group-peer-checked:text-primary">check_circle</span>
-                                            <p class="text-[10px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-primary">Published</p>
+                                <!-- Right Column: Publishing & Access -->
+                                <div class="lg:col-span-5 space-y-4">
+                                    <!-- Status -->
+                                    <div class="bg-white rounded-[2rem] p-6 border border-stone-100">
+                                        <h5 class="text-[9px] uppercase font-bold text-on-surface-variant tracking-widest mb-4 flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-xs">rocket_launch</span> Status
+                                        </h5>
+                                        <div class="grid grid-cols-3 gap-2">
+                                            <label class="relative cursor-pointer group">
+                                                <input type="radio" wire:model="form_status" value="published" class="peer sr-only">
+                                                <div class="py-3 text-center rounded-xl border-2 border-stone-50 peer-checked:border-primary peer-checked:bg-primary/5 transition-all">
+                                                    <p class="text-[8px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-primary">Live</p>
+                                                </div>
+                                            </label>
+                                            <label class="relative cursor-pointer group">
+                                                <input type="radio" wire:model="form_status" value="draft" class="peer sr-only">
+                                                <div class="py-3 text-center rounded-xl border-2 border-stone-50 peer-checked:border-stone-400 peer-checked:bg-stone-50 transition-all">
+                                                    <p class="text-[8px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-stone-600">Draft</p>
+                                                </div>
+                                            </label>
+                                            <label class="relative cursor-pointer group">
+                                                <input type="radio" wire:model="form_status" value="archived" class="peer sr-only">
+                                                <div class="py-3 text-center rounded-xl border-2 border-stone-50 peer-checked:border-warning peer-checked:bg-warning/5 transition-all">
+                                                    <p class="text-[8px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-warning">Archived</p>
+                                                </div>
+                                            </label>
                                         </div>
-                                    </label>
-                                    <label class="relative cursor-pointer">
-                                        <input type="radio" wire:model="form_status" value="draft" class="peer sr-only">
-                                        <div class="px-10 py-6 rounded-[32px] border-2 border-stone-100 peer-checked:border-stone-400 peer-checked:bg-stone-50 transition-all group">
-                                            <span class="material-symbols-outlined text-2xl mb-2 text-stone-300 group-peer-checked:text-stone-600">edit_note</span>
-                                            <p class="text-[10px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-stone-600">Draft</p>
-                                        </div>
-                                    </label>
-                                    <label class="relative cursor-pointer">
-                                        <input type="radio" wire:model="form_status" value="archived" class="peer sr-only">
-                                        <div class="px-10 py-6 rounded-[32px] border-2 border-stone-100 peer-checked:border-warning peer-checked:bg-warning/5 transition-all group">
-                                            <span class="material-symbols-outlined text-2xl mb-2 text-stone-300 group-peer-checked:text-warning">archive</span>
-                                            <p class="text-[10px] uppercase font-bold tracking-widest text-stone-400 group-peer-checked:text-warning">Archived</p>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div class="pt-12 border-t border-stone-100 space-y-6">
-                                    <h5 class="text-[10px] uppercase font-bold text-stone-400 tracking-widest">Content Restriction</h5>
-                                    <div class="flex justify-center gap-4">
-                                        <button type="button" wire:click="$set('access_type', 'public')" 
-                                                class="flex-1 max-w-[200px] py-4 rounded-2xl border transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 {{ $access_type === 'public' ? 'bg-primary/5 border-primary/20 text-primary shadow-sm' : 'bg-white border-stone-100 text-stone-400' }}">
-                                            <span class="material-symbols-outlined text-sm">public</span>
-                                            Public Access
-                                        </button>
-                                        <button type="button" wire:click="$set('access_type', 'member_only')" 
-                                                class="flex-1 max-w-[200px] py-4 rounded-2xl border transition-all text-[10px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 {{ $access_type === 'member_only' ? 'bg-secondary/5 border-secondary/20 text-secondary shadow-sm' : 'bg-white border-stone-100 text-stone-400' }}">
-                                            <span class="material-symbols-outlined text-sm">lock</span>
-                                            Members Only
-                                        </button>
                                     </div>
-                                    <p class="text-[10px] text-stone-400 italic">"Members Only" questions require an active subscription to access and practice.</p>
+
+                                    <!-- Access Control -->
+                                    <div class="bg-white rounded-[2rem] p-6 border border-stone-100">
+                                        <h5 class="text-[9px] uppercase font-bold text-on-surface-variant tracking-widest mb-4 flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-xs">security</span> Visibility
+                                        </h5>
+                                        <div class="flex gap-2">
+                                            <button type="button" wire:click="$set('access_type', 'public')" 
+                                                    class="flex-1 py-3 rounded-xl border transition-all text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 {{ $access_type === 'public' ? 'bg-primary/5 border-primary/20 text-primary' : 'bg-white border-stone-100 text-stone-400' }}">
+                                                <span class="material-symbols-outlined text-xs">public</span> Public
+                                            </button>
+                                            <button type="button" wire:click="$set('access_type', 'member_only')" 
+                                                    class="flex-1 py-3 rounded-xl border transition-all text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 {{ $access_type === 'member_only' ? 'bg-secondary/5 border-secondary/20 text-secondary' : 'bg-white border-stone-100 text-stone-400' }}">
+                                                <span class="material-symbols-outlined text-xs">lock</span> Members
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -587,3 +681,45 @@
         </div>
     </div>
 </div>
+
+<style>
+    .exam-question-type-option {
+        display: block;
+        cursor: pointer;
+    }
+
+    .exam-question-type-option .option-card {
+        background: #fff;
+        border-color: rgba(0, 0, 0, 0.08) !important;
+        transition: all 0.2s ease-in-out;
+    }
+
+    .exam-question-type-option:hover .option-card {
+        transform: translateY(-2px);
+        border-color: rgba(154, 52, 18, 0.35) !important;
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    }
+
+    .exam-question-type-option.active .option-card {
+        border-color: #9a3412 !important;
+        background: rgba(154, 52, 18, 0.04);
+        box-shadow: 0 14px 35px rgba(154, 52, 18, 0.12);
+    }
+
+    .exam-question-type-option .option-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 14px;
+        background: rgba(154, 52, 18, 0.10);
+        color: #9a3412;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .exam-question-type-option.active .option-icon {
+        background: #9a3412;
+        color: #fff;
+    }
+</style>

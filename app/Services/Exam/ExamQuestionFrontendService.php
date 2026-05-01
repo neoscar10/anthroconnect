@@ -25,6 +25,7 @@ class ExamQuestionFrontendService
             ->when(! empty($filters['paper']), fn ($q) => $q->where('paper', $filters['paper']))
             ->when(! empty($filters['year']), fn ($q) => $q->where('year', $filters['year']))
             ->when(! empty($filters['difficulty']), fn ($q) => $q->where('difficulty', $filters['difficulty']))
+            ->when(! empty($filters['kind']), fn ($q) => $q->where('question_kind', $filters['kind']))
             ->when(! empty($filters['tags']), function ($query) use ($filters) {
                 $tagIds = array_filter((array) $filters['tags']);
 

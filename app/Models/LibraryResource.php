@@ -205,6 +205,18 @@ class LibraryResource extends Model
         return (string) str($this->abstract ?: $this->description ?: 'No abstract available yet.')->stripTags()->limit(160);
     }
 
+    /**
+     * Check if a user can access this resource.
+     */
+    public function canAccess(?User $user): bool
+    {
+        if ($this->access_type !== 'member_only') {
+            return true;
+        }
+
+        return $user && $user->isMember();
+    }
+
     // Scopes
     public function scopePublished($query)
     {

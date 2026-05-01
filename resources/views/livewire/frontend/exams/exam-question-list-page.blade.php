@@ -2,8 +2,13 @@
     <div class="max-w-7xl mx-auto px-6">
         <!-- Hero Section -->
         <div class="mb-16">
-            <h1 class="text-4xl lg:text-6xl font-headline text-stone-900 mb-4 italic">Practice <span class="text-orange-800">Exams</span></h1>
-            <p class="text-lg text-stone-600 max-w-2xl font-body">Master the art of answer writing with our curated database of UPSC anthropology questions. Track your progress, timing, and word count.</p>
+            @if($kind === 'past')
+                <h1 class="text-4xl lg:text-6xl font-headline text-stone-900 mb-4 italic">Past Questions <span class="text-orange-800">(PYQs)</span></h1>
+                <p class="text-lg text-stone-600 max-w-2xl font-body">Access high-scoring frameworks and model answers for UPSC Anthropology past year papers. Learn the standard expected in the Civil Services Examination.</p>
+            @else
+                <h1 class="text-4xl lg:text-6xl font-headline text-stone-900 mb-4 italic">Practice <span class="text-orange-800">Exams</span></h1>
+                <p class="text-lg text-stone-600 max-w-2xl font-body">Master the art of answer writing with our curated database of UPSC anthropology questions. Track your progress, timing, and word count.</p>
+            @endif
         </div>
 
         @if($qotd)
@@ -57,6 +62,12 @@
                 </div>
 
                 <div class="flex flex-wrap gap-3">
+                    <select wire:model.live="kind" class="bg-stone-50 border-none rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-orange-800 cursor-pointer">
+                        <option value="">All Types</option>
+                        <option value="model">Practice (Model)</option>
+                        <option value="past">Reference (Past)</option>
+                    </select>
+
                     <select wire:model.live="year" class="bg-stone-50 border-none rounded-2xl px-6 py-4 text-[10px] font-bold uppercase tracking-widest focus:ring-2 focus:ring-orange-800 cursor-pointer">
                         <option value="">All Years</option>
                         @foreach($availableYears as $y)
@@ -133,7 +144,9 @@
                     </div>
                     
                     <a wire:navigate href="{{ route('exams.show', $question->slug) }}" class="w-16 lg:w-56 bg-stone-50 border-l border-stone-100 group-hover:bg-orange-800 transition-all duration-500 flex flex-col justify-center items-center gap-3">
-                        <span class="hidden lg:block text-[10px] font-bold uppercase tracking-widest text-stone-900 group-hover:text-white transition-colors">Start Practice</span>
+                        <span class="hidden lg:block text-[10px] font-bold uppercase tracking-widest text-stone-900 group-hover:text-white transition-colors">
+                            {{ $question->question_kind === 'past' ? 'View Reference' : 'Start Practice' }}
+                        </span>
                         <div class="w-10 h-10 lg:w-12 lg:h-12 rounded-full border border-stone-200 flex items-center justify-center group-hover:border-white/30 group-hover:bg-white/10 transition-all">
                             <span class="material-symbols-outlined text-xl lg:text-2xl text-stone-400 group-hover:text-white transition-transform group-hover:translate-x-1">arrow_forward</span>
                         </div>

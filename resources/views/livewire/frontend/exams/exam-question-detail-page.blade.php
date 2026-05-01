@@ -22,6 +22,7 @@
                 showRetakeConfirm: false,
                 showModelAnswerModal: false,
                 showModelAnswerConfirm: false,
+                isGeneratingPDF: false,
                 easyMDE: null,
                 
                 init() {
@@ -50,7 +51,48 @@
                     }
                 },
                 downloadPDF() {
-                    window.print();
+                    this.isGeneratingPDF = true;
+                    const element = document.getElementById('printable-model-answer');
+                    
+                    if (!element) {
+                        console.error('Printable element not found');
+                        this.isGeneratingPDF = false;
+                        return;
+                    }
+
+                    const opt = {
+                        margin: [0.2, 0.5],
+                        filename: 'AnthroConnect-ModelAnswer-' + @js($slug) + '.pdf',
+                        image: { type: 'jpeg', quality: 0.98 },
+                        html2canvas: { 
+                            scale: 2, 
+                            useCORS: true,
+                            letterRendering: true,
+                            scrollY: 0
+                        },
+                        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                    };
+
+                    const container = document.createElement('div');
+                    container.style.position = 'fixed';
+                    container.style.left = '-9999px';
+                    container.style.top = '0';
+                    container.appendChild(element.cloneNode(true));
+                    container.firstChild.classList.remove('hidden');
+                    container.firstChild.style.display = 'block';
+                    container.firstChild.style.width = '800px'; 
+                    container.firstChild.style.padding = '20px 40px';
+                    container.firstChild.style.background = 'white';
+                    
+                    document.body.appendChild(container);
+                    
+                    html2pdf().set(opt).from(container.firstChild).save().then(() => {
+                        document.body.removeChild(container);
+                        this.isGeneratingPDF = false;
+                    }).catch(err => {
+                        console.error('PDF Generation Error:', err);
+                        this.isGeneratingPDF = false;
+                    });
                 },
                 
                 initEditor() {
@@ -169,6 +211,7 @@
     <!-- EasyMDE CSS -->
     <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
     <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <style>
         .EasyMDEContainer { border: none !important; }
@@ -250,7 +293,101 @@
     </style>
 
     <main class="max-w-[1400px] mx-auto w-full px-6 lg:px-20">
-        <!-- Header Section -->
+        @if($question->question_kind === 'past')
+            <!-- READ ONLY VIEW FOR PAST QUESTIONS -->
+            <div class="mb-8 flex justify-between items-end">
+                <div>
+                    <h1 class="text-3xl md:text-4xl font-black text-stone-900 font-headline mb-2">UPSC Past Year Question (PYQ)</h1>
+                    <p class="text-stone-600 text-lg">Reference model answer and conceptual framework.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                <div class="lg:col-span-8 flex flex-col gap-6">
+                    <!-- Question Section -->
+                    <section class="bg-white border border-stone-200 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+                            <span class="material-symbols-outlined text-7xl">archive</span>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="flex items-center gap-2 mb-4">
+                                <span class="bg-sandstone text-charcoal text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest">{{ $question->year }} Paper {{ $question->paper_type ?: 'I' }}</span>
+                                <span class="text-stone-400 text-[10px] font-bold uppercase tracking-widest">• {{ $question->marks }} Marks</span>
+                            </div>
+                            <h3 class="text-2xl font-headline font-bold text-stone-800 leading-snug">
+                                {!! $question->question_text !!}
+                            </h3>
+                        </div>
+                    </section>
+
+                    <!-- Model Answer (Always Visible for Past) -->
+                    <section class="bg-stone-900 text-white rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-orange-800/10 blur-[100px] -mr-32 -mt-32"></div>
+                        <div class="relative z-10">
+                            <div class="flex items-center justify-between mb-8">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-orange-800 rounded-xl flex items-center justify-center shadow-lg">
+                                        <span class="material-symbols-outlined text-white">verified</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-2xl font-bold font-headline italic">Model Answer Framework</h4>
+                                        <p class="text-[10px] uppercase font-bold tracking-widest text-orange-800">UPSC Standard Reference</p>
+                                    </div>
+                                </div>
+                                <button @click="downloadPDF()" 
+                                    class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                    :disabled="isGeneratingPDF"
+                                >
+                                    <span x-show="!isGeneratingPDF" class="material-symbols-outlined text-sm">download</span>
+                                    <span x-show="isGeneratingPDF" class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                                    <span x-text="isGeneratingPDF ? 'Generating...' : 'Download Ref'"></span>
+                                </button>
+                            </div>
+
+                            <div class="prose prose-invert max-w-none prose-orange">
+                                @if($question->model_answer)
+                                    {!! Str::markdown($question->model_answer) !!}
+                                @else
+                                    <p class="italic text-stone-500 text-sm">Model answer is currently being prepared by our expert faculty.</p>
+                                @endif
+                            </div>
+                        </div>
+                    </section>
+                </div>
+
+                <aside class="lg:col-span-4 flex flex-col gap-8">
+                    <!-- Scoring Rubric for Reference -->
+                    @if(count($question->evaluation_rubric ?? []))
+                        <div class="bg-white border border-stone-200 rounded-[2.5rem] p-8 shadow-sm">
+                            <h4 class="text-lg font-bold text-stone-900 font-headline italic mb-6">Marking Parameters</h4>
+                            <div class="space-y-4">
+                                @foreach($question->evaluation_rubric as $rubric)
+                                    <div class="flex justify-between items-start gap-4 pb-3 border-b border-stone-50 last:border-0">
+                                        <span class="text-xs text-stone-600">{{ $rubric['criteria'] }}</span>
+                                        <span class="text-xs font-bold text-orange-800">{{ $rubric['marks'] }}M</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+
+                    <!-- Answer Guidelines -->
+                    @if($question->answer_guidelines)
+                        <div class="bg-orange-800/5 border border-orange-800/10 rounded-[2.5rem] p-8">
+                            <h4 class="text-lg font-bold text-orange-800 font-headline italic mb-4">Structure Hints</h4>
+                            <div class="prose prose-stone prose-sm max-w-none text-stone-600">
+                                {!! Str::markdown($question->answer_guidelines) !!}
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="p-6 bg-stone-50 rounded-2xl border border-stone-200 text-center">
+                        <p class="text-sm text-stone-500 italic mb-4">Want to practice this question in exam mode?</p>
+                        <button class="w-full py-3 bg-stone-900 text-white rounded-xl font-bold text-[10px] uppercase tracking-widest hover:bg-orange-800 transition-colors opacity-50 cursor-not-allowed" title="Past questions are currently read-only">Exam Mode Disabled</button>
+                    </div>
+                </aside>
+            </div>
+        @else
         <div class="mb-8 flex justify-between items-end">
             <div>
                 <h1 class="text-3xl md:text-4xl font-black text-stone-900 font-headline mb-2">UPSC Anthropology Answer Writing Practice</h1>
@@ -518,70 +655,144 @@
                 @endif
 
                 <!-- Feedback and Discussion -->
-                <section class="mt-8">
+                <section class="mt-8" x-data="{ activeTab: 'expert' }">
                     <div class="flex border-b border-stone-200 mb-8">
-                        <button class="px-8 py-4 border-b-2 border-orange-800 text-orange-800 font-bold text-xs uppercase tracking-widest">Expert Evaluation</button>
-                        <button class="px-8 py-4 text-stone-400 font-bold text-xs uppercase tracking-widest hover:text-orange-800 transition-colors">Peer Review (Coming Soon)</button>
+                        <button 
+                            @click="activeTab = 'expert'"
+                            class="px-8 py-4 font-bold text-xs uppercase tracking-widest transition-all border-b-2"
+                            :class="activeTab === 'expert' ? 'border-orange-800 text-orange-800' : 'border-transparent text-stone-400 hover:text-stone-600'"
+                        >Expert Evaluation</button>
+                        <button 
+                            @click="activeTab = 'peer'"
+                            class="px-8 py-4 font-bold text-xs uppercase tracking-widest transition-all border-b-2"
+                            :class="activeTab === 'peer' ? 'border-orange-800 text-orange-800' : 'border-transparent text-stone-400 hover:text-stone-600'"
+                        >
+                            Peer Evaluation 
+                            <span class="ml-2 bg-stone-100 text-stone-600 px-2 py-0.5 rounded-full text-[8px]">{{ $comments->count() }}</span>
+                        </button>
                     </div>
-                    <div class="flex flex-col gap-4">
-                        @if($is_submitted && $submission && $submission->evaluated_at)
-                            <div class="p-8 bg-white rounded-[2rem] border border-stone-200 relative overflow-hidden shadow-sm">
-                                <!-- Evaluation Metadata -->
-                            <div class="grid grid-cols-2 gap-4 mb-8">
-                                <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
-                                    <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Scholar Score</span>
-                                    <div class="flex items-end gap-1">
-                                        <span class="text-2xl font-bold text-stone-900 leading-none">{{ $submission->score }}</span>
-                                        <span class="text-xs font-bold text-stone-400 mb-0.5">/ {{ $question->marks ?: 100 }}</span>
-                                    </div>
-                                </div>
-                                <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
-                                    <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Evaluation Date</span>
-                                    <span class="text-xs font-bold text-stone-900 leading-none">{{ $submission->evaluated_at->format('M d, Y') }}</span>
-                                </div>
-                            </div>
 
-                            @if($submission->evaluation_attachment_path)
-                                <div class="mb-8 p-5 bg-orange-800/5 rounded-[2rem] border border-orange-800/10 flex items-center justify-between group">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center">
-                                            <span class="material-symbols-outlined text-orange-800">
-                                                {{ str_ends_with($submission->evaluation_attachment_path, '.pdf') ? 'picture_as_pdf' : 'description' }}
-                                            </span>
+                    <div x-show="activeTab === 'expert'">
+                        <div class="flex flex-col gap-4">
+                            @if($is_submitted && $submission && $submission->evaluated_at)
+                                <div class="p-8 bg-white rounded-[2rem] border border-stone-200 relative overflow-hidden shadow-sm">
+                                    <div class="grid grid-cols-2 gap-4 mb-8">
+                                        <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                                            <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Scholar Score</span>
+                                            <div class="flex items-end gap-1">
+                                                <span class="text-2xl font-bold text-stone-900 leading-none">{{ $submission->score }}</span>
+                                                <span class="text-xs font-bold text-stone-400 mb-0.5">/ {{ $question->marks ?: 100 }}</span>
+                                            </div>
                                         </div>
-                                        <div class="flex flex-col">
-                                            <span class="text-xs font-bold text-stone-700 leading-none mb-1">Evaluation Document</span>
-                                            <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Marked-up Response Attached</span>
+                                        <div class="bg-stone-50 p-4 rounded-2xl border border-stone-100">
+                                            <span class="text-[8px] font-bold uppercase tracking-widest text-stone-400 block mb-1">Evaluation Date</span>
+                                            <span class="text-xs font-bold text-stone-900 leading-none">{{ $submission->evaluated_at->format('M d, Y') }}</span>
                                         </div>
                                     </div>
-                                    <a href="{{ Storage::url($submission->evaluation_attachment_path) }}" download class="px-6 py-2.5 bg-orange-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-orange-900 transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2">
-                                        <span class="material-symbols-outlined text-sm">download</span>
-                                        Download
-                                    </a>
+
+                                    @if($submission->evaluation_attachment_path)
+                                        <div class="mb-8 p-5 bg-orange-800/5 rounded-[2rem] border border-orange-800/10 flex items-center justify-between group">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-12 h-12 bg-white rounded-2xl shadow-sm flex items-center justify-center">
+                                                    <span class="material-symbols-outlined text-orange-800">
+                                                        {{ str_ends_with($submission->evaluation_attachment_path, '.pdf') ? 'picture_as_pdf' : 'description' }}
+                                                    </span>
+                                                </div>
+                                                <div class="flex flex-col">
+                                                    <span class="text-xs font-bold text-stone-700 leading-none mb-1">Evaluation Document</span>
+                                                    <span class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Marked-up Response Attached</span>
+                                                </div>
+                                            </div>
+                                            <a href="{{ Storage::url($submission->evaluation_attachment_path) }}" download class="px-6 py-2.5 bg-orange-800 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-orange-900 transition-all shadow-lg shadow-orange-900/20 flex items-center gap-2">
+                                                <span class="material-symbols-outlined text-sm">download</span>
+                                                Download
+                                            </a>
+                                        </div>
+                                    @endif
+
+                                    <div class="prose prose-stone max-w-none prose-p:text-sm prose-p:leading-relaxed prose-p:text-stone-600 italic">
+                                        {!! Str::markdown($submission->feedback_text ?? '') !!}
+                                    </div>
+                                </div>      
+                            @else
+                                <div class="p-10 bg-stone-100/50 rounded-[2rem] border border-stone-200 border-dashed flex flex-col items-center text-center">
+                                    <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6">
+                                        <span class="material-symbols-outlined text-3xl text-stone-300 animate-pulse">
+                                            {{ $is_submitted ? 'query_stats' : 'history_edu' }}
+                                        </span>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-stone-800 font-headline italic mb-2">
+                                        {{ $is_submitted ? 'Expert Evaluation Pending' : 'Scholarly Review Awaiting' }}
+                                    </h4>
+                                    <p class="text-stone-500 text-sm max-w-xs leading-relaxed">
+                                        {{ $is_submitted 
+                                            ? 'Our senior faculty is currently reviewing your submission. You will receive a detailed report covering conceptual clarity and scholarly depth shortly.' 
+                                            : 'Complete your practice attempt and submit it for a professional evaluation based on standard UPSC parameters.' }}
+                                    </p>
                                 </div>
                             @endif
+                        </div>
+                    </div>
 
-                            <div class="prose prose-stone max-w-none prose-p:text-sm prose-p:leading-relaxed prose-p:text-stone-600 italic">
-                                {!! Str::markdown($submission->feedback_text) !!}
-                            </div>
-                        </div>      
-                        @else
-                            <div class="p-10 bg-stone-100/50 rounded-[2rem] border border-stone-200 border-dashed flex flex-col items-center text-center">
-                                <div class="w-16 h-16 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-6">
-                                    <span class="material-symbols-outlined text-3xl text-stone-300 animate-pulse">
-                                        {{ $is_submitted ? 'query_stats' : 'history_edu' }}
-                                    </span>
+                    <div x-show="activeTab === 'peer'" x-cloak>
+                        <div class="flex flex-col gap-6">
+                            <!-- Comment Form -->
+                            @auth
+                                <div class="bg-white border border-stone-200 rounded-[2rem] p-8 shadow-sm">
+                                    <h4 class="text-sm font-bold text-stone-900 font-headline italic mb-4">Post Peer Evaluation</h4>
+                                    <textarea 
+                                        wire:model="comment_content"
+                                        class="w-full bg-stone-50 border-stone-100 rounded-2xl p-6 text-sm text-stone-600 focus:ring-orange-800 focus:border-orange-800 min-h-[120px] mb-4"
+                                        placeholder="Share your anthropological insights or structure recommendations..."
+                                    ></textarea>
+                                    <div class="flex justify-end">
+                                        <button 
+                                            wire:click="addComment"
+                                            class="px-8 py-3 bg-stone-900 text-white text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-orange-800 transition-colors flex items-center gap-2"
+                                        >
+                                            <span class="material-symbols-outlined text-sm">post_add</span>
+                                            Submit Evaluation
+                                        </button>
+                                    </div>
                                 </div>
-                                <h4 class="text-lg font-bold text-stone-800 font-headline italic mb-2">
-                                    {{ $is_submitted ? 'Expert Evaluation Pending' : 'Scholarly Review Awaiting' }}
-                                </h4>
-                                <p class="text-stone-500 text-sm max-w-xs leading-relaxed">
-                                    {{ $is_submitted 
-                                        ? 'Our senior faculty is currently reviewing your submission. You will receive a detailed report covering conceptual clarity and scholarly depth shortly.' 
-                                        : 'Complete your practice attempt and submit it for a professional evaluation based on standard UPSC parameters.' }}
-                                </p>
+                            @else
+                                <div class="bg-stone-50 border border-dashed border-stone-200 rounded-[2rem] p-8 text-center">
+                                    <p class="text-sm text-stone-500 mb-4">You must be logged in to participate in peer evaluations.</p>
+                                    <a wire:navigate href="{{ route('login') }}" class="inline-block px-6 py-2 bg-stone-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest">Log In Now</a>
+                                </div>
+                            @endauth
+
+                            <!-- Comments List -->
+                            <div class="space-y-6">
+                                @forelse($comments as $comment)
+                                    <div class="bg-white border border-stone-200 rounded-[2rem] p-8 shadow-sm">
+                                        <div class="flex justify-between items-start mb-4">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-10 h-10 bg-sandstone rounded-xl flex items-center justify-center text-charcoal font-bold text-xs shadow-sm">
+                                                    {{ strtoupper(substr($comment->user->name, 0, 1)) }}
+                                                </div>
+                                                <div>
+                                                    <h5 class="text-sm font-bold text-stone-900">{{ $comment->user->name }}</h5>
+                                                    <p class="text-[10px] text-stone-400 font-bold uppercase tracking-widest">{{ $comment->created_at->diffForHumans() }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex items-center gap-1 text-orange-800">
+                                                <span class="material-symbols-outlined text-sm">verified_user</span>
+                                                <span class="text-[8px] font-black uppercase tracking-widest">Scholar</span>
+                                            </div>
+                                        </div>
+                                        <div class="prose prose-stone prose-sm max-w-none text-stone-600 leading-relaxed">
+                                            {{ $comment->content }}
+                                        </div>
+                                    </div>
+                                @empty
+                                    <div class="text-center py-12">
+                                        <span class="material-symbols-outlined text-4xl text-stone-200 mb-2">forum</span>
+                                        <p class="text-stone-400 italic text-sm">No peer evaluations yet. Be the first to start the scholarly discussion!</p>
+                                    </div>
+                                @endforelse
                             </div>
-                        @endif
+                        </div>
                     </div>
                 </section>
 
@@ -816,7 +1027,7 @@
             </div>
         </div>
 
-        <!-- Model Answer Confirmation Modal -->
+        <!-- Model Answer Restriction Modal -->
         <div 
             x-show="showModelAnswerConfirm" 
             x-transition:enter="ease-out duration-300"
@@ -830,19 +1041,17 @@
         >
             <div @click.away="showModelAnswerConfirm = false" class="bg-white rounded-[3rem] p-10 max-w-lg w-full shadow-2xl border border-stone-200 text-center">
                 <div class="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-8 text-orange-800">
-                    <span class="material-symbols-outlined text-4xl">warning</span>
+                    <span class="material-symbols-outlined text-4xl">lock</span>
                 </div>
-                <h2 class="text-3xl font-headline italic font-bold text-stone-900 mb-4">View without Attempt?</h2>
-                <p class="text-stone-600 mb-10 leading-relaxed">
-                    Anthropological mastery is built through practice. We strongly encourage you to <span class="font-bold text-stone-900">submit an attempt</span> before viewing the model answer to maximize your learning.
+                <h2 class="text-3xl font-headline italic font-bold text-stone-900 mb-4">Attempt Required</h2>
+                <p class="text-stone-600 mb-10 leading-relaxed text-sm">
+                    Anthropological mastery is built through active recall. To unlock the <span class="font-bold text-stone-900 italic">expert model answer</span>, you must first complete and submit your own attempt.
                 </p>
-                <div class="grid grid-cols-2 gap-4">
-                    <button @click="showModelAnswerConfirm = false" class="py-4 border-2 border-stone-100 text-stone-400 font-bold rounded-2xl hover:bg-stone-50 transition-all uppercase tracking-widest text-[10px]">
-                        I'll Practice First
+                <div class="flex flex-col gap-3">
+                    <button @click="showModelAnswerConfirm = false" class="w-full py-4 bg-stone-900 text-white font-bold rounded-2xl shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-[10px]">
+                        I'll Practice Now
                     </button>
-                    <button @click="showModelAnswerConfirm = false; showModelAnswerModal = true" class="py-4 bg-stone-900 text-white font-bold rounded-2xl shadow-xl hover:-translate-y-1 transition-all uppercase tracking-widest text-[10px]">
-                        View Anyway
-                    </button>
+                    <p class="text-[9px] text-stone-400 font-bold uppercase tracking-widest">Submit your scholarly response to unlock</p>
                 </div>
             </div>
         </div>
@@ -882,24 +1091,10 @@
                     </div>
                 </div>
 
-                <!-- Modal Body (Printable Content) -->
-                <div class="flex-1 overflow-y-auto p-12 no-scrollbar" id="printable-model-answer">
+                <!-- Modal Body -->
+                <div class="flex-1 overflow-y-auto p-12 no-scrollbar">
                     <div class="max-w-3xl mx-auto">
-                        <!-- Branding for Print -->
-                        <div class="hidden print:block mb-10 border-b-2 border-stone-900 pb-6">
-                            <h1 class="text-3xl font-headline italic font-bold text-stone-900">AnthroConnect Archivist</h1>
-                            <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-2">Professional Answer Writing Practice • Model Response</p>
-                        </div>
-
-                        <!-- Question Context -->
-                        <div class="mb-10 p-8 bg-stone-50 rounded-3xl border border-stone-100 print:bg-transparent print:p-0 print:border-none">
-                            <span class="text-[8px] font-bold text-stone-400 uppercase tracking-widest mb-2 block">Question Overview</span>
-                            <h3 class="text-xl font-bold text-stone-800 leading-snug">
-                                {!! strip_tags($question->question_text) !!}
-                            </h3>
-                        </div>
-
-                        <!-- The Answer -->
+                        <!-- The Answer (In Modal) -->
                         <div class="prose prose-stone prose-lg max-w-none prose-headings:font-headline prose-headings:italic prose-blockquote:border-orange-800">
                             @if($question->model_answer)
                                 {!! Str::markdown($question->model_answer) !!}
@@ -909,26 +1104,13 @@
                                 </div>
                             @endif
                         </div>
-
-                        <!-- Guidelines in PDF -->
-                        @if($question->answer_guidelines)
-                            <div class="mt-12 pt-12 border-t border-stone-100">
-                                <h4 class="text-lg font-bold font-headline italic text-stone-900 mb-6">Expert Guidelines</h4>
-                                <div class="prose prose-stone prose-sm max-w-none text-stone-600">
-                                    {!! Str::markdown($question->answer_guidelines) !!}
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Footer for Print -->
-                        <div class="hidden print:block mt-12 pt-6 border-t border-stone-100 text-[8px] text-stone-400 font-bold uppercase tracking-[0.2em] text-center">
-                            © {{ date('Y') }} AnthroConnect Archivist Portal • Scholarly Resource for UPSC Anthropology
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Dedicated Printable Container (Always in DOM, Hidden from Screen) -->
+        
         <!-- Footer Navigation -->
         <nav class="mt-16 py-12 border-t border-stone-200 flex items-center justify-between">
             @if($prev)
@@ -955,5 +1137,43 @@
                 <div></div>
             @endif
         </nav>
+        @endif
     </main>
+
+    <!-- Dedicated Printable Container (Always in DOM, Hidden from Screen) -->
+    <div id="printable-model-answer" class="hidden">
+        <div class="max-w-3xl mx-auto">
+            <!-- Branding for Print -->
+            <div class="mb-10 border-b-2 border-stone-900 pb-6">
+                <h1 class="text-3xl font-headline italic font-bold text-stone-900">AnthroConnect Archivist</h1>
+                <p class="text-[10px] font-bold text-stone-500 uppercase tracking-widest mt-2">Professional Answer Writing Practice • Model Response</p>
+            </div>
+
+            <!-- Question Context -->
+            <div class="mb-10 p-8 bg-stone-50 rounded-3xl border border-stone-100">
+                <span class="text-[8px] font-bold text-stone-400 uppercase tracking-widest mb-2 block">Question Overview</span>
+                <h3 class="text-xl font-bold text-stone-800 leading-snug">
+                    {!! strip_tags($question->question_text) !!}
+                </h3>
+            </div>
+
+            <!-- The Answer -->
+            <div class="prose prose-stone prose-lg max-w-none prose-headings:font-headline prose-headings:italic prose-blockquote:border-orange-800">
+                @if($question->model_answer)
+                    {!! Str::markdown($question->model_answer) !!}
+                @else
+                    <div class="py-20 text-center text-stone-400 italic">
+                        Model answer content is currently being curated by our senior faculty. Check back soon.
+                    </div>
+                @endif
+            </div>
+
+
+
+            <!-- Footer for Print -->
+            <div class="mt-12 pt-6 border-t border-stone-100 text-[8px] text-stone-400 font-bold uppercase tracking-[0.2em] text-center">
+                © {{ date('Y') }} AnthroConnect Archivist Portal • Scholarly Resource for UPSC Anthropology
+            </div>
+        </div>
+    </div>
 </div>

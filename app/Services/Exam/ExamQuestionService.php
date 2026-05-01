@@ -34,6 +34,10 @@ class ExamQuestionService
             }
         }
 
+        if (!empty($filters['question_kind'])) {
+            $query->where('question_kind', $filters['question_kind']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 
@@ -46,6 +50,7 @@ class ExamQuestionService
             $data['slug'] = $this->generateUniqueSlug($data['title'] ?? $data['question_text']);
             $data['created_by'] = $user?->id;
             $data['updated_by'] = $user?->id;
+            $data['question_kind'] = $data['question_kind'] ?? ExamQuestion::KIND_MODEL;
 
             if (($data['status'] ?? 'published') === 'published' && empty($data['published_at'])) {
                 $data['published_at'] = now();
@@ -110,6 +115,39 @@ class ExamQuestionService
         return $this->update($question, [
             'status' => 'archived'
         ], $user);
+    }
+
+    /**
+     * Duplicate a question.
+     */
+    public function duplicate(ExamQuestion $question, ?User $user = null): ExamQuestion
+    {
+        return DB::transaction(function () use ($question, $user) {
+            $newData = $question->toArray();
+            
+            // Clean up for new record
+            unset($newData['id'], $newData['created_at'], $newData['updated_at'], $newData['deleted_at']);
+            
+            $newData['title'] = $question->title . ' (Copy)';
+            $newData['slug'] = $this->generateUniqueSlug($newData['title']);
+            $newData['status'] = 'draft';
+            $newData['is_question_of_day'] = false;
+            $newData['question_of_day_date'] = null;
+            $newData['published_at'] = null;
+            $newData['created_by'] = $user?->id;
+            $newData['updated_by'] = $user?->id;
+            
+            // Question kind is preserved from $question->toArray()
+            
+            $newQuestion = ExamQuestion::create($newData);
+            
+            // Sync tags
+            if ($question->tags) {
+                $newQuestion->syncTags($question->tags->pluck('id')->toArray());
+            }
+            
+            return $newQuestion;
+        });
     }
 
     /**
