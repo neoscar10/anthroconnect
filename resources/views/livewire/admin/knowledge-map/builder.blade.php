@@ -19,8 +19,6 @@
     <div class="km-builder-shell"
          :class="{
             'left-collapsed': !leftPanelOpen,
-            'right-collapsed': !rightPanelOpen,
-            'right-expanded': rightPanelOpen,
             'km-focus-mode': focusMode
          }">
 
@@ -82,10 +80,7 @@
 
         <section class="km-canvas-shell" x-ref="shell">
             <div class="km-floating-toolbar">
-                <div class="px-3 flex flex-col justify-center border-r border-stone-100 mr-2" x-show="!focusMode">
-                    <span class="text-[10px] font-bold text-stone-900 leading-none">{{ $map->title }}</span>
-                    <span class="text-[8px] font-bold uppercase text-stone-400 mt-1">{{ $map->status }}</span>
-                </div>
+
 
                 <button type="button" wire:click="openAddNode" class="km-toolbar-btn">
                     <span class="material-symbols-outlined text-sm">add_box</span>
@@ -108,13 +103,6 @@
                     <span class="material-symbols-outlined text-sm" x-text="focusMode ? 'fullscreen_exit' : 'fullscreen'"></span>
                     <span x-show="!focusMode">Focus</span>
                 </button>
-
-                <div class="km-toolbar-divider"></div>
-
-                <div class="km-toolbar-status" x-show="!focusMode">
-                    <span class="material-symbols-outlined">cloud_done</span>
-                    <span>Saved</span>
-                </div>
             </div>
 
             <div class="km-canvas-controls">
@@ -216,11 +204,8 @@
                 <div class="p-6 border-b border-stone-100 flex items-center justify-between">
                     <div>
                         <h3 class="text-[10px] font-bold uppercase tracking-[0.2em] text-stone-400">Inspector</h3>
-                        <p class="text-[11px] text-stone-400 mt-1">Configure selected canvas item</p>
+                        <p class="text-[11px] text-stone-400 mt-1">Configure selected item</p>
                     </div>
-                    <button type="button" @click="closeInspector()" class="text-stone-300 hover:text-primary transition-colors">
-                        <span class="material-symbols-outlined text-lg">last_page</span>
-                    </button>
                 </div>
 
                 <div class="flex-1 overflow-y-auto p-5">
@@ -251,9 +236,7 @@
                                 <h4 class="font-headline text-lg font-bold text-stone-900">
                                     {{ $selectedConnection->fromNode?->title }} → {{ $selectedConnection->toNode?->title }}
                                 </h4>
-                                <p class="text-xs text-stone-500 mt-2">
-                                    Type: {{ str_replace('_', ' ', $selectedConnection->connection_type) }}
-                                </p>
+
                             </div>
 
                             <button type="button" wire:click="confirmDeleteConnection({{ $selectedConnection->id }})" class="w-full py-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-widest">
@@ -274,11 +257,7 @@
                 </div>
             </div>
 
-            <div class="km-collapsed-icons">
-                <button type="button" @click="rightPanelOpen = true" class="size-10 rounded-xl hover:bg-stone-100 flex items-center justify-center text-stone-400">
-                    <span class="material-symbols-outlined">tune</span>
-                </button>
-            </div>
+
         </aside>
     </div>
 
