@@ -262,114 +262,230 @@
     </div>
 
     @if($showNodeModal)
-        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm">
-            <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[92vh] overflow-hidden flex flex-col">
-                <div class="p-8 border-b border-stone-100 bg-stone-50/50">
-                    <h3 class="text-xl font-headline font-bold italic text-primary">{{ $editingNodeId ? 'Edit Node' : 'Create Node' }}</h3>
-                    <p class="text-[9px] uppercase font-bold tracking-widest text-stone-400 mt-1">Configure knowledge map node details</p>
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12">
+            <div class="fixed inset-0 bg-stone-900/60 backdrop-blur-md" wire:click="closeNodeModal"></div>
+            <div class="bg-white rounded-[48px] shadow-2xl w-full max-w-6xl relative z-10 overflow-hidden flex flex-col max-h-[90vh]">
+                <!-- Modal Header -->
+                <div class="px-8 py-5 border-b border-outline-variant/10 bg-surface-container-low/30 flex justify-between items-center shrink-0">
+                    <div>
+                        <h2 class="font-headline text-2xl italic font-bold text-primary">{{ $editingNodeId ? 'Edit Knowledge Node' : 'Catalog New Node' }}</h2>
+                        <p class="text-[9px] uppercase tracking-widest text-on-surface-variant font-bold">Knowledge Map Entry Portal</p>
+                    </div>
+                    <button wire:click="closeNodeModal" class="w-10 h-10 rounded-xl hover:bg-stone-100 transition-colors flex items-center justify-center text-stone-400 hover:text-on-surface">
+                        <span class="material-symbols-outlined text-xl">close</span>
+                    </button>
                 </div>
 
-                <div class="p-8 overflow-y-auto">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div class="space-y-5">
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Title</label>
-                                <input type="text" wire:model.defer="nodeTitle" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
-                                @error('nodeTitle') <p class="text-red-500 text-xs mt-1">{{ $message }}</p> @enderror
-                            </div>
+                <!-- Modal Body -->
+                <div class="flex-1 overflow-y-auto p-8 md:p-10 space-y-10 bg-stone-50/50">
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Short Description</label>
-                                <textarea wire:model.defer="nodeShortDescription" rows="3" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20"></textarea>
-                            </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                        <!-- Left Column: Content -->
+                        <div class="space-y-8">
+                            <div class="space-y-5">
+                                <h3 class="text-[9px] font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+                                    Core Metadata
+                                </h3>
+                                <div class="space-y-4">
+                                    <div class="space-y-1">
+                                        <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Node Title</label>
+                                        <input type="text" wire:model.defer="nodeTitle" class="w-full bg-white border border-outline-variant/20 rounded-xl p-3.5 text-base font-headline italic font-bold focus:ring-2 focus:ring-primary outline-none transition-all">
+                                        @error('nodeTitle') <p class="text-[9px] text-error mt-1 font-bold">{{ $message }}</p> @enderror
+                                    </div>
 
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Full Description</label>
-                                <textarea wire:model.defer="nodeFullDescription" rows="7" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20"></textarea>
+                                    <div class="space-y-1">
+                                        <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Short Description</label>
+                                        <textarea wire:model.defer="nodeShortDescription" rows="2" class="w-full bg-white border border-outline-variant/20 rounded-xl p-3.5 text-sm font-medium focus:ring-2 focus:ring-primary outline-none resize-none"></textarea>
+                                    </div>
+
+                                    <div class="space-y-1">
+                                        <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Full Narrative / Description</label>
+                                        <textarea wire:model.defer="nodeFullDescription" rows="8" class="w-full bg-white border border-outline-variant/20 rounded-2xl p-4 text-sm leading-relaxed focus:ring-2 focus:ring-primary outline-none transition-all resize-none"></textarea>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="space-y-5">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Node Type</label>
-                                    <select wire:model.defer="nodeType" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm">
-                                        <option value="concept">Concept</option>
-                                        <option value="theory">Theory</option>
-                                        <option value="person">Person</option>
-                                        <option value="period">Period</option>
-                                        <option value="topic">Topic</option>
-                                    </select>
+                        <!-- Right Column: Settings & Linkages -->
+                        <div class="space-y-8">
+                            <div class="space-y-5">
+                                <h3 class="text-[9px] font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                    Classification & Linkages
+                                </h3>
+                                
+
+
+                                <div class="space-y-1">
+                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Knowledge Taxonomy (Tags)</label>
+                                    <x-admin.tag-selector id="node-tag-selector" wire:model="nodeTags" />
                                 </div>
 
-                                <div>
-                                    <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Importance</label>
-                                    <select wire:model.defer="nodeImportance" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm">
-                                        <option value="primary">Primary</option>
-                                        <option value="secondary">Secondary</option>
-                                        <option value="supporting">Supporting</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Tags</label>
-                                <select wire:model.defer="nodeTags" multiple class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm min-h-[140px]">
-                                    @foreach($tagGroups as $group)
-                                        <optgroup label="{{ $group->name }}">
-                                            @foreach($group->tags as $tag)
-                                                <option value="{{ $tag->id }}">{{ $tag->name }}</option>
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
+                                    <h3 class="text-[9px] font-bold uppercase tracking-widest text-secondary flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+                                        Reference Linkages
+                                    </h3>
+                                    <div class="space-y-2">
+                                        <select wire:model.defer="nodeConceptId" class="w-full bg-white border border-outline-variant/10 rounded-xl p-3 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                            <option value="">Link core concept...</option>
+                                            @foreach($concepts as $concept)
+                                                <option value="{{ $concept->id }}">{{ $concept->title }}</option>
                                             @endforeach
-                                        </optgroup>
-                                    @endforeach
-                                </select>
-                            </div>
+                                        </select>
 
-                            <div class="grid grid-cols-1 gap-4">
-                                <select wire:model.defer="nodeConceptId" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm">
-                                    <option value="">Link core concept...</option>
-                                    @foreach($concepts as $concept)
-                                        <option value="{{ $concept->id }}">{{ $concept->title }}</option>
-                                    @endforeach
-                                </select>
+                                        <select wire:model.defer="nodeAnthropologistId" class="w-full bg-white border border-outline-variant/10 rounded-xl p-3 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                            <option value="">Link anthropologist...</option>
+                                            @foreach($anthropologists as $anthropologist)
+                                                <option value="{{ $anthropologist->id }}">{{ $anthropologist->full_name }}</option>
+                                            @endforeach
+                                        </select>
 
-                                <select wire:model.defer="nodeAnthropologistId" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm">
-                                    <option value="">Link anthropologist...</option>
-                                    @foreach($anthropologists as $anthropologist)
-                                        <option value="{{ $anthropologist->id }}">{{ $anthropologist->full_name }}</option>
-                                    @endforeach
-                                </select>
+                                        <select wire:model.defer="nodeTheoryId" class="w-full bg-white border border-outline-variant/10 rounded-xl p-3 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                            <option value="">Link theory...</option>
+                                            @foreach($theories as $theory)
+                                                <option value="{{ $theory->id }}">{{ $theory->title }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
 
-                                <select wire:model.defer="nodeTheoryId" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm">
-                                    <option value="">Link theory...</option>
-                                    @foreach($theories as $theory)
-                                        <option value="{{ $theory->id }}">{{ $theory->title }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
+                                    <h3 class="text-[9px] font-bold uppercase tracking-widest text-orange-700 flex items-center gap-2">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-orange-700"></span>
+                                        Study Materials & Attachments
+                                    </h3>
+                                    
+                                    <div class="space-y-4 bg-white border border-outline-variant/10 p-5 rounded-2xl">
+                                        <div class="grid grid-cols-2 gap-4">
+                                            <div class="space-y-1">
+                                                <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Material Type</label>
+                                                <select wire:model.live="nodeLmsMaterialType" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                                    <option value="video">LMS Video/Lesson</option>
+                                                    <option value="module">LMS Module</option>
+                                                    <option value="module_resource">Module Resource</option>
+                                                    <option value="library_resource">Library Resource</option>
+                                                </select>
+                                            </div>
 
-                            <div class="grid grid-cols-2 gap-4">
-                                <label class="flex items-center justify-between p-4 bg-stone-50 rounded-2xl cursor-pointer">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-stone-700">UPSC Relevant</span>
-                                    <input type="checkbox" wire:model.defer="nodeIsUpsc" class="rounded text-primary">
-                                </label>
+                                            @if(in_array($nodeLmsMaterialType, ['video', 'module', 'module_resource']))
+                                                <div class="space-y-1">
+                                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">LMS Module</label>
+                                                    <select wire:model.live="nodeLmsModuleId" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                                        <option value="">Select Module...</option>
+                                                        @foreach($lmsModules as $module)
+                                                            <option value="{{ $module->id }}">{{ $module->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @endif
+                                        </div>
 
-                                <label class="flex items-center justify-between p-4 bg-stone-50 rounded-2xl cursor-pointer">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-stone-700">Members Only</span>
-                                    <input type="checkbox" wire:model.defer="nodeIsMembersOnly" class="rounded text-primary">
-                                </label>
+                                        <div class="grid grid-cols-1 gap-4">
+                                            @if($nodeLmsMaterialType === 'video')
+                                                <div class="space-y-1">
+                                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Select Lesson/Video</label>
+                                                    <select wire:model="nodeLmsLessonId" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                                        <option value="">Select Lesson...</option>
+                                                        @foreach($this->lmsLessons as $lesson)
+                                                            <option value="{{ $lesson->id }}">{{ $lesson->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @elseif($nodeLmsMaterialType === 'module_resource')
+                                                <div class="space-y-1">
+                                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Select Module Resource</label>
+                                                    <select wire:model="nodeLmsResourceId" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                                        <option value="">Select Resource...</option>
+                                                        @foreach($this->lmsResources as $res)
+                                                            <option value="{{ $res->id }}">{{ $res->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @elseif($nodeLmsMaterialType === 'library_resource')
+                                                <div class="space-y-1">
+                                                    <label class="text-[8px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Select Library Resource</label>
+                                                    <select wire:model="nodeLibraryResourceId" class="w-full bg-stone-50 border border-stone-200 rounded-xl p-2.5 text-[10px] font-bold uppercase tracking-widest focus:ring-1 focus:ring-primary cursor-pointer">
+                                                        <option value="">Select Resource...</option>
+                                                        @foreach($libraryResources as $res)
+                                                            <option value="{{ $res->id }}">{{ $res->title }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+                                            @endif
+                                        </div>
+
+                                        <button type="button" wire:click="addAttachment" class="w-full py-2.5 bg-stone-900 text-white rounded-xl text-[9px] font-bold uppercase tracking-widest shadow-md hover:bg-stone-800 transition-all flex items-center justify-center gap-2">
+                                            <span class="material-symbols-outlined text-sm">attach_file</span>
+                                            Attach Material
+                                        </button>
+                                    </div>
+
+                                    @if(count($selectedAttachments))
+                                        <div class="space-y-2 max-h-[200px] overflow-y-auto pr-2">
+                                            @foreach($selectedAttachments as $index => $att)
+                                                <div class="flex items-center justify-between p-3 bg-white border border-stone-100 rounded-xl group hover:border-primary/20 transition-all">
+                                                    <div class="flex items-center gap-3">
+                                                        <div class="size-7 rounded-lg bg-stone-50 flex items-center justify-center text-stone-400">
+                                                            <span class="material-symbols-outlined text-sm">
+                                                                @if($att['type'] === 'video') play_circle
+                                                                @elseif($att['type'] === 'module') category
+                                                                @elseif($att['type'] === 'module_resource') description
+                                                                @else auto_stories
+                                                                @endif
+                                                            </span>
+                                                        </div>
+                                                        <div>
+                                                            <p class="text-[10px] font-bold text-stone-900 line-clamp-1">{{ $att['title'] }}</p>
+                                                            <p class="text-[8px] text-stone-400 uppercase font-bold tracking-widest">{{ str_replace('_', ' ', $att['type']) }}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button type="button" wire:click="removeAttachment({{ $index }})" class="size-7 rounded-lg hover:bg-red-50 text-stone-300 hover:text-red-500 transition-all flex items-center justify-center">
+                                                        <span class="material-symbols-outlined text-sm">close</span>
+                                                    </button>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="space-y-4 pt-6 border-t border-outline-variant/10">
+                                    <div class="flex flex-wrap gap-6">
+                                        <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                            <div class="relative inline-flex items-center">
+                                                <input wire:model.defer="nodeIsUpsc" type="checkbox" class="sr-only peer">
+                                                <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                            </div>
+                                            <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">UPSC Relevant</span>
+                                        </label>
+
+                                        <label class="flex items-center gap-3 cursor-pointer group w-fit">
+                                            <div class="relative inline-flex items-center">
+                                                <input wire:model.defer="nodeIsMembersOnly" type="checkbox" class="sr-only peer">
+                                                <div class="w-10 h-5 bg-stone-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+                                            </div>
+                                            <span class="text-[8px] font-bold text-on-surface uppercase tracking-widest">Members Only</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="p-8 bg-stone-50/50 border-t border-stone-100 flex justify-end gap-4">
-                    <button type="button" wire:click="closeNodeModal" class="px-8 py-3 bg-white text-stone-600 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-stone-200 hover:bg-stone-50 transition-all">
-                        Cancel
-                    </button>
-                    <button type="button" wire:click="saveNode" class="px-10 py-3 bg-primary text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-primary/20 hover:-translate-y-0.5 transition-all">
-                        {{ $editingNodeId ? 'Update Node' : 'Create Node' }}
-                    </button>
+                <!-- Modal Footer -->
+                <div class="px-8 py-5 bg-white border-t border-outline-variant/10 flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-2.5 opacity-50">
+                        <span class="material-symbols-outlined text-base">lock</span>
+                        <span class="text-[8px] font-bold uppercase tracking-widest">Knowledge Entry Secure</span>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="button" wire:click="closeNodeModal" class="px-6 py-3 rounded-xl text-[9px] font-bold uppercase tracking-widest text-on-surface-variant hover:bg-stone-100 transition-all">Cancel</button>
+                        <button type="button" wire:click="saveNode" wire:loading.attr="disabled" class="bg-primary text-on-primary px-10 py-3 rounded-xl font-bold text-[9px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:-translate-y-0.5 active:translate-y-0 transition-all">
+                            <span wire:loading.remove wire:target="saveNode">{{ $editingNodeId ? 'Update Node' : 'Catalog Node' }}</span>
+                            <span wire:loading wire:target="saveNode">Processing...</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

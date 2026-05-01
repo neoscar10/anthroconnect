@@ -508,6 +508,8 @@ class KnowledgeMapBuilder extends Component
         $this->nodeFullDescription = '';
         $this->nodeIsUpsc = false;
         $this->nodeIsMembersOnly = false;
+        $this->nodeType = 'concept';
+        $this->nodeImportance = 'secondary';
         $this->nodeTags = [];
         $this->nodeConceptId = null;
         $this->nodeAnthropologistId = null;
