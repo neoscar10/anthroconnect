@@ -74,10 +74,11 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
     // Protected Admin Routes
     Route::middleware(['auth', 'role:Super Admin|Admin'])->group(function () {
-        Route::get('/dashboard', function () {
-            return view('admin.dashboard');
-        })->name('dashboard');
+        Route::get('/dashboard', \App\Livewire\Admin\Dashboard\DashboardOverview::class)->name('dashboard');
         
+        // User Management
+        Route::get('/users', \App\Livewire\Admin\Users\UserIndex::class)->name('users.index');
+
         // Onboarding Management
         Route::prefix('onboarding')->name('onboarding.')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\OnboardingController::class, 'index'])->name('index');

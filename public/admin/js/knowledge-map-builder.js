@@ -7,18 +7,15 @@ document.addEventListener('alpine:init', () => {
         canvasHeight: config.canvasHeight || 3000,
         offsetX: 0,
         offsetY: 0,
-        
-        // Panel States
+
         leftPanelOpen: true,
         rightPanelOpen: false,
         focusMode: false,
-        
-        // Interaction State
+
         isPanning: false,
         isDraggingNode: false,
         draggedNode: null,
-        
-        // Connection Mode State
+
         isConnectionMode: false,
         isDrawingConnection: false,
         drawingFromNodeId: null,
@@ -31,146 +28,216 @@ document.addEventListener('alpine:init', () => {
         selectedConnectionId: null,
         lastMouseX: 0,
         lastMouseY: 0,
-        
-        init() {
-            console.log('Knowledge Map Builder initialized');
-            console.log('Nodes:', this.nodes.length);
-            console.log('Connections:', this.connections.length);
+        justSelectedConnection: false,
 
+        init() {
             this.$nextTick(() => {
                 this.fitView();
+                this.renderPermanentConnections();
             });
-            
-            // Listen for Livewire events
+
             window.addEventListener('km-node-added', (e) => {
-                this.nodes.push(e.detail.node);
-                this.selectNode(e.detail.node.id);
+                const node = e.detail?.node || e.detail?.[0]?.node;
+
+                if (!node) return;
+
+                this.nodes.push({
+                    ...node,
+                    position_x: parseFloat(node.position_x),
+                    position_y: parseFloat(node.position_y),
+                });
+
+                this.selectNode(node.id, true);
             });
 
             window.addEventListener('km-refresh', (e) => {
-                const data = e.detail[0] || e.detail;
-                if (!data || !data.nodes) return;
+                const data = e.detail?.[0] || e.detail;
 
-                this.nodes = data.nodes.map(n => ({
-                    ...n,
-                    position_x: parseFloat(n.position_x),
-                    position_y: parseFloat(n.position_y)
+                if (!data || !Array.isArray(data.nodes)) return;
+
+                this.nodes = data.nodes.map((node) => ({
+                    ...node,
+                    position_x: parseFloat(node.position_x),
+                    position_y: parseFloat(node.position_y),
                 }));
-                this.connections = data.connections;
+
+                this.connections = (data.connections || []).map((connection) => ({ ...connection }));
+
                 this.isDrawingConnection = false;
                 this.drawingFromNodeId = null;
-                this.$nextTick(() => {
-                    this.renderPermanentConnections();
-                });
+
+                this.$nextTick(() => this.renderPermanentConnections());
             });
-            
-            // Focus mode toggle listener
+
             window.addEventListener('km-toggle-focus', () => this.toggleFocus());
-            
-            // Add global spacebar tracking
+
             window.addEventListener('keydown', (e) => {
-                if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                const activeTag = document.activeElement?.tagName;
+
+                if (
+                    e.code === 'Space'
+                    && activeTag !== 'INPUT'
+                    && activeTag !== 'TEXTAREA'
+                    && activeTag !== 'SELECT'
+                ) {
                     e.preventDefault();
-                    this.$refs.shell.style.cursor = 'grab';
+
+                    if (this.$refs.shell) {
+                        this.$refs.shell.style.cursor = 'grab';
+                    }
                 }
+
                 if (e.code === 'Escape') {
+                    if (this.isDrawingConnection) {
+                        this.cancelDrawingConnection();
+                        return;
+                    }
+
                     if (this.isConnectionMode) {
-                        if (this.isDrawingConnection) {
-                            this.isDrawingConnection = false;
-                            this.drawingFromNodeId = null;
-                        } else {
-                            this.isConnectionMode = false;
-                        }
+                        this.isConnectionMode = false;
+                        return;
+                    }
+
+                    if (this.rightPanelOpen) {
+                        this.closeInspector();
                     }
                 }
             });
+
             window.addEventListener('keyup', (e) => {
-                if (e.code === 'Space') {
+                if (e.code === 'Space' && this.$refs.shell) {
                     this.$refs.shell.style.cursor = this.isConnectionMode ? 'crosshair' : 'default';
                 }
             });
 
-            this.$nextTick(() => {
-                this.renderPermanentConnections();
-            });
-
             window.addEventListener('resize', () => {
-                this.renderPermanentConnections();
+                window.requestAnimationFrame(() => this.renderPermanentConnections());
             });
         },
 
         centerCanvas() {
             const shell = this.$refs.shell;
+
             if (!shell) return;
-            // Center based on dynamic canvas size
+
             this.offsetX = (shell.offsetWidth / 2) - ((this.canvasWidth / 2) * this.zoom);
             this.offsetY = (shell.offsetHeight / 2) - ((this.canvasHeight / 2) * this.zoom);
         },
 
-        // Panning and Zooming
-        zoomIn() { 
+        zoomIn() {
             const oldZoom = this.zoom;
             this.zoom = Math.min(this.zoom + 0.1, 2.5);
             this.adjustOffsetForZoom(oldZoom);
+            this.$nextTick(() => this.renderPermanentConnections());
         },
-        zoomOut() { 
+
+        zoomOut() {
             const oldZoom = this.zoom;
             this.zoom = Math.max(this.zoom - 0.1, 0.3);
             this.adjustOffsetForZoom(oldZoom);
+            this.$nextTick(() => this.renderPermanentConnections());
         },
-        resetZoom() { 
-            this.zoom = 1; 
-            this.centerCanvas(); 
+
+        resetZoom() {
+            this.zoom = 1;
+            this.centerCanvas();
+            this.$nextTick(() => this.renderPermanentConnections());
         },
+
         fitView() {
-            if (this.nodes.length === 0) {
+            if (!this.nodes.length) {
                 this.resetZoom();
                 return;
             }
-            
-            let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-            this.nodes.forEach(n => {
-                minX = Math.min(minX, n.position_x);
-                minY = Math.min(minY, n.position_y);
-                maxX = Math.max(maxX, n.position_x + 180);
-                maxY = Math.max(maxY, n.position_y + 80);
+
+            let minX = Infinity;
+            let minY = Infinity;
+            let maxX = -Infinity;
+            let maxY = -Infinity;
+
+            this.nodes.forEach((node) => {
+                const x = parseFloat(node.position_x) || 0;
+                const y = parseFloat(node.position_y) || 0;
+
+                minX = Math.min(minX, x);
+                minY = Math.min(minY, y);
+                maxX = Math.max(maxX, x + 180);
+                maxY = Math.max(maxY, y + 90);
             });
-            
-            const padding = 100;
+
+            const shell = this.$refs.shell;
+
+            if (!shell) return;
+
+            const padding = 140;
             const width = (maxX - minX) + (padding * 2);
             const height = (maxY - minY) + (padding * 2);
-            const shell = this.$refs.shell;
-            
-            this.zoom = Math.min(shell.offsetWidth / width, shell.offsetHeight / height, 1);
-            this.offsetX = (shell.offsetWidth / 2) - ((minX + (maxX - minX) / 2) * this.zoom);
-            this.offsetY = (shell.offsetHeight / 2) - ((minY + (maxY - minY) / 2) * this.zoom);
-        },
-        
-        adjustOffsetForZoom(oldZoom) {
-            const shell = this.$refs.shell;
-            const centerX = shell.offsetWidth / 2;
-            const centerY = shell.offsetHeight / 2;
-            
-            this.offsetX = centerX - (centerX - this.offsetX) * (this.zoom / oldZoom);
-            this.offsetY = centerY - (centerY - this.offsetY) * (this.zoom / oldZoom);
+
+            this.zoom = Math.max(
+                0.3,
+                Math.min(shell.offsetWidth / width, shell.offsetHeight / height, 1)
+            );
+
+            this.offsetX = (shell.offsetWidth / 2) - ((minX + ((maxX - minX) / 2)) * this.zoom);
+            this.offsetY = (shell.offsetHeight / 2) - ((minY + ((maxY - minY) / 2)) * this.zoom);
+
+            this.$nextTick(() => this.renderPermanentConnections());
         },
 
-        // Canvas Interactions
+        adjustOffsetForZoom(oldZoom) {
+            const shell = this.$refs.shell;
+
+            if (!shell || oldZoom <= 0) return;
+
+            const centerX = shell.offsetWidth / 2;
+            const centerY = shell.offsetHeight / 2;
+
+            this.offsetX = centerX - ((centerX - this.offsetX) * (this.zoom / oldZoom));
+            this.offsetY = centerY - ((centerY - this.offsetY) * (this.zoom / oldZoom));
+        },
+
         getCanvasCoords(clientX, clientY) {
             const canvasRect = this.$refs.canvas.getBoundingClientRect();
-            const x = (clientX - canvasRect.left) / this.zoom;
-            const y = (clientY - canvasRect.top) / this.zoom;
-            return { x, y };
+
+            return {
+                x: (clientX - canvasRect.left) / this.zoom,
+                y: (clientY - canvasRect.top) / this.zoom,
+            };
+        },
+
+        handleCanvasPointerDown(e) {
+            if (
+                e.button !== 0
+                || e.target.closest('.km-node')
+                || e.target.closest('.km-connection-group')
+                || e.target.closest('.km-quick-actions')
+                || e.target.closest('.km-floating-toolbar')
+                || e.target.closest('.km-canvas-controls')
+            ) {
+                return;
+            }
+
+            this.startPan(e);
         },
 
         handleCanvasClick(e) {
-            if (this.isConnectionMode) {
-                // Clicking empty canvas in connection mode resets the drawing
-                this.isDrawingConnection = false;
-                this.drawingFromNodeId = null;
-            } else {
-                this.deselect();
+            if (
+                this.justSelectedConnection
+                || e.target.closest('.km-connection-group')
+                || e.target.closest('.km-quick-actions')
+                || e.target.closest('.km-node')
+                || e.target.closest('.km-floating-toolbar')
+                || e.target.closest('.km-canvas-controls')
+            ) {
+                return;
             }
+
+            if (this.isConnectionMode) {
+                this.cancelDrawingConnection();
+                return;
+            }
+
+            this.deselect();
         },
 
         handleSidebarDragStart(e, nodeId) {
@@ -185,29 +252,44 @@ document.addEventListener('alpine:init', () => {
 
         handleCanvasDrop(e) {
             e.preventDefault();
+
             const nodeId = e.dataTransfer.getData('text/plain');
-            if (nodeId) {
-                const coords = this.getCanvasCoords(e.clientX, e.clientY);
-                const node = this.nodes.find(n => n.id == nodeId);
-                if (node) {
-                    node.position_x = coords.x - 90; // Approx half width of compact node
-                    node.position_y = coords.y - 30; // Approx half height
-                    
-                    this.$wire.updateNodePosition(node.id, node.position_x, node.position_y);
-                    this.selectNode(node.id, false);
-                }
-            }
+
+            if (!nodeId) return;
+
+            const coords = this.getCanvasCoords(e.clientX, e.clientY);
+            const node = this.nodes.find((item) => Number(item.id) === Number(nodeId));
+
+            if (!node) return;
+
+            node.position_x = coords.x - 90;
+            node.position_y = coords.y - 30;
+
+            this.$wire.updateNodePosition(node.id, node.position_x, node.position_y);
+            this.selectNode(node.id, true);
+            this.$nextTick(() => this.renderPermanentConnections());
         },
 
         toggleConnectionMode() {
             this.isConnectionMode = !this.isConnectionMode;
+            this.cancelDrawingConnection(false);
+        },
+
+        cancelDrawingConnection(resetMode = true) {
             this.isDrawingConnection = false;
             this.drawingFromNodeId = null;
+            this.drawStartX = 0;
+            this.drawStartY = 0;
+            this.drawCurrentX = 0;
+            this.drawCurrentY = 0;
+
+            if (resetMode === true && this.isConnectionMode) {
+                // Keep connection mode enabled; only cancel active temporary line.
+                return;
+            }
         },
 
         startPan(e) {
-            if (e.target.closest('.km-node')) return;
-            
             this.isPanning = true;
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
@@ -219,148 +301,169 @@ document.addEventListener('alpine:init', () => {
                 this.offsetY += e.clientY - this.lastMouseY;
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
-            } else if (this.isDraggingNode && this.draggedNode && !this.isConnectionMode) {
-                this.draggedNode.position_x = parseFloat(this.draggedNode.position_x) + (e.clientX - this.lastMouseX) / this.zoom;
-                this.draggedNode.position_y = parseFloat(this.draggedNode.position_y) + (e.clientY - this.lastMouseY) / this.zoom;
+                return;
+            }
+
+            if (this.isDraggingNode && this.draggedNode && !this.isConnectionMode) {
+                this.draggedNode.position_x = parseFloat(this.draggedNode.position_x) + ((e.clientX - this.lastMouseX) / this.zoom);
+                this.draggedNode.position_y = parseFloat(this.draggedNode.position_y) + ((e.clientY - this.lastMouseY) / this.zoom);
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
-            } else if (this.isDrawingConnection) {
+                this.renderPermanentConnections();
+                return;
+            }
+
+            if (this.isDrawingConnection) {
                 const coords = this.getCanvasCoords(e.clientX, e.clientY);
                 this.drawCurrentX = coords.x;
                 this.drawCurrentY = coords.y;
             }
         },
 
-        endMove(e) {
+        endMove() {
             if (this.isDraggingNode && this.draggedNode) {
                 this.$wire.updateNodePosition(
-                    this.draggedNode.id, 
-                    this.draggedNode.position_x, 
+                    this.draggedNode.id,
+                    this.draggedNode.position_x,
                     this.draggedNode.position_y
                 );
-                this.$nextTick(() => {
-                    this.renderPermanentConnections();
-                });
+
+                this.$nextTick(() => this.renderPermanentConnections());
             }
+
             this.isPanning = false;
             this.isDraggingNode = false;
             this.draggedNode = null;
         },
 
         startDragNode(e, node) {
+            e.preventDefault();
+            e.stopPropagation();
+
             if (this.isConnectionMode) {
-                e.stopPropagation();
                 if (!this.isDrawingConnection) {
-                    // Start drawing connection on mousedown
                     this.isDrawingConnection = true;
                     this.drawingFromNodeId = node.id;
-                    
-                    const elRect = e.currentTarget.getBoundingClientRect();
-                    const centerClientX = elRect.left + (elRect.width / 2);
-                    const centerClientY = elRect.top + (elRect.height / 2);
-                    
-                    const coords = this.getCanvasCoords(centerClientX, centerClientY);
-                    this.drawStartX = coords.x;
-                    this.drawStartY = coords.y;
-                    
-                    const mouseCoords = this.getCanvasCoords(e.clientX, e.clientY);
-                    this.drawCurrentX = mouseCoords.x;
-                    this.drawCurrentY = mouseCoords.y;
+
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const centerClientX = rect.left + (rect.width / 2);
+                    const centerClientY = rect.top + (rect.height / 2);
+                    const startCoords = this.getCanvasCoords(centerClientX, centerClientY);
+                    const currentCoords = this.getCanvasCoords(e.clientX, e.clientY);
+
+                    this.drawStartX = startCoords.x;
+                    this.drawStartY = startCoords.y;
+                    this.drawCurrentX = currentCoords.x;
+                    this.drawCurrentY = currentCoords.y;
                 }
+
                 return;
             }
-            e.stopPropagation();
+
             this.isDraggingNode = true;
             this.draggedNode = node;
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
-            this.selectNode(node.id);
+
+            this.selectNode(node.id, true);
         },
 
         async finishConnection(targetNodeId) {
             if (!this.drawingFromNodeId) return;
 
-            if (this.drawingFromNodeId === targetNodeId) {
-                this.isDrawingConnection = false;
-                this.drawingFromNodeId = null;
+            if (Number(this.drawingFromNodeId) === Number(targetNodeId)) {
+                this.cancelDrawingConnection();
                 return;
             }
 
             const sourceId = this.drawingFromNodeId;
 
-            // 1. Remove only temporary preview line
-            this.isDrawingConnection = false;
-            this.drawingFromNodeId = null;
+            this.cancelDrawingConnection();
 
-            // 3. Persist connection through Livewire
-            console.log('Attempting to save connection:', { sourceId, targetNodeId });
             try {
                 const savedConnection = await this.$wire.createVisualConnection(sourceId, targetNodeId);
-                console.log('Connection saved successfully:', savedConnection);
 
-                // 4. Push saved connection into frontend state (ensure no dupes)
-                if (savedConnection && !this.connections.find(c => c.id === savedConnection.id)) {
+                if (savedConnection && !this.connections.find((item) => Number(item.id) === Number(savedConnection.id))) {
                     this.connections.push(savedConnection);
                 }
-            } catch (err) {
-                console.error('Failed to save connection:', err);
+
+                if (savedConnection?.id) {
+                    this.selectConnection(savedConnection.id, true);
+                }
+            } catch (error) {
+                console.error('Failed to save knowledge map connection:', error);
             }
 
-            // 5. Re-render all permanent connections
-            this.$nextTick(() => {
-                this.renderPermanentConnections();
-            });
+            this.$nextTick(() => this.renderPermanentConnections());
         },
 
         handleNodeMouseUp(e, node) {
             if (this.isConnectionMode && this.isDrawingConnection) {
+                e.preventDefault();
                 e.stopPropagation();
                 this.finishConnection(node.id);
             }
         },
 
-        // Node Click Router
         handleNodeClick(e, node) {
+            e.stopPropagation();
+
             if (this.isConnectionMode) {
-                // Clicking a node either starts a drag connection (handled by mousedown)
-                // or completes it if it was a distinct click (handled here if we adjust)
                 if (this.isDrawingConnection) {
                     this.finishConnection(node.id);
                 }
-            } else {
-                this.selectNode(node.id, false);
+
+                return;
             }
+
+            this.selectNode(node.id, true);
         },
+
         handleNodeDblClick(e, node) {
+            e.stopPropagation();
+
             if (this.isDraggingNode) {
                 this.endMove(e);
             }
+
+            this.selectNode(node.id, true);
         },
 
-        // Selection & Inspector Logic
-        selectNode(id, openPanel = false) {
-            this.selectedNodeId = id;
+        selectNode(id, openPanel = true) {
+            this.selectedNodeId = Number(id);
             this.selectedConnectionId = null;
+
             if (openPanel) {
-                this.rightPanelOpen = true; 
+                this.rightPanelOpen = true;
             }
-            this.$wire.selectNode(id);
+
+            Promise.resolve(this.$wire.selectNode(id))
+                .catch((error) => console.error('Failed to select node:', error))
+                .finally(() => this.$nextTick(() => this.renderPermanentConnections()));
         },
 
-        selectConnection(id, openPanel = false) {
-            this.selectedConnectionId = id;
+        selectConnection(id, openPanel = true) {
+            this.selectedConnectionId = Number(id);
             this.selectedNodeId = null;
+
             if (openPanel) {
-                this.rightPanelOpen = true; 
+                this.rightPanelOpen = true;
             }
-            this.$wire.selectConnection(id);
+
+            Promise.resolve(this.$wire.selectConnection(id))
+                .catch((error) => console.error('Failed to select connection:', error))
+                .finally(() => this.$nextTick(() => this.renderPermanentConnections()));
         },
-        
+
         closeInspector() {
             this.rightPanelOpen = false;
             this.selectedNodeId = null;
             this.selectedConnectionId = null;
-            this.$wire.deselect();
+
+            Promise.resolve(this.$wire.deselect())
+                .catch((error) => console.error('Failed to deselect:', error));
+
+            this.$nextTick(() => this.renderPermanentConnections());
         },
 
         deselect() {
@@ -369,12 +472,15 @@ document.addEventListener('alpine:init', () => {
 
         toggleFocus() {
             this.focusMode = !this.focusMode;
+
             if (this.focusMode) {
                 this.leftPanelOpen = false;
                 this.rightPanelOpen = false;
             } else {
                 this.leftPanelOpen = true;
             }
+
+            this.$nextTick(() => this.renderPermanentConnections());
         },
 
         renderPermanentConnections() {
@@ -385,101 +491,183 @@ document.addEventListener('alpine:init', () => {
             layer.innerHTML = '';
 
             this.connections.forEach((connection) => {
-                const fromNode = this.nodes.find(n => Number(n.id) === Number(connection.from_node_id));
-                const toNode = this.nodes.find(n => Number(n.id) === Number(connection.to_node_id));
+                const fromNode = this.nodes.find((node) => Number(node.id) === Number(connection.from_node_id));
+                const toNode = this.nodes.find((node) => Number(node.id) === Number(connection.to_node_id));
 
                 if (!fromNode || !toNode) return;
 
                 const fromPoint = this.getAnchorPoint(fromNode, toNode);
                 const toPoint = this.getAnchorPoint(toNode, fromNode);
-
-                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-
                 const d = this.createConnectionPath(fromPoint, toPoint);
+                const isSelected = Number(this.selectedConnectionId) === Number(connection.id);
 
-                path.setAttribute('d', d);
-                path.setAttribute('fill', 'none');
-                path.setAttribute('stroke', connection.color || '#6f6a5f');
-                path.setAttribute('stroke-width', '2');
-                path.setAttribute('marker-end', 'url(#km-arrow)');
-                path.setAttribute('data-connection-id', connection.id);
-                path.classList.add('km-permanent-connection');
+                const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                group.classList.add('km-connection-group');
+                group.setAttribute('data-connection-id', connection.id);
+                group.setAttribute('tabindex', '0');
+                group.style.cursor = 'pointer';
+
+                const visiblePath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                visiblePath.setAttribute('d', d);
+                visiblePath.setAttribute('fill', 'none');
+                visiblePath.setAttribute('stroke', isSelected ? '#3b82f6' : (connection.color || '#6f6a5f'));
+                visiblePath.setAttribute('stroke-width', isSelected ? '3.5' : '2.25');
+                visiblePath.setAttribute('stroke-linecap', 'round');
+                visiblePath.setAttribute('stroke-linejoin', 'round');
+                visiblePath.setAttribute('marker-end', isSelected ? 'url(#km-arrow-selected)' : 'url(#km-arrow)');
+                visiblePath.classList.add('km-permanent-connection');
+
+                if (isSelected) {
+                    visiblePath.classList.add('is-selected');
+                    visiblePath.setAttribute('filter', 'drop-shadow(0 0 5px rgba(59, 130, 246, 0.45))');
+                }
 
                 if (connection.line_style === 'dashed') {
-                    path.setAttribute('stroke-dasharray', '7 6');
+                    visiblePath.setAttribute('stroke-dasharray', '8 7');
                 }
 
                 if (connection.line_style === 'dotted') {
-                    path.setAttribute('stroke-dasharray', '2 6');
+                    visiblePath.setAttribute('stroke-dasharray', '2 7');
                 }
 
-                path.addEventListener('click', (event) => {
+                const hitPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                hitPath.setAttribute('d', d);
+                hitPath.setAttribute('fill', 'none');
+                hitPath.setAttribute('stroke', 'rgba(0,0,0,0.001)');
+                hitPath.setAttribute('stroke-width', '32');
+                hitPath.setAttribute('stroke-linecap', 'round');
+                hitPath.setAttribute('stroke-linejoin', 'round');
+                hitPath.setAttribute('pointer-events', 'stroke');
+                hitPath.classList.add('km-connection-hit-path');
+
+                group.appendChild(visiblePath);
+                group.appendChild(hitPath);
+
+                const selectThisConnection = (event) => {
+                    event.preventDefault();
                     event.stopPropagation();
-                    this.selectConnection(connection.id, false);
+
+                    this.isPanning = false;
+                    this.isDraggingNode = false;
+                    this.draggedNode = null;
+                    this.justSelectedConnection = true;
+
+                    this.selectConnection(connection.id, true);
+
+                    window.setTimeout(() => {
+                        this.justSelectedConnection = false;
+                    }, 80);
+                };
+
+                group.addEventListener('pointerdown', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    this.isPanning = false;
                 });
 
-                layer.appendChild(path);
+                group.addEventListener('click', selectThisConnection);
+
+                group.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        selectThisConnection(event);
+                    }
+                });
+
+                layer.appendChild(group);
             });
         },
 
         createConnectionPath(from, to) {
             const dx = to.x - from.x;
-            const curve = Math.max(80, Math.abs(dx) * 0.35);
+            const dy = to.y - from.y;
+            const distance = Math.sqrt((dx * dx) + (dy * dy));
+            const curve = Math.max(70, Math.min(220, distance * 0.35));
 
-            return `M ${from.x} ${from.y} C ${from.x + curve} ${from.y}, ${to.x - curve} ${to.y}, ${to.x} ${to.y}`;
+            if (Math.abs(dx) >= Math.abs(dy)) {
+                const direction = dx >= 0 ? 1 : -1;
+
+                return `M ${from.x} ${from.y} C ${from.x + (curve * direction)} ${from.y}, ${to.x - (curve * direction)} ${to.y}, ${to.x} ${to.y}`;
+            }
+
+            const direction = dy >= 0 ? 1 : -1;
+
+            return `M ${from.x} ${from.y} C ${from.x} ${from.y + (curve * direction)}, ${to.x} ${to.y - (curve * direction)}, ${to.x} ${to.y}`;
         },
 
         getAnchorPoint(node, targetNode) {
             const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
             const targetEl = document.querySelector(`[data-node-id="${targetNode.id}"]`);
 
-            const nodeWidth = nodeEl ? nodeEl.offsetWidth : 150;
-            const nodeHeight = nodeEl ? nodeEl.offsetHeight : 56;
+            const nodeWidth = nodeEl ? nodeEl.offsetWidth : 160;
+            const nodeHeight = nodeEl ? nodeEl.offsetHeight : 64;
+            const targetWidth = targetEl ? targetEl.offsetWidth : 160;
+            const targetHeight = targetEl ? targetEl.offsetHeight : 64;
 
-            const targetWidth = targetEl ? targetEl.offsetWidth : 150;
-            const targetHeight = targetEl ? targetEl.offsetHeight : 56;
+            const nodeX = Number(node.position_x);
+            const nodeY = Number(node.position_y);
+            const targetX = Number(targetNode.position_x);
+            const targetY = Number(targetNode.position_y);
 
-            const nodeCenterX = Number(node.position_x) + nodeWidth / 2;
-            const nodeCenterY = Number(node.position_y) + nodeHeight / 2;
-
-            const targetCenterX = Number(targetNode.position_x) + targetWidth / 2;
-            const targetCenterY = Number(targetNode.position_y) + targetHeight / 2;
+            const nodeCenterX = nodeX + (nodeWidth / 2);
+            const nodeCenterY = nodeY + (nodeHeight / 2);
+            const targetCenterX = targetX + (targetWidth / 2);
+            const targetCenterY = targetY + (targetHeight / 2);
 
             const dx = targetCenterX - nodeCenterX;
             const dy = targetCenterY - nodeCenterY;
 
             if (Math.abs(dx) > Math.abs(dy)) {
                 return {
-                    x: dx > 0 ? Number(node.position_x) + nodeWidth : Number(node.position_x),
+                    x: dx > 0 ? nodeX + nodeWidth : nodeX,
                     y: nodeCenterY,
                 };
             }
 
             return {
                 x: nodeCenterX,
-                y: dy > 0 ? Number(node.position_y) + nodeHeight : Number(node.position_y),
+                y: dy > 0 ? nodeY + nodeHeight : nodeY,
             };
         },
 
         getDrawingConnectionPath() {
             if (!this.isDrawingConnection) return '';
-            
-            const from = this.nodes.find(n => Number(n.id) === Number(this.drawingFromNodeId));
-            if (!from) return '';
 
-            // Start from center for active drawing preview
-            const nodeEl = document.querySelector(`[data-node-id="${from.id}"]`);
-            const fromW = nodeEl ? nodeEl.offsetWidth : 150; 
-            const fromH = nodeEl ? nodeEl.offsetHeight : 56;
-            
-            const x1 = parseFloat(from.position_x) + fromW/2;
-            const y1 = parseFloat(from.position_y) + fromH/2;
-            
-            const x2 = this.drawCurrentX;
-            const y2 = this.drawCurrentY;
-            
-            const dx = Math.abs(x2 - x1) * 0.5;
-            return `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`;
-        }
+            const fromNode = this.nodes.find((node) => Number(node.id) === Number(this.drawingFromNodeId));
+
+            if (!fromNode) return '';
+
+            const from = {
+                x: this.drawStartX,
+                y: this.drawStartY,
+            };
+
+            const to = {
+                x: this.drawCurrentX,
+                y: this.drawCurrentY,
+            };
+
+            return this.createConnectionPath(from, to);
+        },
+
+        getSelectedConnectionMidpoint() {
+            if (!this.selectedConnectionId) return null;
+
+            const connection = this.connections.find((item) => Number(item.id) === Number(this.selectedConnectionId));
+
+            if (!connection) return null;
+
+            const fromNode = this.nodes.find((node) => Number(node.id) === Number(connection.from_node_id));
+            const toNode = this.nodes.find((node) => Number(node.id) === Number(connection.to_node_id));
+
+            if (!fromNode || !toNode) return null;
+
+            const fromPoint = this.getAnchorPoint(fromNode, toNode);
+            const toPoint = this.getAnchorPoint(toNode, fromNode);
+
+            return {
+                x: (fromPoint.x + toPoint.x) / 2,
+                y: (fromPoint.y + toPoint.y) / 2,
+            };
+        },
     }));
 });

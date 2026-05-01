@@ -321,7 +321,7 @@
                     </section>
 
                     <!-- Model Answer (Always Visible for Past) -->
-                    <section class="bg-stone-900 text-white rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+                    <section class="bg-white text-stone-900 border border-stone-200 rounded-[2.5rem] p-10 shadow-sm relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-orange-800/10 blur-[100px] -mr-32 -mt-32"></div>
                         <div class="relative z-10">
                             <div class="flex items-center justify-between mb-8">
@@ -335,7 +335,7 @@
                                     </div>
                                 </div>
                                 <button @click="downloadPDF()" 
-                                    class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-white/5 hover:bg-white/10 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                                    class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest bg-stone-50 hover:bg-stone-100 text-stone-600 px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
                                     :disabled="isGeneratingPDF"
                                 >
                                     <span x-show="!isGeneratingPDF" class="material-symbols-outlined text-sm">download</span>
@@ -344,7 +344,7 @@
                                 </button>
                             </div>
 
-                            <div class="prose prose-invert max-w-none prose-orange">
+                            <div class="prose prose-stone max-w-none prose-orange">
                                 @if($question->model_answer)
                                     {!! Str::markdown($question->model_answer) !!}
                                 @else
@@ -622,8 +622,8 @@
                 @if($question->model_answer)
                     <div class="mt-12">
                         <button @click="viewModelAnswer()" 
-                            class="w-full flex items-center justify-between p-8 rounded-[2.5rem] transition-all shadow-xl group overflow-hidden relative text-left"
-                            :class="isSubmitted ? 'bg-stone-900 text-white hover:bg-stone-800' : 'bg-white border border-stone-200 hover:border-orange-800/30'"
+                            class="w-full flex items-center justify-between p-8 rounded-[2.5rem] transition-all shadow-lg group overflow-hidden relative text-left"
+                            :class="isSubmitted ? 'bg-white border-2 border-stone-900/5 text-stone-900 hover:border-orange-800/20' : 'bg-white border border-stone-200 hover:border-orange-800/30'"
                         >
                             <div class="flex items-center gap-6 relative z-10">
                                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center transition-all duration-500"
@@ -891,20 +891,20 @@
 
                 <!-- Scoring Criteria -->
                 @if(count($question->evaluation_rubric ?? []))
-                    <div class="bg-stone-900 border border-stone-800 rounded-[2rem] p-8 text-white shadow-xl">
+                    <div class="bg-white border border-stone-200 rounded-[2.5rem] p-8 text-stone-900 shadow-sm">
                         <h4 class="text-lg font-bold text-orange-800 font-headline italic mb-6 flex items-center gap-3">
                             <span class="material-symbols-outlined">analytics</span>
                             Scoring Criteria
                         </h4>
                         <div class="space-y-4">
                             @foreach($question->evaluation_rubric as $rubric)
-                                <div class="flex justify-between items-start gap-4 pb-3 border-b border-stone-800 last:border-0">
-                                    <span class="text-xs text-stone-300 leading-relaxed">{{ $rubric['criteria'] }}</span>
+                                <div class="flex justify-between items-start gap-4 pb-3 border-b border-stone-50 last:border-0">
+                                    <span class="text-xs text-stone-600 leading-relaxed">{{ $rubric['criteria'] }}</span>
                                     <span class="text-xs font-bold text-orange-800 whitespace-nowrap">{{ $rubric['marks'] }}M</span>
                                 </div>
                             @endforeach
                         </div>
-                        <p class="mt-6 text-[8px] uppercase tracking-[0.2em] text-stone-500 font-bold">Standard UPSC Marking Scheme applied</p>
+                        <p class="mt-6 text-[8px] uppercase tracking-[0.2em] text-stone-400 font-bold">Standard UPSC Marking Scheme applied</p>
                     </div>
                 @endif
 

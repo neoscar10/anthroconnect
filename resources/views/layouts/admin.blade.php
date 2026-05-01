@@ -178,7 +178,7 @@
                     </div>
                 </div>
 
-                <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
+                <a wire:navigate class="{{ request()->routeIs('admin.users.*') ? 'bg-primary text-on-primary shadow-sm dark:bg-primary/80' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center px-3 py-2.5 transition-all group" href="{{ route('admin.users.index') }}">
                     <span class="material-symbols-outlined mr-3 text-[20px]">group</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">User Management</span>
                 </a>
