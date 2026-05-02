@@ -17,6 +17,7 @@ class ModuleShow extends Component
     public LmsModule $module;
     public $lessons;
     public $resources;
+    public $classes;
     public $relatedModules;
     public $completedLessonIds = [];
     public $progress = [
@@ -24,6 +25,7 @@ class ModuleShow extends Component
         'total_count' => 0,
         'percentage' => 0,
     ];
+    public $selectedClassId = null;
 
     public function mount(string $slug, LmsPublicService $lmsService)
     {
@@ -46,6 +48,7 @@ class ModuleShow extends Component
     {
         $this->lessons = $this->module->lessons;
         $this->resources = $this->module->resources;
+        $this->classes = $this->module->classes()->with(['lessons', 'resources'])->where('is_published', true)->get();
         $this->relatedModules = $lmsService->getRelatedModules($this->module, 2);
 
         // Load progress for authenticated scholars
@@ -111,6 +114,19 @@ class ModuleShow extends Component
 
         // Trigger upgrade modal for authenticated non-members
         $this->dispatch('open-upgrade-modal');
+    }
+
+    // --- Navigation ---
+
+    public function selectClass($id)
+    {
+        $this->selectedClassId = $id;
+        $this->dispatch('scroll-to-curriculum');
+    }
+
+    public function resetNavigation()
+    {
+        $this->selectedClassId = null;
     }
 
     public function render()

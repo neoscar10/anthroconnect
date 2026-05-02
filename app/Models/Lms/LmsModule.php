@@ -46,6 +46,11 @@ class LmsModule extends Model
         return $this->hasMany(LmsLesson::class, 'lms_module_id')->orderBy('sort_order');
     }
 
+    public function classes()
+    {
+        return $this->hasMany(LmsModuleClass::class, 'lms_module_id')->orderBy('sort_order');
+    }
+
     public function resources()
     {
         return $this->hasMany(LmsResource::class, 'lms_module_id')->orderBy('sort_order');
@@ -76,5 +81,30 @@ class LmsModule extends Model
     {
         // Currently modules are publicly browseable but individual lessons are restricted
         return true;
+    }
+
+    /**
+     * Get total duration of all lessons in minutes.
+     */
+    public function getTotalDurationMinutesAttribute()
+    {
+        return $this->lessons()->where('is_published', true)->sum('duration_minutes');
+    }
+
+    /**
+     * Get human-readable total duration.
+     */
+    public function getFormattedDurationAttribute()
+    {
+        $minutes = $this->total_duration_minutes;
+        
+        if ($minutes < 60) {
+            return $minutes . 'm';
+        }
+        
+        $hours = floor($minutes / 60);
+        $remMinutes = $minutes % 60;
+        
+        return $hours . 'h ' . ($remMinutes > 0 ? $remMinutes . 'm' : '');
     }
 }

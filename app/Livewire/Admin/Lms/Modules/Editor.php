@@ -24,9 +24,17 @@ class Editor extends Component
     public $short_description = '';
     public $overview = '';
     public $level = 'beginner';
-    public $is_upsc_relevant = false;
-    public $tags = [];
-    public $cover_image;
+    
+    // Class Navigation State
+    public $selectedClassId = null;
+    
+    // Class Modal State
+    public $isClassModalOpen = false;
+    public $editingClassId;
+    public $class_title = '';
+    public $class_description = '';
+    public $class_is_published = true;
+    public $class_sort_order = 0;
 
     // Lesson Modal State
     public $isLessonModalOpen = false;
@@ -59,15 +67,15 @@ class Editor extends Component
             return redirect()->route('admin.lms.modules.index');
         }
 
-        $this->module = $lmsModule;
+        $this->module = $lmsModule->load(['classes' => function($q) {
+            $q->withCount(['lessons', 'resources', 'mcqQuestions'])->orderBy('sort_order');
+        }]);
         $this->isEdit = true;
         $this->title = $lmsModule->title;
         $this->slug = $lmsModule->slug;
         $this->short_description = $lmsModule->short_description;
         $this->overview = $lmsModule->overview;
         $this->level = $lmsModule->level;
-        $this->is_upsc_relevant = $lmsModule->is_upsc_relevant;
-        $this->tags = $lmsModule->tags->pluck('id')->toArray();
     }
 
     public function updatedTitle()
@@ -81,18 +89,93 @@ class Editor extends Component
 
     public function saveModule()
     {
-        $data = [
-            'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
-            'updated_by' => auth()->id(),
-        ];
+        session()->flash('success', 'Module structure saved.');
+    }
 
-        if ($this->cover_image) {
-            $data['cover_image'] = $this->cover_image->store('lms/covers', 'public');
+    // --- Class Management ---
+
+    public function openClassModal($id = null)
+    {
+        $this->resetValidation();
+        $this->reset(['editingClassId', 'class_title', 'class_description', 'class_is_published', 'class_sort_order']);
+        
+        if ($id) {
+            $class = \App\Models\Lms\LmsModuleClass::findOrFail($id);
+            $this->editingClassId = $class->id;
+            $this->class_title = $class->title;
+            $this->class_description = $class->description;
+            $this->class_is_published = $class->is_published;
+            $this->class_sort_order = $class->sort_order;
         }
 
-        $this->module->update($data);
-        $this->module->syncTags($this->tags);
-        session()->flash('success', 'Module configuration updated successfully.');
+        $this->isClassModalOpen = true;
+    }
+
+    public function saveClass()
+    {
+        $this->validate([
+            'class_title' => 'required|string|max:120',
+            'class_description' => 'nullable|string|max:1000',
+        ]);
+
+        $data = [
+            'lms_module_id' => $this->module->id,
+            'title' => $this->class_title,
+            'description' => $this->class_description,
+            'is_published' => $this->class_is_published,
+        ];
+
+        if ($this->editingClassId) {
+            \App\Models\Lms\LmsModuleClass::find($this->editingClassId)->update($data);
+        } else {
+            $data['sort_order'] = \App\Models\Lms\LmsModuleClass::where('lms_module_id', $this->module->id)->max('sort_order') + 1;
+            \App\Models\Lms\LmsModuleClass::create($data);
+        }
+
+        $this->isClassModalOpen = false;
+        $this->module->load(['classes' => function($q) {
+            $q->withCount(['lessons', 'resources', 'mcqQuestions'])->orderBy('sort_order');
+        }]);
+    }
+
+    public function openClass($id)
+    {
+        $this->selectedClassId = $id;
+        $this->module->load(['lessons', 'resources']);
+    }
+
+    public function closeClass()
+    {
+        $this->selectedClassId = null;
+    }
+
+    public function deleteClass($id)
+    {
+        $class = \App\Models\Lms\LmsModuleClass::findOrFail($id);
+        $class->delete();
+        $this->module->load(['classes' => function($q) {
+            $q->withCount(['lessons', 'resources', 'mcqQuestions'])->orderBy('sort_order');
+        }]);
+    }
+
+    public function updateClassOrder($items)
+    {
+        foreach ($items as $item) {
+            \App\Models\Lms\LmsModuleClass::where('id', $item['value'])->update(['sort_order' => $item['order']]);
+        }
+        $this->module->load(['classes' => function($q) {
+            $q->withCount(['lessons', 'resources'])->orderBy('sort_order');
+        }]);
+    }
+
+    public function moveLegacy()
+    {
+        $service = new \App\Services\Lms\ModuleClassService();
+        $service->moveLegacyContentToClass($this->module, 'Introduction Class');
+        $this->module->load(['lessons', 'resources', 'classes' => function($q) {
+            $q->withCount(['lessons', 'resources'])->orderBy('sort_order');
+        }]);
+        session()->flash('success', 'Legacy content moved to Introduction Class.');
     }
 
     // --- Lesson Management ---
@@ -135,6 +218,7 @@ class Editor extends Component
 
         $data = [
             'lms_module_id' => $this->module->id,
+            'lms_module_class_id' => $this->selectedClassId,
             'title' => $this->lesson_title,
             'slug' => Str::slug($this->lesson_title),
             'short_description' => $this->lesson_short_description,
@@ -153,7 +237,9 @@ class Editor extends Component
         }
 
         if (!$this->editingLessonId) {
-            $data['sort_order'] = LmsLesson::where('lms_module_id', $this->module->id)->max('sort_order') + 1;
+            $data['sort_order'] = LmsLesson::where('lms_module_id', $this->module->id)
+                ->where('lms_module_class_id', $this->selectedClassId)
+                ->max('sort_order') + 1;
             $data['created_by'] = auth()->id();
             LmsLesson::create($data);
         } else {
@@ -234,6 +320,7 @@ class Editor extends Component
 
         $data = [
             'lms_module_id' => $this->module->id,
+            'lms_module_class_id' => $this->selectedClassId,
             'title' => $this->resource_title,
             'short_description' => $this->resource_short_description,
             'sort_order' => $this->resource_sort_order,

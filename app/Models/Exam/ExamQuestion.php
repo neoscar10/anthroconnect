@@ -21,9 +21,12 @@ class ExamQuestion extends Model
     ];
 
     protected $fillable = [
+        'lms_module_id',
+        'lms_module_class_id',
         'title',
         'question_text',
         'slug',
+        'question_type',
         'exam_type',
         'paper',
         'section',
@@ -33,6 +36,7 @@ class ExamQuestion extends Model
         'suggested_time_minutes',
         'difficulty',
         'short_context',
+        'explanation',
         'answer_guidelines',
         'model_answer',
         'evaluation_rubric',
@@ -60,6 +64,8 @@ class ExamQuestion extends Model
         'is_members_only' => 'boolean',
         'is_question_of_day' => 'boolean',
         'question_of_day_date' => 'date',
+        'lms_module_id' => 'integer',
+        'lms_module_class_id' => 'integer',
     ];
 
     /**
@@ -87,6 +93,35 @@ class ExamQuestion extends Model
     {
         return $this->hasOne(\App\Models\Exam\ExamAnswerSubmission::class, 'exam_question_id')
             ->where('user_id', $userId);
+    }
+
+    /**
+     * Relationship: Options for MCQ questions.
+     */
+    public function options()
+    {
+        return $this->hasMany(ExamQuestionOption::class, 'exam_question_id')->orderBy('sort_order');
+    }
+
+    /**
+     * Relationship: Parent LMS Module.
+     */
+    public function lmsModule()
+    {
+        return $this->belongsTo(\App\Models\Lms\LmsModule::class, 'lms_module_id');
+    }
+
+    /**
+     * Relationship: Parent LMS Class/Folder.
+     */
+    public function lmsModuleClass()
+    {
+        return $this->belongsTo(\App\Models\Lms\LmsModuleClass::class, 'lms_module_class_id');
+    }
+
+    public function lmsClassAssessment()
+    {
+        return $this->belongsTo(\App\Models\Lms\LmsClassAssessment::class, 'lms_class_assessment_id');
     }
 
     // Scopes
@@ -131,6 +166,26 @@ class ExamQuestion extends Model
                    ->orWhere('slug', 'like', "%{$term}%");
             });
         });
+    }
+
+    public function scopeMcq($query)
+    {
+        return $query->where('question_type', 'mcq');
+    }
+
+    public function scopeEssay($query)
+    {
+        return $query->where('question_type', 'essay');
+    }
+
+    public function scopeStandardExam($query)
+    {
+        return $query->whereNull('lms_module_class_id');
+    }
+
+    public function scopeForLmsClass($query, $classId)
+    {
+        return $query->where('lms_module_class_id', $classId);
     }
 
     public function getIsFreeAttribute(): bool

@@ -255,7 +255,7 @@
                         <span class="material-symbols-outlined text-orange-500 text-3xl mb-4" style="font-variation-settings: 'FILL' 1;">forum</span>
                         <h6 class="text-white text-sm font-headline italic font-bold mb-2">Join Daily Seminar</h6>
                         <p class="text-[10px] text-stone-500 leading-relaxed max-w-[200px] mx-auto mb-6">Connect with fellow scholars to discuss this narrative unit.</p>
-                        <button class="w-full py-4 border border-white/20 rounded-xl text-[9px] font-bold text-white uppercase tracking-widest hover:bg-white/5 transition-all">Launch Community</button>
+                        <a href="{{ route('community.index') }}" class="block w-full py-4 border border-white/20 rounded-xl text-[9px] font-bold text-white uppercase tracking-widest hover:bg-white/5 transition-all">Launch Community</a>
                     </div>
                 </div>
             </aside>

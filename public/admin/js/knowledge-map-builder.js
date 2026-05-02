@@ -341,22 +341,6 @@ document.addEventListener('alpine:init', () => {
             e.stopPropagation();
 
             if (this.isConnectionMode) {
-                if (!this.isDrawingConnection) {
-                    this.isDrawingConnection = true;
-                    this.drawingFromNodeId = node.id;
-
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const centerClientX = rect.left + (rect.width / 2);
-                    const centerClientY = rect.top + (rect.height / 2);
-                    const startCoords = this.getCanvasCoords(centerClientX, centerClientY);
-                    const currentCoords = this.getCanvasCoords(e.clientX, e.clientY);
-
-                    this.drawStartX = startCoords.x;
-                    this.drawStartY = startCoords.y;
-                    this.drawCurrentX = currentCoords.x;
-                    this.drawCurrentY = currentCoords.y;
-                }
-
                 return;
             }
 
@@ -398,11 +382,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         handleNodeMouseUp(e, node) {
-            if (this.isConnectionMode && this.isDrawingConnection) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.finishConnection(node.id);
-            }
+            // No action needed here for click-to-click logic
         },
 
         handleNodeClick(e, node) {
@@ -411,6 +391,22 @@ document.addEventListener('alpine:init', () => {
             if (this.isConnectionMode) {
                 if (this.isDrawingConnection) {
                     this.finishConnection(node.id);
+                } else {
+                    // Start drawing connection
+                    this.isDrawingConnection = true;
+                    this.drawingFromNodeId = node.id;
+
+                    // Calculate center point of the node for the start of the line
+                    const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
+                    const rect = nodeEl.getBoundingClientRect();
+                    const centerClientX = rect.left + (rect.width / 2);
+                    const centerClientY = rect.top + (rect.height / 2);
+                    const startCoords = this.getCanvasCoords(centerClientX, centerClientY);
+
+                    this.drawStartX = startCoords.x;
+                    this.drawStartY = startCoords.y;
+                    this.drawCurrentX = startCoords.x;
+                    this.drawCurrentY = startCoords.y;
                 }
 
                 return;

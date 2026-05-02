@@ -16,6 +16,11 @@ Route::get('/modules', \App\Livewire\Public\Lms\ModulesIndex::class)->name('modu
 Route::get('/modules/{slug}', \App\Livewire\Public\Lms\ModuleShow::class)->name('modules.show');
 Route::get('/modules/{moduleSlug}/lessons/{lessonSlug}', \App\Livewire\Public\Lms\LessonShow::class)->name('lessons.show');
 
+Route::middleware(['auth', 'otp.verified', 'onboarding'])->group(function () {
+    Route::get('/assessment/{assessment}', \App\Livewire\Public\Lms\AssessmentTake::class)->name('assessment.take');
+    Route::get('/assessment/{attempt}/results', \App\Livewire\Public\Lms\AssessmentResults::class)->name('assessment.results');
+});
+
 Route::get('/encyclopedia', \App\Livewire\Pages\Encyclopedia\EncyclopediaIndexPage::class)->name('encyclopedia.index');
 Route::get('/encyclopedia/anthropologists/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showAnthropologist'])->name('encyclopedia.anthropologists.show');
 Route::get('/encyclopedia/theories/{slug}', [App\Http\Controllers\PublicEncyclopediaController::class, 'showTheory'])->name('encyclopedia.theories.show');

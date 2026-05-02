@@ -92,7 +92,7 @@
                             <div class="flex items-center justify-between pt-5 md:pt-6 border-t border-stone-100 mt-auto">
                                 <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">
                                     <span class="material-symbols-outlined text-sm">schedule</span>
-                                    <span>~{{ $module->estimated_duration ?? '45m' }}</span>
+                                    <span>{{ $module->formatted_duration }}</span>
                                 </div>
                                 
                                 <a href="{{ route('modules.show', $module->slug) }}" 

@@ -216,6 +216,26 @@
             </div>
 
             <form wire:submit.prevent="saveModule" class="p-10 space-y-8">
+                <!-- Cover Image Upload -->
+                <div class="space-y-4">
+                    <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest px-1 block">Module Cover Image</label>
+                    <div class="relative group aspect-video md:aspect-[21/9] rounded-[24px] overflow-hidden border-2 border-dashed border-outline-variant/30 bg-surface-container-low flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-all">
+                        @if ($cover_image)
+                            <img src="{{ $cover_image->temporaryUrl() }}" class="w-full h-full object-cover">
+                        @elseif ($existingCoverImage)
+                            <img src="{{ Storage::url($existingCoverImage) }}" class="w-full h-full object-cover">
+                        @else
+                            <span class="material-symbols-outlined text-4xl text-stone-300">add_photo_alternate</span>
+                            <span class="text-[10px] font-bold uppercase tracking-tight text-stone-400 mt-2">Upload Module Cover (16:9 recommended)</span>
+                        @endif
+                        <input type="file" wire:model="cover_image" class="absolute inset-0 opacity-0 cursor-pointer">
+                        <div wire:loading wire:target="cover_image" class="absolute inset-0 bg-white/80 flex items-center justify-center">
+                            <span class="text-[9px] font-bold uppercase tracking-widest animate-pulse text-primary">Digitizing...</span>
+                        </div>
+                    </div>
+                    @error('cover_image') <span class="text-[10px] text-error font-medium px-4">{{ $message }}</span> @enderror
+                </div>
+
                 <div class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-2">

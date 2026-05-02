@@ -6,10 +6,12 @@ use App\Models\Lms\LmsModule;
 use App\Models\Topic;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 
 class Index extends Component
 {
     use WithPagination;
+    use WithFileUploads;
 
     public $search = '';
     public $statusFilter = '';
@@ -28,6 +30,8 @@ class Index extends Component
     public $level = 'beginner';
     public $is_published = false;
     public $is_upsc_relevant = false;
+    public $cover_image;
+    public $existingCoverImage;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -47,7 +51,7 @@ class Index extends Component
     public function openCreateModal()
     {
         $this->resetValidation();
-        $this->reset(['moduleId', 'title', 'slug', 'short_description', 'level', 'tags', 'is_published', 'is_upsc_relevant']);
+        $this->reset(['moduleId', 'title', 'slug', 'short_description', 'level', 'tags', 'is_published', 'is_upsc_relevant', 'cover_image', 'existingCoverImage']);
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
         $this->dispatch('set-tags', id: 'lms-module-tag-selector', tags: []);
@@ -66,6 +70,8 @@ class Index extends Component
         $this->tags = $module->tags->pluck('id')->toArray();
         $this->is_published = $module->is_published;
         $this->is_upsc_relevant = $module->is_upsc_relevant;
+        $this->existingCoverImage = $module->cover_image;
+        $this->cover_image = null;
         $this->isModalOpen = true;
         $this->dispatch('open-modal');
         $this->dispatch('set-tags', id: 'lms-module-tag-selector', tags: $this->tags);
@@ -82,6 +88,7 @@ class Index extends Component
             'tags' => 'nullable|array',
             'tags.*' => 'exists:tags,id',
             'is_upsc_relevant' => 'boolean',
+            'cover_image' => 'nullable|image|max:2048',
         ]);
 
         $data = [
@@ -93,6 +100,10 @@ class Index extends Component
             'is_published' => $this->is_published,
             'is_upsc_relevant' => (bool) $this->is_upsc_relevant,
         ];
+
+        if ($this->cover_image) {
+            $data['cover_image'] = $this->cover_image->store('lms/covers', 'public');
+        }
 
         if ($this->moduleId) {
             $module = LmsModule::findOrFail($this->moduleId);

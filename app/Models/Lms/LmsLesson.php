@@ -15,6 +15,7 @@ class LmsLesson extends Model
 
     protected $fillable = [
         'lms_module_id',
+        'lms_module_class_id',
         'title',
         'slug',
         'short_description',
@@ -44,6 +45,11 @@ class LmsLesson extends Model
     public function module()
     {
         return $this->belongsTo(LmsModule::class, 'lms_module_id');
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(LmsModuleClass::class, 'lms_module_class_id');
     }
 
     public function creator()

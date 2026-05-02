@@ -15,6 +15,7 @@ class ExamQuestionService
     public function paginate(array $filters = [], int $perPage = 15)
     {
         $query = ExamQuestion::query()
+            ->standardExam()
             ->with(['tags', 'creator'])
             ->search($filters['search'] ?? null)
             ->filterByStatus($filters['status'] ?? null)

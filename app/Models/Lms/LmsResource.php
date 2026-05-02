@@ -15,6 +15,7 @@ class LmsResource extends Model
 
     protected $fillable = [
         'lms_module_id',
+        'lms_module_class_id',
         'title',
         'short_description',
         'file_path',
@@ -35,6 +36,11 @@ class LmsResource extends Model
     public function module()
     {
         return $this->belongsTo(LmsModule::class, 'lms_module_id');
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(LmsModuleClass::class, 'lms_module_class_id');
     }
 
     public function creator()
