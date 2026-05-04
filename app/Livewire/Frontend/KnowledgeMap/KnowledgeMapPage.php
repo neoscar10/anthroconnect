@@ -36,8 +36,14 @@ class KnowledgeMapPage extends Component
             'nodes.lmsLesson.class.module',
             'nodes.lmsMaterial.module',
             'nodes.lmsMaterial.class.module',
-            'nodes.attachments.attachable.module',
-            'nodes.attachments.attachable.class.module',
+            'nodes.attachments.attachable' => function ($query) {
+                if ($query instanceof \Illuminate\Database\Eloquent\Relations\MorphTo) {
+                    $query->morphWith([
+                        \App\Models\Lms\LmsLesson::class => ['module', 'class.module'],
+                        \App\Models\Lms\LmsResource::class => ['module', 'class.module'],
+                    ]);
+                }
+            },
             'connections',
             'learningPaths.nodes',
         ]);
