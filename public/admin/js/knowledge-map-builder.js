@@ -16,7 +16,7 @@ document.addEventListener('alpine:init', () => {
         isDraggingNode: false,
         draggedNode: null,
 
-        isConnectionMode: false,
+        isConnectionMode: config.isConnectionMode || false,
         isDrawingConnection: false,
         drawingFromNodeId: null,
         drawStartX: 0,

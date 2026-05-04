@@ -3,7 +3,8 @@
         connections: @js($connections),
         zoom: @js($map->default_zoom),
         canvasWidth: @js($map->canvas_settings['width'] ?? 4000),
-        canvasHeight: @js($map->canvas_settings['height'] ?? 3000)
+        canvasHeight: @js($map->canvas_settings['height'] ?? 3000),
+        isConnectionMode: @entangle('isConnectionMode')
      })" @mousemove.window="onMouseMove"
      @mouseup.window="endMove"
      @mouseleave.window="endMove">

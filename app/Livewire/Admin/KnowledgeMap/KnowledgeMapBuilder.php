@@ -23,6 +23,7 @@ class KnowledgeMapBuilder extends Component
     public KnowledgeMap $map;
     public $selectedNodeId = null;
     public $selectedConnectionId = null;
+    public $isConnectionMode = false;
     
     // Node Form State
     public $showNodeModal = false;
