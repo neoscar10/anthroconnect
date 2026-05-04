@@ -162,7 +162,12 @@ class LmsPublicService
         }
 
         return LmsLesson::with(['module', 'creator'])
-            ->where('lms_module_id', $module->id)
+            ->where(function($q) use ($module) {
+                $q->where('lms_module_id', $module->id)
+                  ->orWhereHas('class', function($sq) use ($module) {
+                      $sq->where('lms_module_id', $module->id);
+                  });
+            })
             ->where('slug', $lessonSlug)
             ->where('is_published', true)
             ->first();
@@ -173,13 +178,19 @@ class LmsPublicService
      */
     public function getLessonNavigation(LmsLesson $lesson)
     {
-        $prev = LmsLesson::where('lms_module_id', $lesson->lms_module_id)
+        $moduleId = $lesson->lms_module_id ?: optional($lesson->class)->lms_module_id;
+
+        if (!$moduleId) {
+            return ['prev' => null, 'next' => null];
+        }
+
+        $prev = LmsLesson::where('lms_module_id', $moduleId)
             ->where('is_published', true)
             ->where('sort_order', '<', $lesson->sort_order)
             ->orderByDesc('sort_order')
             ->first();
 
-        $next = LmsLesson::where('lms_module_id', $lesson->lms_module_id)
+        $next = LmsLesson::where('lms_module_id', $moduleId)
             ->where('is_published', true)
             ->where('sort_order', '>', $lesson->sort_order)
             ->orderBy('sort_order')

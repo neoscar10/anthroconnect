@@ -382,7 +382,9 @@ document.addEventListener('alpine:init', () => {
         },
 
         handleNodeMouseUp(e, node) {
-            // No action needed here for click-to-click logic
+            if (this.isDraggingNode) {
+                this.endMove(e);
+            }
         },
 
         handleNodeClick(e, node) {

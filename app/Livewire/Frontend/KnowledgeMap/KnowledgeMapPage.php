@@ -33,8 +33,11 @@ class KnowledgeMapPage extends Component
             'nodes.theory',
             'nodes.lmsModule',
             'nodes.lmsLesson.module',
+            'nodes.lmsLesson.class.module',
             'nodes.lmsMaterial.module',
-            'nodes.attachments.attachable',
+            'nodes.lmsMaterial.class.module',
+            'nodes.attachments.attachable.module',
+            'nodes.attachments.attachable.class.module',
             'connections',
             'learningPaths.nodes',
         ]);
@@ -232,14 +235,18 @@ class KnowledgeMapPage extends Component
                     'url' => route('modules.show', $attachment->attachable->slug)
                 ];
             case \App\Models\Lms\LmsLesson::class:
-                $moduleSlug = optional($attachment->attachable->module)->slug ?: 'unknown';
+                $lesson = $attachment->attachable;
+                $module = $lesson->module ?? optional($lesson->class)->module;
+                $moduleSlug = $module?->slug ?: 'unknown';
                 return [
                     'icon' => 'play_circle',
                     'label' => 'Video Lesson',
-                    'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $attachment->attachable->slug])
+                    'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $lesson->slug])
                 ];
             case \App\Models\Lms\LmsResource::class:
-                $moduleSlug = optional($attachment->attachable->module)->slug ?: 'unknown';
+                $resource = $attachment->attachable;
+                $module = $resource->module ?? optional($resource->class)->module;
+                $moduleSlug = $module?->slug ?: 'unknown';
                 return [
                     'icon' => 'description',
                     'label' => 'PDF Resource',
@@ -273,21 +280,25 @@ class KnowledgeMapPage extends Component
         }
 
         if ($node->lmsLesson) {
-            $moduleSlug = optional($node->lmsLesson->module)->slug ?: 'unknown';
+            $lesson = $node->lmsLesson;
+            $module = $lesson->module ?? optional($lesson->class)->module;
+            $moduleSlug = $module?->slug ?: 'unknown';
             $materials[] = [
                 'icon' => 'play_circle',
                 'label' => 'Video Lesson',
-                'title' => $node->lmsLesson->title,
-                'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $node->lmsLesson->slug])
+                'title' => $lesson->title,
+                'url' => route('lessons.show', ['moduleSlug' => $moduleSlug, 'lessonSlug' => $lesson->slug])
             ];
         }
 
         if ($node->lmsMaterial) {
-            $moduleSlug = optional($node->lmsMaterial->module)->slug ?: 'unknown';
+            $resource = $node->lmsMaterial;
+            $module = $resource->module ?? optional($resource->class)->module;
+            $moduleSlug = $module?->slug ?: 'unknown';
             $materials[] = [
                 'icon' => 'description',
                 'label' => 'PDF Resource',
-                'title' => $node->lmsMaterial->title,
+                'title' => $resource->title,
                 'url' => route('modules.show', $moduleSlug)
             ];
         }

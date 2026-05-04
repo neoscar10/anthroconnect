@@ -29,7 +29,11 @@ class LessonShow extends Component
             abort(404);
         }
 
-        $this->module = $this->lesson->module;
+        $this->module = $this->lesson->module ?? optional($this->lesson->class)->module;
+
+        if (!$this->module) {
+            abort(404, 'Module context not found for this lesson.');
+        }
 
         // Protection: Redirect back to module if unauthorized
         if (!$this->lesson->canAccess(Auth::user())) {
