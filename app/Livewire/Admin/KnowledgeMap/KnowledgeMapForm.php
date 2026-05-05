@@ -242,15 +242,20 @@ class KnowledgeMapForm extends Component
         if ($this->editingNodeId) {
             $node = $this->map->nodes()->whereKey($this->editingNodeId)->firstOrFail();
             $service->updateNode($node, $data);
+            
+            $this->showNodeModal = false;
+            $this->resetNodeForm();
+            $this->refreshCanvas();
         } else {
             $data['position_x'] = $this->nodePositionX;
             $data['position_y'] = $this->nodePositionY;
+            $data['metadata'] = array_merge($data['metadata'] ?? [], ['is_on_canvas' => true]);
             $service->createNode($data);
-        }
 
-        $this->showNodeModal = false;
-        $this->resetNodeForm();
-        $this->refreshCanvas();
+            $this->showNodeModal = false;
+            $this->resetNodeForm();
+            return redirect(request()->header('Referer'));
+        }
     }
 
     public function updateNodePosition($id, $x, $y, KnowledgeMapNodeService $service)
@@ -261,7 +266,30 @@ class KnowledgeMapForm extends Component
             return;
         }
 
+        $metadata = $node->metadata ?? [];
+        $metadata['is_on_canvas'] = true;
+        $node->metadata = $metadata;
+        $node->save();
+
         $service->updatePosition($node, (float) $x, (float) $y);
+    }
+
+    public function removeNodeFromCanvas($id)
+    {
+        $node = $this->map->nodes()->whereKey($id)->first();
+        if ($node) {
+            $metadata = $node->metadata ?? [];
+            $metadata['is_on_canvas'] = false;
+            $node->metadata = $metadata;
+            $node->save();
+
+            \App\Models\KnowledgeMap\KnowledgeMapConnection::where('from_node_id', $id)
+                ->orWhere('to_node_id', $id)
+                ->delete();
+
+            $this->selectedNodeId = null;
+            return redirect(request()->header('Referer'));
+        }
     }
 
     public function confirmDeleteNode($id)
@@ -568,8 +596,15 @@ class KnowledgeMapForm extends Component
 
     public function render()
     {
+        $allNodes = KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get();
+        
+        $canvasNodes = $allNodes->filter(function($node) {
+            return ($node->metadata['is_on_canvas'] ?? true) === true;
+        })->values();
+
         return view('livewire.admin.knowledge-map.builder', [
-            'nodes' => KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get(),
+            'nodes' => $allNodes,
+            'canvasNodes' => $canvasNodes,
             'connections' => KnowledgeMapConnection::where('knowledge_map_id', $this->map->id)->get(),
             'tagGroups' => TagGroup::with('tags')->get(),
             'concepts' => CoreConcept::orderBy('title')->get(),

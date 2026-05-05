@@ -248,24 +248,56 @@ class KnowledgeMapBuilder extends Component
         if ($this->editingNodeId) {
             $node = KnowledgeMapNode::find($this->editingNodeId);
             $service->updateNode($node, $data);
+            
+            $this->showNodeModal = false;
+            $this->dispatch('km-refresh', [
+                'nodes' => $this->map->nodes()->with('tags')->get(),
+                'connections' => $this->map->connections()->get()
+            ]);
         } else {
             $data['position_x'] = $this->nodePositionX;
             $data['position_y'] = $this->nodePositionY;
+            // Ensure new nodes are marked as on canvas
+            $data['metadata'] = array_merge($data['metadata'] ?? [], ['is_on_canvas' => true]);
             $service->createNode($data);
-        }
 
-        $this->showNodeModal = false;
-        $this->dispatch('km-refresh', [
-            'nodes' => $this->map->nodes()->with('tags')->get(),
-            'connections' => $this->map->connections()->get()
-        ]);
+            $this->showNodeModal = false;
+            // Full refresh for node creation to clear JS state
+            return redirect(request()->header('Referer'));
+        }
     }
 
     public function updateNodePosition($id, $x, $y, KnowledgeMapNodeService $service)
     {
         $node = KnowledgeMapNode::find($id);
         if ($node) {
+            // If dragged, it's definitely on the canvas
+            $metadata = $node->metadata ?? [];
+            $metadata['is_on_canvas'] = true;
+            $node->metadata = $metadata;
+            $node->save();
+
             $service->updatePosition($node, (float)$x, (float)$y);
+        }
+    }
+
+    public function removeNodeFromCanvas($id)
+    {
+        $node = KnowledgeMapNode::find($id);
+        if ($node) {
+            $metadata = $node->metadata ?? [];
+            $metadata['is_on_canvas'] = false;
+            $node->metadata = $metadata;
+            $node->save();
+
+            // When removing from canvas, we should also remove connections involving this node
+            // as they would point to a hidden node.
+            \App\Models\KnowledgeMap\KnowledgeMapConnection::where('from_node_id', $id)
+                ->orWhere('to_node_id', $id)
+                ->delete();
+
+            $this->selectedNodeId = null;
+            return redirect(request()->header('Referer'));
         }
     }
 
@@ -525,8 +557,16 @@ class KnowledgeMapBuilder extends Component
 
     public function render()
     {
+        $allNodes = KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get();
+        
+        // Filter canvas nodes: metadata->is_on_canvas is true or not set (default for old nodes)
+        $canvasNodes = $allNodes->filter(function($node) {
+            return ($node->metadata['is_on_canvas'] ?? true) === true;
+        })->values();
+
         return view('livewire.admin.knowledge-map.builder', [
-            'nodes' => KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get(),
+            'nodes' => $allNodes, // For the library/sidebar
+            'canvasNodes' => $canvasNodes, // For the canvas rendering
             'connections' => KnowledgeMapConnection::where('knowledge_map_id', $this->map->id)->get(),
             'tagGroups' => TagGroup::with('tags')->get(),
             'concepts' => CoreConcept::orderBy('title')->get(),

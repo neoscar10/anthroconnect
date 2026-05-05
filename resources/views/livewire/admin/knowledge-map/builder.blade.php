@@ -1,5 +1,5 @@
 <div class="km-builder" x-data="knowledgeMapBuilder({ 
-        nodes: @js($nodes), 
+        nodes: @js($canvasNodes), 
         connections: @js($connections),
         zoom: @js($map->default_zoom),
         canvasWidth: @js($map->canvas_settings['width'] ?? 4000),
@@ -227,7 +227,11 @@
                             </button>
 
                             <button type="button" wire:click="confirmDeleteNode({{ $selectedNode->id }})" class="w-full py-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-[10px] font-bold uppercase tracking-widest">
-                                Delete Node
+                                Delete Node Permanently
+                            </button>
+
+                            <button type="button" wire:click="removeNodeFromCanvas({{ $selectedNode->id }})" class="w-full py-3 rounded-xl bg-amber-50 border border-amber-100 text-amber-600 text-[10px] font-bold uppercase tracking-widest">
+                                Remove from Canvas
                             </button>
                         </div>
                     @elseif($selectedConnection)
@@ -527,7 +531,7 @@
                         </select>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-4" style="display: none;">
                         <div>
                             <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-500 mb-2">Type</label>
                             <select wire:model="connType" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-primary/20">
