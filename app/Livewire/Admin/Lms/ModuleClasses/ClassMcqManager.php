@@ -79,6 +79,11 @@ class ClassMcqManager extends Component
             $this->randomize_questions = $this->assessment->randomize_questions;
             $this->randomize_options = $this->assessment->randomize_options;
             $this->is_assessment_published = $this->assessment->is_published;
+
+            // Recover orphaned questions that belong to this class but have no assessment_id
+            ExamQuestion::where('lms_module_class_id', $this->class->id)
+                ->whereNull('lms_class_assessment_id')
+                ->update(['lms_class_assessment_id' => $this->assessment->id]);
         } else {
             $this->assessment_title = 'Assessment: ' . $this->class->title;
         }

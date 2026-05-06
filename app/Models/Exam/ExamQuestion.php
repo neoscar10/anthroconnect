@@ -41,6 +41,7 @@ class ExamQuestion extends Model
         'model_answer',
         'evaluation_rubric',
         'learning_resources',
+        'lms_class_assessment_id',
         'status',
         'access_type',
         'sort_order',
@@ -66,6 +67,7 @@ class ExamQuestion extends Model
         'question_of_day_date' => 'date',
         'lms_module_id' => 'integer',
         'lms_module_class_id' => 'integer',
+        'lms_class_assessment_id' => 'integer',
     ];
 
     /**
