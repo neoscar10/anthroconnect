@@ -100,7 +100,7 @@ class ExploreIndex extends Component
         }
 
         $this->validate([
-            'topic_id' => 'required|exists:topics,id',
+            'topic_id' => 'nullable|exists:topics,id',
             'title' => 'required|string|max:255',
             'slug' => 'required|string|max:255|unique:explore_articles,slug,' . ($this->editingArticle?->id ?? 'NULL'),
             'excerpt' => 'required|string|max:500',
