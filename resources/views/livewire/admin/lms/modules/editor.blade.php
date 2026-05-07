@@ -317,6 +317,7 @@
                 <div class="space-y-2">
                     <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Lecture Title</label>
                     <input wire:model="lesson_title" type="text" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-4 text-lg font-headline italic font-bold text-on-surface focus:ring-2 focus:ring-primary outline-none">
+                    @error('lesson_title') <span class="text-[10px] text-error font-medium px-1">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="space-y-4 pt-4">
@@ -364,7 +365,10 @@
 
                 <div class="space-y-4">
                     @if($lesson_video_source_type === 'url')
-                        <input wire:model="lesson_video_url" type="text" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-4 text-xs font-medium focus:ring-2 focus:ring-primary outline-none mt-2" placeholder="Paste YouTube, Vimeo or streaming URL...">
+                        <div class="space-y-2">
+                            <input wire:model="lesson_video_url" type="text" class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl p-4 text-xs font-medium focus:ring-2 focus:ring-primary outline-none mt-2" placeholder="Paste YouTube, Vimeo or streaming URL...">
+                            @error('lesson_video_url') <span class="text-[10px] text-error font-medium px-1">{{ $message }}</span> @enderror
+                        </div>
                     @else
                         <div x-data="{ isUploading: false, progress: 0, uploadComplete: false }"
                              x-on:livewire-upload-start="isUploading = true; uploadComplete = false; progress = 0"
@@ -418,12 +422,12 @@
 
                 <div class="flex justify-end gap-4 pt-6 border-t border-outline-variant/10">
                     <button @click="$wire.isLessonModalOpen = false" class="px-8 py-3 text-[10px] font-bold uppercase tracking-widest text-stone-500 hover:bg-stone-100 rounded-xl transition-all">Cancel</button>
-                    <button wire:click="saveLesson" 
+                    <button type="button" 
+                            wire:click="saveLesson" 
                             wire:loading.attr="disabled" 
-                            wire:target="lesson_video_path"
                             class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold text-[10px] uppercase tracking-widest shadow-xl shadow-primary/20 hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0">
-                        <span wire:loading.remove wire:target="lesson_video_path">Identify Record</span>
-                        <span wire:loading wire:target="lesson_video_path">Archiving...</span>
+                        <span wire:loading.remove wire:target="saveLesson, lesson_video_path">Identify Record</span>
+                        <span wire:loading wire:target="saveLesson, lesson_video_path">Archiving...</span>
                     </button>
                 </div>
             </div>

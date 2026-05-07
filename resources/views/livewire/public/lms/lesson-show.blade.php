@@ -20,7 +20,7 @@
                 <!-- Video Player Section -->
                 <div class="bg-stone-900 aspect-video relative group">
                     @if($lesson->video_source_type == 'upload' && $lesson->video_path)
-                        <video controls class="w-full h-full" poster="{{ $lesson->thumbnail ? Storage::url($lesson->thumbnail) : '' }}">
+                        <video controls controlsList="nodownload" oncontextmenu="return false;" class="w-full h-full" poster="{{ $lesson->thumbnail ? Storage::url($lesson->thumbnail) : '' }}">
                             <source src="{{ Storage::url($lesson->video_path) }}" type="video/mp4">
                             Your browser does not support the video tag.
                         </video>
@@ -29,21 +29,17 @@
                             @if(str_contains($lesson->video_url, 'youtube.com') || str_contains($lesson->video_url, 'youtu.be'))
                                 @php 
                                     $videoId = '';
-                                    if(str_contains($lesson->video_url, 'embed/')) {
-                                        $parts = explode('embed/', $lesson->video_url);
-                                        $videoId = explode('?', $parts[1] ?? '')[0];
-                                    } elseif(str_contains($lesson->video_url, 'v=')) {
-                                        $parts = explode('v=', $lesson->video_url);
-                                        $videoId = explode('&', $parts[1] ?? '')[0];
-                                    } else {
-                                        $parts = explode('.be/', $lesson->video_url);
-                                        $videoId = explode('?', $parts[1] ?? '')[0];
+                                    if (preg_match('%(?:youtube(?:-nocookie)?\.com/(?:[^/]+/.+/|(?:v|e(?:mbed)?)/|.*[?&]v=)|youtu\.be/)([^"&?/ ]{11})%i', $lesson->video_url, $match)) {
+                                        $videoId = $match[1];
                                     }
                                 @endphp
                                 <iframe src="https://www.youtube.com/embed/{{ $videoId }}" class="w-full h-full border-none shadow-2xl" allowfullscreen></iframe>
                             @elseif(str_contains($lesson->video_url, 'vimeo.com'))
                                 @php 
-                                    $vimeoId = (int) filter_var($lesson->video_url, FILTER_SANITIZE_NUMBER_INT);
+                                    $vimeoId = '';
+                                    if (preg_match('%vimeo\.com/(?:video/)?([0-9]+)%i', $lesson->video_url, $match)) {
+                                        $vimeoId = $match[1];
+                                    }
                                 @endphp
                                 <iframe src="https://player.vimeo.com/video/{{ $vimeoId }}" class="w-full h-full border-none" allowfullscreen></iframe>
                             @else

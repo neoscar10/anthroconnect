@@ -208,13 +208,20 @@ class Editor extends Component
     {
         if (!$this->module) return;
 
-        $this->validate([
+        $rules = [
             'lesson_title' => 'required|string|max:255',
             'lesson_video_source_type' => 'required|in:upload,url',
-            'lesson_video_path' => ($this->editingLessonId ? 'nullable' : 'required_if:lesson_video_source_type,upload') . '|file|max:512000', // 500MB
-            'lesson_video_url' => 'nullable|url|required_if:lesson_video_source_type,url',
             'lesson_is_members_only' => 'boolean',
-        ]);
+            'lesson_duration_minutes' => 'required|numeric|min:0',
+        ];
+
+        if ($this->lesson_video_source_type === 'upload') {
+            $rules['lesson_video_path'] = ($this->editingLessonId ? 'nullable' : 'required') . '|file|max:512000';
+        } else {
+            $rules['lesson_video_url'] = 'required|url|max:1000';
+        }
+
+        $this->validate($rules);
 
         $data = [
             'lms_module_id' => $this->module->id,
@@ -224,7 +231,7 @@ class Editor extends Component
             'short_description' => $this->lesson_short_description,
             'video_source_type' => $this->lesson_video_source_type,
             'video_url' => $this->lesson_video_url,
-            'duration_minutes' => $this->lesson_duration_minutes,
+            'duration_minutes' => (int) $this->lesson_duration_minutes,
             'sort_order' => $this->lesson_sort_order,
             'is_published' => $this->lesson_is_published,
             'is_members_only' => $this->lesson_is_members_only,
@@ -243,11 +250,13 @@ class Editor extends Component
             $data['created_by'] = auth()->id();
             LmsLesson::create($data);
         } else {
-            LmsLesson::find($this->editingLessonId)->update($data);
+            LmsLesson::find($this->editingLessonId)?->update($data);
         }
 
         $this->isLessonModalOpen = false;
-        $this->module->load('lessons');
+        $this->module->load(['lessons', 'resources', 'classes' => function($q) {
+            $q->withCount(['lessons', 'resources', 'mcqQuestions'])->orderBy('sort_order');
+        }]);
         session()->flash('success', 'Lesson saved successfully.');
     }
 
