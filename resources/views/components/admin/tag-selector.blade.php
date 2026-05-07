@@ -2,7 +2,8 @@
     'selectedTags' => [],
     'groups' => [],
     'label' => 'Tags',
-    'name' => 'tags'
+    'name' => 'tags',
+    'cols' => 'grid-cols-1 md:grid-cols-2'
 ])
 
 @php
@@ -95,7 +96,7 @@
 
     <div class="space-y-4" x-show="activeGroupIds.length > 0" x-cloak x-transition>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-stone-400 italic">2. Assign Specific Tags</label>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid {{ $cols }} gap-4">
             @foreach($groups as $group)
                 <div x-show="activeGroupIds.includes({{ $group->id }})" 
                      class="space-y-3 p-5 bg-white rounded-2xl border border-outline-variant/10 shadow-sm transition-all hover:shadow-md">

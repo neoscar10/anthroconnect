@@ -298,7 +298,9 @@
                                     </div>
                                     <div class="space-y-3">
                                         <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest px-1">Actual Question Text (Required)</label>
-                                        <textarea wire:model="question_text" rows="8" class="w-full bg-surface-container-low border border-transparent rounded-2xl p-6 text-xl font-headline italic leading-relaxed text-on-surface focus:ring-2 focus:ring-primary focus:bg-white transition-all outline-none" placeholder="Enter the exact UPSC question text here..."></textarea>
+                                        <div class="rounded-2xl overflow-hidden border border-outline-variant/10 shadow-inner">
+                                            <x-markdown-editor wire:model="question_text" id="question-text-editor" :wire:key="'question-text-'.$editingId" />
+                                        </div>
                                         @error('question_text') <span class="text-[10px] text-error font-medium">{{ $message }}</span> @enderror
                                     </div>
                                     <div class="space-y-3">
@@ -374,7 +376,7 @@
                                     <span class="text-[9px] uppercase font-bold text-stone-400 bg-stone-50 px-3 py-1 rounded-full border border-stone-200">Rich Text Editor</span>
                                 </div>
                                 <div class="rounded-[32px] overflow-hidden border border-outline-variant/10 shadow-inner">
-                                    <x-markdown-editor wire:model="answer_guidelines" :wire:key="'guidelines-'.$editingId" />
+                                    <x-markdown-editor wire:model="answer_guidelines" id="guidelines-editor" :wire:key="'guidelines-'.$editingId" />
                                 </div>
                             </div>
                         </div>
@@ -385,7 +387,7 @@
                                 <div class="space-y-6">
                                     <h5 class="font-headline text-xl font-bold italic">Ideal Model Answer</h5>
                                     <div class="rounded-[32px] overflow-hidden border border-outline-variant/10 shadow-inner">
-                                        <x-markdown-editor wire:model="model_answer" :wire:key="'model-'.$editingId" />
+                                        <x-markdown-editor wire:model="model_answer" id="model-answer-editor" :wire:key="'model-'.$editingId" />
                                     </div>
                                 </div>
                             </div>

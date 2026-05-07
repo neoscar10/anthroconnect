@@ -284,7 +284,7 @@
                                             @endif
                                             <input type="file" wire:model="profile_image" accept="image/*" class="absolute inset-0 opacity-0 cursor-pointer">
                                         </div>
-                                        <p class="text-[9px] text-stone-400 italic mt-3 text-center">Square ratio is best. Max 2MB.</p>
+                                        <p class="text-[9px] text-stone-400 italic mt-3 text-center">Square ratio is best. Max 10MB.</p>
                                         @error('profile_image') <span class="text-[10px] text-error font-medium text-center mt-1">{{ $message }}</span> @enderror
                                     </div>
                                 </div>
@@ -343,7 +343,7 @@
                                 <!-- Relationships: Tags -->
                                 <div class="bg-surface-container-low/30 border border-outline-variant/10 rounded-[28px] p-8 space-y-4">
                                     <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest block">Classifications & Tags</label>
-                                    <x-admin.tag-selector id="anthropologist-tag-selector" wire:model="tags" />
+                                    <x-admin.tag-selector id="anthropologist-tag-selector" wire:model="tags" cols="grid-cols-1" />
                                 </div>
                             </div>
                         </div>

@@ -213,18 +213,7 @@
                             </a>
                         </div>
 
-                <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
-                    <span class="material-symbols-outlined mr-3 text-[20px]">school</span>
-                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">UPSC Hub</span>
-                </a>
-                <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
-                    <span class="material-symbols-outlined mr-3 text-[20px]">monitoring</span>
-                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Analytics</span>
-                </a>
-                <a class="text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800 transition-colors flex items-center px-3 py-2.5" href="#">
-                    <span class="material-symbols-outlined mr-3 text-[20px]">settings</span>
-                    <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Settings</span>
-                </a>
+
             </nav>
             
             <div class="mt-auto pt-6 border-t border-stone-200/50 flex items-center space-x-3">

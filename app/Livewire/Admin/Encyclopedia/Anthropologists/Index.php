@@ -53,7 +53,7 @@ class Index extends Component
             'death_year' => 'nullable|integer|gte:birth_year',
             'discipline_or_specialization' => 'nullable|string|max:255',
             'nationality' => 'nullable|string|max:255',
-            'profile_image' => 'nullable|image|max:2048',
+            'profile_image' => 'nullable|image|max:10240',
             'status' => 'required|in:active,inactive',
             'is_featured' => 'boolean',
             'is_upsc_relevant' => 'boolean',

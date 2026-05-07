@@ -202,7 +202,7 @@
 
                         <div class="space-y-2">
                             <label class="text-[10px] uppercase font-bold text-on-surface-variant tracking-widest">Classification & Tags</label>
-                            <x-admin.tag-selector id="concept-tag-selector" wire:model="tags" />
+                            <x-admin.tag-selector id="concept-tag-selector" wire:model="tags" cols="grid-cols-1" />
                         </div>
 
                         <div class="space-y-2">
