@@ -73,7 +73,7 @@ class AssessmentService
             $passed = $percentage >= $passingPercentage;
 
             $now = now();
-            $timeTaken = $now->diffInSeconds($attempt->started_at);
+            $timeTaken = max(0, $now->diffInSeconds($attempt->started_at));
             
             // Cap time taken to the duration if it's a timed test
             if ($attempt->assessment->duration_minutes) {

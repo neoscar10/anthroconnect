@@ -68,8 +68,8 @@ class LmsClassAssessmentAttempt extends Model
     {
         if (!$this->time_taken_seconds) return '0s';
         
-        $minutes = floor($this->time_taken_seconds / 60);
-        $seconds = $this->time_taken_seconds % 60;
+        $seconds = abs($this->time_taken_seconds % 60);
+        $minutes = floor(abs($this->time_taken_seconds) / 60);
         
         if ($minutes > 0) {
             return "{$minutes}m {$seconds}s";

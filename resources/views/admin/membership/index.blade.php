@@ -149,9 +149,32 @@
                                 {{ $member->payment_reference ?: 'MANUAL' }}
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <button class="text-stone-400 hover:text-primary transition-colors">
-                                    <span class="material-symbols-outlined text-sm">more_vert</span>
-                                </button>
+                                <div class="relative" x-data="{ menuOpen: false }" @click.away="menuOpen = false">
+                                    <button @click="menuOpen = !menuOpen" class="text-stone-400 hover:text-primary transition-colors p-1 rounded-full hover:bg-stone-50">
+                                        <span class="material-symbols-outlined text-sm">more_vert</span>
+                                    </button>
+                                    
+                                    <div x-show="menuOpen" 
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="transform opacity-0 scale-95"
+                                         x-transition:enter-end="transform opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="transform opacity-100 scale-100"
+                                         x-transition:leave-end="transform opacity-0 scale-95"
+                                         class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-outline-variant/10 z-[50] overflow-hidden"
+                                         x-cloak>
+                                        <div class="py-1">
+                                            <a href="{{ route('admin.users.index', ['search' => $member->user->email]) }}" class="flex items-center gap-3 px-4 py-2.5 text-xs text-on-surface hover:bg-stone-50 transition-colors">
+                                                <span class="material-symbols-outlined text-sm text-stone-400">person</span>
+                                                View Profile
+                                            </a>
+                                            <a href="{{ route('admin.users.index', ['search' => $member->user->email]) }}" class="flex items-center gap-3 px-4 py-2.5 text-xs text-on-surface hover:bg-stone-50 transition-colors">
+                                                <span class="material-symbols-outlined text-sm text-stone-400">admin_panel_settings</span>
+                                                Manage Membership
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     @empty
