@@ -82,6 +82,7 @@ class Index extends Component
             $this->death_year = $anthropologist->death_year;
             $this->discipline_or_specialization = $anthropologist->discipline_or_specialization;
             $this->nationality = $anthropologist->nationality;
+            $this->profile_image = $anthropologist->profile_image;
             $this->status = $anthropologist->status;
             $this->is_featured = $anthropologist->is_featured;
             $this->is_upsc_relevant = $anthropologist->is_upsc_relevant;
