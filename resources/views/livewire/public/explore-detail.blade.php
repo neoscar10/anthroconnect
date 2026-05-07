@@ -1,32 +1,51 @@
 <main>
     <!-- Article Hero Header -->
-    <header class="relative w-full h-[70vh] min-h-[500px] flex items-end">
-        <div class="absolute inset-0 z-0">
-            <div class="absolute inset-0 bg-gradient-to-t from-stone-950/90 via-stone-950/40 to-transparent z-10"></div>
-            @if($article->featured_image)
-                <img alt="{{ $article->title }}" class="w-full h-full object-cover" src="{{ Storage::url($article->featured_image) }}"/>
-            @else
-                <div class="w-full h-full bg-stone-800 flex items-center justify-center">
-                    <span class="material-symbols-outlined text-6xl text-stone-600">image</span>
+    <header class="bg-stone-950 text-white overflow-hidden border-b border-stone-800">
+        <div class="max-w-7xl mx-auto grid lg:grid-cols-2 items-stretch min-h-[60vh]">
+            <!-- Content Column -->
+            <div class="px-6 py-16 lg:py-24 flex flex-col justify-center order-2 lg:order-1">
+                <nav class="flex items-center gap-2 mb-8 text-[10px] uppercase font-bold tracking-[0.2em] text-stone-400">
+                    <a wire:navigate href="{{ route('explore.index') }}" class="hover:text-primary transition-colors">Explore</a>
+                    <span class="material-symbols-outlined text-[10px]">chevron_right</span>
+                    <span class="text-stone-300">Narrative Archive</span>
+                </nav>
+
+                <div class="flex items-center gap-3 mb-6">
+                    @if($article->tags->isNotEmpty())
+                        <span class="bg-primary/20 text-primary border border-primary/30 px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest">{{ $article->tags->first()->name }}</span>
+                    @endif
+                    <span class="text-stone-400 text-[10px] font-bold uppercase tracking-widest flex items-center gap-2">
+                        <span class="material-symbols-outlined text-[14px]">schedule</span>
+                        {{ $article->reading_time_minutes ?? '5+' }} min read
+                    </span>
                 </div>
-            @endif
-        </div>
-        <div class="relative z-20 max-w-4xl mx-auto px-4 pb-16 w-full text-white">
-            <div class="flex items-center gap-2 mb-4">
-                @if($article->topic)
-                    <span class="bg-primary px-3 py-1 rounded text-xs font-bold uppercase tracking-widest">{{ $article->topic->name }}</span>
-                @endif
-                <span class="text-stone-300 text-sm">• {{ $article->reading_time_minutes ?? '5+' }} min read</span>
+
+                <h1 class="font-headline italic text-4xl md:text-6xl font-bold mb-8 leading-tight text-white drop-shadow-sm">{{ $article->title }}</h1>
+                
+                <div class="flex items-center gap-4 pt-4 border-t border-stone-800/50 mt-4">
+                    <div class="w-14 h-14 rounded-full bg-stone-800 border border-stone-700 overflow-hidden shrink-0">
+                        <img alt="{{ $article->creator->name ?? 'Author' }}" class="w-full h-full object-cover" src="{{ $article->creator->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($article->creator->name ?? 'A') }}"/>
+                    </div>
+                    <div>
+                        <p class="font-bold text-stone-100 text-lg">{{ $article->creator->name ?? 'AnthroConnect Editorial' }}</p>
+                        <p class="text-xs text-stone-500 uppercase tracking-widest mt-0.5">{{ $article->published_at ? $article->published_at->format('F d, Y') : 'Recently' }}</p>
+                    </div>
+                </div>
             </div>
-            <h1 class="font-headline text-4xl md:text-6xl font-bold mb-6 leading-tight">{{ $article->title }}</h1>
-            <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-full bg-primary/20 border border-white/20 overflow-hidden">
-                    <img alt="{{ $article->creator->name ?? 'Author' }}" class="w-full h-full object-cover" src="{{ $article->creator->avatar ?? 'https://ui-avatars.com/api/?name='.urlencode($article->creator->name ?? 'A') }}"/>
-                </div>
-                <div>
-                    <p class="font-semibold">{{ $article->creator->name ?? 'AnthroConnect Editorial' }}</p>
-                    <p class="text-sm text-stone-300">{{ $article->published_at ? $article->published_at->format('F d, Y') : 'Recently' }}</p>
-                </div>
+
+            <!-- Image Column -->
+            <div class="relative min-h-[400px] lg:min-h-full order-1 lg:order-2">
+                @if($article->featured_image)
+                    <div class="absolute inset-0 bg-cover bg-center grayscale-[0.2] hover:grayscale-0 transition-all duration-700" 
+                         style="background-image: url('{{ Storage::url($article->featured_image) }}')">
+                        <div class="absolute inset-0 bg-gradient-to-r from-stone-950 via-transparent to-transparent lg:block hidden"></div>
+                        <div class="absolute inset-0 bg-gradient-to-t from-stone-950 via-transparent to-transparent lg:hidden block"></div>
+                    </div>
+                @else
+                    <div class="absolute inset-0 bg-stone-900 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-6xl text-stone-800">image</span>
+                    </div>
+                @endif
             </div>
         </div>
     </header>
@@ -37,13 +56,15 @@
             {!! $article->rendered_content_html !!}
         </div>
 
-        @if($article->topic)
+        @if($article->tags->isNotEmpty())
             <div class="mt-20 pt-10 border-t border-stone-200 dark:border-stone-800">
                 <h4 class="text-xs font-bold uppercase tracking-widest text-stone-400 mb-4">Related Concepts</h4>
                 <div class="flex flex-wrap gap-2">
-                    <a class="px-4 py-1.5 bg-stone-100 dark:bg-stone-800 rounded-full text-sm hover:bg-primary hover:text-white transition-colors" href="{{ route('explore.index', ['topic_id' => $article->topic_id]) }}">
-                        {{ $article->topic->name }}
-                    </a>
+                    @foreach($article->tags as $tag)
+                        <a class="px-4 py-1.5 bg-stone-100 dark:bg-stone-800 rounded-full text-sm hover:bg-primary hover:text-white transition-colors" href="{{ route('explore.index', ['tag_id' => $tag->id]) }}">
+                            {{ $tag->name }}
+                        </a>
+                    @endforeach
                 </div>
             </div>
         @endif
@@ -71,8 +92,8 @@
                             </div>
                         @endif
                     </div>
-                    @if($related->topic)
-                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{{ $related->topic->name }}</span>
+                    @if($related->tags->isNotEmpty())
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 block">{{ $related->tags->first()->name }}</span>
                     @endif
                     <h4 class="font-headline text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-stone-900 dark:text-stone-100">{{ $related->title }}</h4>
                     <p class="text-stone-600 dark:text-stone-400 line-clamp-2 text-sm">{{ $related->excerpt }}</p>
