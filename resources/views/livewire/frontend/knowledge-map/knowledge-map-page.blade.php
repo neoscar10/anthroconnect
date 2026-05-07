@@ -8,7 +8,7 @@
     @endpush
 
     <section class="km-hero">
-        <div class="container-fluid px-4 px-lg-5">
+        <div class="max-w-7xl mx-auto px-6 py-8">
             <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
                 <div>
                     <a href="{{ $backUrl }}" class="km-back-btn">
@@ -24,23 +24,12 @@
                         {{ $map->subtitle ?? 'Explore anthropology concepts, thinkers, and themes through an interactive knowledge network designed for scholarly exploration.' }}
                     </p>
                 </div>
-
-                <div class="km-hero-actions">
-                    <div class="km-search-box">
-                        <span class="material-symbols-outlined">search</span>
-                        <input
-                            type="text"
-                            wire:model.live.debounce.300ms="search"
-                            placeholder="Search concepts..."
-                        >
-                    </div>
-                </div>
             </div>
         </div>
     </section>
 
     <section class="km-workspace-wrap">
-        <div class="container-fluid px-4 px-lg-5">
+        <div class="max-w-7xl mx-auto px-6">
             <div class="km-workspace">
 
                 <aside class="km-filter-panel">
@@ -107,6 +96,10 @@
                         canvasHeight: @js($map->canvas_settings['height'] ?? 3000)
                     })"
                     x-init="init()"
+                    @mousedown="handleMouseDown"
+                    @mousemove.window="handleMouseMove"
+                    @mouseup.window="handleMouseUp"
+                    :class="isPanning ? 'cursor-grabbing' : 'cursor-grab'"
                     wire:ignore
                 >
                     <div class="km-canvas" x-ref="canvas">
@@ -159,9 +152,6 @@
                             </button>
                             <button type="button" @click="zoomOut()" title="Zoom out">
                                 <span class="material-symbols-outlined">zoom_out</span>
-                            </button>
-                            <button type="button" @click="resetView()" title="Reset view">
-                                <span class="material-symbols-outlined">location_searching</span>
                             </button>
                             <button type="button" @click="fitView()" title="Fit view">
                                 <span class="material-symbols-outlined">fit_screen</span>
@@ -311,7 +301,7 @@
     </section>
 
     <section class="km-learning-paths">
-        <div class="container-fluid px-4 px-lg-5">
+        <div class="max-w-7xl mx-auto px-6">
             <div class="mb-4">
                 <h3>Curated Learning Paths</h3>
                 <p>Guided journeys through interconnected anthropology nodes.</p>
@@ -344,7 +334,7 @@
     </section>
 
     <section class="km-context-section">
-        <div class="container">
+        <div class="max-w-7xl mx-auto px-6">
             <span class="material-symbols-outlined">military_tech</span>
             <h2>“To understand man, we must look beyond the immediate.”</h2>
             <p>

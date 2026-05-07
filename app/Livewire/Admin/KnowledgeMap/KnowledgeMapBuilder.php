@@ -271,6 +271,8 @@ class KnowledgeMapBuilder extends Component
     {
         $node = KnowledgeMapNode::find($id);
         if ($node) {
+            $wasOnCanvas = ($node->metadata['is_on_canvas'] ?? true);
+            
             // If dragged, it's definitely on the canvas
             $metadata = $node->metadata ?? [];
             $metadata['is_on_canvas'] = true;
@@ -278,6 +280,20 @@ class KnowledgeMapBuilder extends Component
             $node->save();
 
             $service->updatePosition($node, (float)$x, (float)$y);
+
+            if (!$wasOnCanvas) {
+                return redirect(request()->header('Referer'));
+            }
+
+            $allNodes = KnowledgeMapNode::where('knowledge_map_id', $this->map->id)->with('tags')->get();
+                $canvasNodes = $allNodes->filter(function($node) {
+                    return ($node->metadata['is_on_canvas'] ?? true) === true;
+                })->values();
+
+                $this->dispatch('km-refresh', [
+                    'nodes' => $canvasNodes,
+                    'connections' => $this->map->connections()->get()
+                ]);
         }
     }
 

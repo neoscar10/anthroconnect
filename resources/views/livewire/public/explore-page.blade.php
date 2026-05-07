@@ -190,7 +190,7 @@
                     <p class="text-stone-500">No featured narrative matches your current exploration.</p>
                 </div>
             @endif
-        </section>n>
+        </section>
 
         <!-- Story Grid -->
         <section class="max-w-7xl mx-auto px-6 py-16 border-t border-stone-200 dark:border-primary/10">

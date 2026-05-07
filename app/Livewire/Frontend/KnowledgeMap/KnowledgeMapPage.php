@@ -11,7 +11,6 @@ use Illuminate\Support\Collection;
 class KnowledgeMapPage extends Component
 {
     public KnowledgeMap $map;
-    public string $search = '';
     public bool $upscOnly = false;
     public array $selectedTags = [];
     public array $selectedSingleTags = [];
@@ -55,11 +54,7 @@ class KnowledgeMapPage extends Component
         $this->selectedNodeId = $firstNode?->id;
     }
 
-    public function updatedSearch()
-    {
-        $this->syncSelectedNodeAfterFiltering();
-        $this->dispatchUpdatedCanvasData();
-    }
+
 
     public function updatedUpscOnly()
     {
@@ -87,7 +82,6 @@ class KnowledgeMapPage extends Component
 
     public function clearFilters()
     {
-        $this->search = '';
         $this->upscOnly = false;
         $this->selectedTags = [];
         $this->selectedSingleTags = [];
@@ -111,22 +105,6 @@ class KnowledgeMapPage extends Component
             ->filter(function ($node) {
                 if ($this->upscOnly && !$node->is_upsc_relevant) {
                     return false;
-                }
-
-                if ($this->search) {
-                    $needle = strtolower($this->search);
-
-                    $haystack = strtolower(collect([
-                        $node->title,
-                        $node->short_description,
-                        $node->full_description,
-                        $node->manual_concept_title,
-                        $node->manual_concept_summary,
-                    ])->filter()->implode(' '));
-
-                    if (!str_contains($haystack, $needle)) {
-                        return false;
-                    }
                 }
 
                 $selectedTagIds = collect($this->selectedTags)

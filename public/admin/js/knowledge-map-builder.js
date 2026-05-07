@@ -57,6 +57,7 @@ document.addEventListener('alpine:init', () => {
 
                 this.nodes = data.nodes.map((node) => ({
                     ...node,
+                    id: Number(node.id),
                     position_x: parseFloat(node.position_x),
                     position_y: parseFloat(node.position_y),
                 }));
@@ -260,14 +261,20 @@ document.addEventListener('alpine:init', () => {
             const coords = this.getCanvasCoords(e.clientX, e.clientY);
             const node = this.nodes.find((item) => Number(item.id) === Number(nodeId));
 
-            if (!node) return;
+            const posX = coords.x - 90;
+            const posY = coords.y - 30;
 
-            node.position_x = coords.x - 90;
-            node.position_y = coords.y - 30;
+            if (node) {
+                node.position_x = posX;
+                node.position_y = posY;
+            }
 
-            this.$wire.updateNodePosition(node.id, node.position_x, node.position_y);
-            this.selectNode(node.id, true);
-            this.$nextTick(() => this.renderPermanentConnections());
+            this.$wire.updateNodePosition(nodeId, posX, posY);
+
+            if (node) {
+                this.selectNode(node.id, true);
+                this.$nextTick(() => this.renderPermanentConnections());
+            }
         },
 
         toggleConnectionMode() {
@@ -305,8 +312,12 @@ document.addEventListener('alpine:init', () => {
             }
 
             if (this.isDraggingNode && this.draggedNode && !this.isConnectionMode) {
-                this.draggedNode.position_x = parseFloat(this.draggedNode.position_x) + ((e.clientX - this.lastMouseX) / this.zoom);
-                this.draggedNode.position_y = parseFloat(this.draggedNode.position_y) + ((e.clientY - this.lastMouseY) / this.zoom);
+                // Always find the latest reference in case this.nodes was swapped
+                const nodeToMove = this.nodes.find(n => Number(n.id) === Number(this.draggedNode.id));
+                if (nodeToMove) {
+                    nodeToMove.position_x = parseFloat(nodeToMove.position_x) + ((e.clientX - this.lastMouseX) / this.zoom);
+                    nodeToMove.position_y = parseFloat(nodeToMove.position_y) + ((e.clientY - this.lastMouseY) / this.zoom);
+                }
                 this.lastMouseX = e.clientX;
                 this.lastMouseY = e.clientY;
                 this.renderPermanentConnections();
@@ -345,7 +356,7 @@ document.addEventListener('alpine:init', () => {
             }
 
             this.isDraggingNode = true;
-            this.draggedNode = node;
+            this.draggedNode = this.nodes.find(n => Number(n.id) === Number(node.id)) || node;
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
 

@@ -8,24 +8,48 @@ document.addEventListener('alpine:init', () => {
         zoom: 1,
         offsetX: 0,
         offsetY: 0,
+        isPanning: false,
+        lastMouseX: 0,
+        lastMouseY: 0,
 
         init() {
-            console.log('Knowledge Map initialized with:', {
-                nodes: this.nodes.length,
-                connections: this.connections.length
-            });
             this.$nextTick(() => {
                 this.renderConnections();
                 this.centerInitialView();
             });
 
-            window.addEventListener('resize', () => this.renderConnections());
+            window.addEventListener('resize', () => {
+                window.requestAnimationFrame(() => this.renderConnections());
+            });
 
             Livewire.on('knowledge-map-data-updated', (payload) => {
-                this.nodes = payload.nodes || [];
-                this.connections = payload.connections || [];
+                const data = payload[0] || payload;
+                this.nodes = data.nodes || [];
+                this.connections = data.connections || [];
                 this.$nextTick(() => this.renderConnections());
             });
+        },
+
+        handleMouseDown(e) {
+            if (e.target.closest('.km-map-node') || e.target.closest('.km-controls')) return;
+            this.isPanning = true;
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
+        },
+
+        handleMouseMove(e) {
+            if (!this.isPanning) return;
+            
+            this.offsetX += e.clientX - this.lastMouseX;
+            this.offsetY += e.clientY - this.lastMouseY;
+            this.lastMouseX = e.clientX;
+            this.lastMouseY = e.clientY;
+            
+            this.applyTransform();
+        },
+
+        handleMouseUp() {
+            this.isPanning = false;
         },
 
         selectNode(id) {
@@ -40,16 +64,11 @@ document.addEventListener('alpine:init', () => {
 
             layer.innerHTML = '';
             
-            console.log(`Rendering ${this.connections.length} connections...`);
-
             this.connections.forEach((connection) => {
                 const fromNode = this.nodes.find(n => Number(n.id) === Number(connection.from_node_id));
                 const toNode = this.nodes.find(n => Number(n.id) === Number(connection.to_node_id));
 
-                if (!fromNode || !toNode) {
-                    console.warn('Could not find nodes for connection:', connection);
-                    return;
-                }
+                if (!fromNode || !toNode) return;
 
                 const from = this.getAnchorPoint(fromNode, toNode);
                 const to = this.getAnchorPoint(toNode, fromNode);
@@ -57,24 +76,27 @@ document.addEventListener('alpine:init', () => {
                 const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                 path.setAttribute('d', this.createPath(from, to));
                 path.setAttribute('class', 'km-line');
-                
-                // Add a unique ID for debugging
-                path.setAttribute('data-conn-id', connection.id);
-
                 layer.appendChild(path);
             });
         },
 
         createPath(from, to) {
             const dx = to.x - from.x;
-            const curve = Math.max(70, Math.abs(dx) * 0.35);
-            return `M ${from.x} ${from.y} C ${from.x + curve} ${from.y}, ${to.x - curve} ${to.y}, ${to.x} ${to.y}`;
+            const dy = to.y - from.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const curve = Math.max(70, Math.min(200, distance * 0.35));
+            
+            if (Math.abs(dx) > Math.abs(dy)) {
+                return `M ${from.x} ${from.y} C ${from.x + (dx > 0 ? curve : -curve)} ${from.y}, ${to.x - (dx > 0 ? curve : -curve)} ${to.y}, ${to.x} ${to.y}`;
+            } else {
+                return `M ${from.x} ${from.y} C ${from.x} ${from.y + (dy > 0 ? curve : -curve)}, ${to.x} ${to.y - (dy > 0 ? curve : -curve)}, ${to.x} ${to.y}`;
+            }
         },
 
         getAnchorPoint(node, targetNode) {
             const nodeEl = document.querySelector(`[data-node-id="${node.id}"]`);
-            const width = nodeEl ? nodeEl.offsetWidth : 150;
-            const height = nodeEl ? nodeEl.offsetHeight : 50;
+            const width = nodeEl ? nodeEl.offsetWidth : 160;
+            const height = nodeEl ? nodeEl.offsetHeight : 60;
 
             const nodeX = Number(node.position_x || 0);
             const nodeY = Number(node.position_y || 0);
@@ -103,27 +125,32 @@ document.addEventListener('alpine:init', () => {
         },
 
         zoomIn() {
-            this.zoom = Math.min(this.zoom + 0.1, 2);
+            const oldZoom = this.zoom;
+            this.zoom = Math.min(this.zoom + 0.15, 2.5);
+            this.adjustOffsetForZoom(oldZoom);
             this.applyTransform();
         },
 
         zoomOut() {
-            this.zoom = Math.max(this.zoom - 0.1, 0.5);
+            const oldZoom = this.zoom;
+            this.zoom = Math.max(this.zoom - 0.15, 0.2);
+            this.adjustOffsetForZoom(oldZoom);
             this.applyTransform();
         },
 
-        resetView() {
-            this.zoom = 1;
-            this.offsetX = 0;
-            this.offsetY = 0;
-            this.applyTransform();
+        adjustOffsetForZoom(oldZoom) {
+            const container = this.$refs.canvas;
+            if (!container || oldZoom === this.zoom) return;
+
+            const centerX = container.offsetWidth / 2;
+            const centerY = container.offsetHeight / 2;
+
+            this.offsetX = centerX - ((centerX - this.offsetX) * (this.zoom / oldZoom));
+            this.offsetY = centerY - ((centerY - this.offsetY) * (this.zoom / oldZoom));
         },
 
         fitView() {
-            if (this.nodes.length === 0) {
-                this.resetView();
-                return;
-            }
+            if (this.nodes.length === 0) return;
             
             let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
             this.nodes.forEach(n => {
@@ -131,25 +158,25 @@ document.addEventListener('alpine:init', () => {
                 const y = Number(n.position_y);
                 minX = Math.min(minX, x);
                 minY = Math.min(minY, y);
-                maxX = Math.max(maxX, x + 180);
+                maxX = Math.max(maxX, x + 200);
                 maxY = Math.max(maxY, y + 80);
             });
             
-            const padding = 60;
+            const padding = 100;
             const width = (maxX - minX) + (padding * 2);
             const height = (maxY - minY) + (padding * 2);
             const container = this.$refs.canvas;
             
             if (!container) return;
 
-            const targetZoom = Math.min(container.offsetWidth / width, container.offsetHeight / height, 1);
-            this.zoom = Math.max(targetZoom, 0.5);
+            const targetZoom = Math.min(container.offsetWidth / width, container.offsetHeight / height, 1.2);
+            this.zoom = Math.max(targetZoom, 0.3);
             
             this.offsetX = (container.offsetWidth / 2) - ((minX + (maxX - minX) / 2) * this.zoom);
             this.offsetY = (container.offsetHeight / 2) - ((minY + (maxY - minY) / 2) * this.zoom);
             
             this.applyTransform();
-            this.renderConnections();
+            this.$nextTick(() => this.renderConnections());
         },
 
         centerInitialView() {
