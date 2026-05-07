@@ -87,7 +87,7 @@
     </div>
 
     <!-- Members Table Section -->
-    <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 overflow-hidden">
+    <div class="bg-surface-container-lowest rounded-xl shadow-sm border border-outline-variant/20 pb-12">
         <div class="p-6 border-b border-outline-variant/10 flex justify-between items-center">
             <h3 class="font-headline text-2xl text-on-surface">Registered Members</h3>
             <div class="flex gap-2">
@@ -98,7 +98,7 @@
             </div>
         </div>
         
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto pb-24">
             <table class="w-full text-left border-collapse">
                 <thead class="bg-surface-container-low">
                     <tr>
