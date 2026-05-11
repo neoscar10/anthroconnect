@@ -27,6 +27,7 @@ class UnifiedTaxonomySeeder extends Seeder
             Topic::updateOrCreate(
                 ['name' => $data['name']],
                 [
+                    'slug' => Str::slug($data['name']),
                     'short_description' => "Exploring the complexities of {$data['name']} within global scholarship.",
                     'is_active' => true,
                     'color' => $data['color'],
