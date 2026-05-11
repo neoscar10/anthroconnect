@@ -13,12 +13,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('topics', function (Blueprint $table) {
-            // SQLite specific fix for orphan index from rename
-            if (DB::getDriverName() === 'sqlite') {
-                $table->dropUnique('explore_topics_slug_unique');
-            } else {
-                $table->dropUnique(['slug']);
-            }
+            // Drop the unique index using its actual name from before the table rename.
+            // When explore_topics was renamed to topics, the index name explore_topics_slug_unique was preserved.
+            $table->dropUnique('explore_topics_slug_unique');
             
             $table->dropColumn(['slug', 'sort_order']);
         });

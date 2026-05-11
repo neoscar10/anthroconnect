@@ -12,10 +12,9 @@ class ExamQuestionService
     /**
      * List questions with filters and pagination.
      */
-    public function paginate(array $filters = [], int $perPage = 15)
+    public function paginate(array $filters = [], int $perPage = 5)
     {
         $query = ExamQuestion::query()
-            ->standardExam()
             ->with(['tags', 'creator'])
             ->search($filters['search'] ?? null)
             ->filterByStatus($filters['status'] ?? null)

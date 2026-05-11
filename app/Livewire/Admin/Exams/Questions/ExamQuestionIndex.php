@@ -15,6 +15,7 @@ use Livewire\WithPagination;
 class ExamQuestionIndex extends Component
 {
     use WithPagination;
+    protected $paginationTheme = 'tailwind';
 
     // Filters
     public $search = '';
