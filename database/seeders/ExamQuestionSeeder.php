@@ -75,7 +75,10 @@ class ExamQuestionSeeder extends Seeder
             $q['created_by'] = $admin->id;
             $q['updated_by'] = $admin->id;
             
-            $examQuestion = ExamQuestion::create($q);
+            $examQuestion = ExamQuestion::updateOrCreate(
+                ['slug' => $q['slug']],
+                $q
+            );
             
             // Random tags if any exist
             $tags = Tag::inRandomOrder()->limit(2)->pluck('id');

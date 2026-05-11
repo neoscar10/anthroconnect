@@ -9,6 +9,8 @@ class CommunityTopic extends Model
 {
     use HasFactory;
 
+    protected $table = 'topics';
+
     protected $fillable = [
         'name',
         'slug',
