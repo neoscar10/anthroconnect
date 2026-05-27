@@ -18,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
             'onboarding' => \App\Http\Middleware\EnsureOnboardingCompleted::class,
             'otp.verified' => \App\Http\Middleware\EnsureUserOtpIsVerified::class,
         ]);
+
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/razorpay',
+            'payments/verify',
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

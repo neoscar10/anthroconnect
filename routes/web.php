@@ -83,6 +83,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         
         // User Management
         Route::get('/users', \App\Livewire\Admin\Users\UserIndex::class)->name('users.index');
+        
+        // Payment Logs
+        Route::get('/payments', \App\Livewire\Admin\Payments\PaymentIndex::class)->name('payments.index');
 
         // Onboarding Management
         Route::prefix('onboarding')->name('onboarding.')->group(function () {
@@ -191,4 +194,14 @@ Route::get('/library/{resource:slug}/download', [App\Http\Controllers\Frontend\L
 // Public Exams / Answer Writing Routes
 Route::get('/exams', \App\Livewire\Frontend\Exams\ExamQuestionListPage::class)->name('exams.index');
 Route::get('/exams/{slug}', \App\Livewire\Frontend\Exams\ExamQuestionDetailPage::class)->name('exams.show');
+
+// Razorpay Webhook Route
+Route::post('/webhooks/razorpay', [App\Http\Controllers\Webhooks\RazorpayWebhookController::class, 'handle'])->name('webhooks.razorpay');
+
+// Razorpay Payment Verification Route
+Route::middleware(['auth'])->group(function () {
+    Route::post('/payments/verify', [App\Http\Controllers\PaymentController::class, 'verify'])->name('payments.verify');
+});
+
+
 

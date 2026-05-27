@@ -5,19 +5,15 @@ namespace App\Livewire\Public;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use App\Services\Membership\MembershipService;
-use App\Services\Membership\MembershipPurchaseService;
+use App\Services\Payment\PaymentManager;
 use App\Models\MembershipSetting;
-use App\Models\UserMembership;
+use App\Models\PaymentTransaction;
 use Exception;
 
 class UpgradeModal extends Component
 {
     public bool $show = false;
     public bool $paymentSuccess = false;
-    public string $cardName = '';
-    public string $cardNumber = '';
-    public string $cardExpiry = '';
-    public string $cardCvv = '';
     public string $paymentReference = '';
 
     public ?MembershipSetting $globalSetting = null;
@@ -48,7 +44,7 @@ class UpgradeModal extends Component
             return;
         }
         
-        $this->reset('cardName', 'cardNumber', 'cardExpiry', 'cardCvv', 'paymentSuccess', 'paymentReference');
+        $this->reset('paymentSuccess', 'paymentReference');
         $this->show = true;
     }
 
@@ -61,7 +57,7 @@ class UpgradeModal extends Component
     }
 
     /**
-     * Process simulated payment and activate membership.
+     * Initiate payment processing.
      */
     public function processPurchase()
     {
@@ -69,34 +65,83 @@ class UpgradeModal extends Component
             return redirect()->route('login');
         }
 
-        $this->validate([
-            'cardName' => 'required|string|max:100',
-            'cardNumber' => 'required|string|min:12',
-            'cardExpiry' => 'required|string|regex:/^\d{2}\/\d{2}$/',
-            'cardCvv' => 'required|string|min:3|max:4',
-        ]);
-
         try {
             if (!$this->globalSetting) {
                 throw new Exception("Membership configuration is missing.");
             }
 
-            $purchaseService = app(MembershipPurchaseService::class);
-            $result = $purchaseService->purchase(Auth::user(), $this->globalSetting, [
-                'name' => $this->cardName,
-                'number' => $this->cardNumber,
-                'expiry' => $this->cardExpiry,
-                'cvv' => $this->cardCvv,
-            ]);
+            $gateway = config('payments.default_gateway', 'dummy');
+            $paymentManager = app(PaymentManager::class);
+            
+            $cardData = [];
+            if ($gateway === 'dummy') {
+                $cardData = [
+                    'number' => '4111111111111111',
+                    'name' => Auth::user()->name,
+                    'expiry' => '12/30',
+                    'cvv' => '123'
+                ];
+            }
 
-            if ($result['success']) {
+            $result = $paymentManager->purchaseMembership(
+                Auth::user(),
+                (float) $this->globalSetting->price_inr,
+                $cardData,
+                $this->globalSetting->id
+            );
+
+            if (!$result->success) {
+                throw new Exception($result->message ?? "Failed to initiate payment.");
+            }
+
+            if ($gateway === 'dummy') {
                 $this->paymentSuccess = true;
-                $this->paymentReference = $result['reference'];
+                $this->paymentReference = $result->reference;
                 $this->isMember = true;
                 $this->dispatch('membership-activated');
+            } else {
+                $mode = config('payments.mode', 'test');
+                $key = config("payments.gateways.razorpay.{$mode}.key_id");
+
+                $this->dispatch('start-razorpay-checkout', [
+                    'key' => $key,
+                    'amount' => (int) round($this->globalSetting->price_inr * 100),
+                    'currency' => config('payments.currency', 'INR'),
+                    'order_id' => $result->gatewayOrderId,
+                    'reference' => $result->reference,
+                    'user' => [
+                        'name' => Auth::user()->name,
+                        'email' => Auth::user()->email,
+                        'phone' => Auth::user()->whatsapp_phone ?? '',
+                    ],
+                    'meta' => [
+                        'title' => $this->globalSetting->title ?? 'AnthroConnect Membership',
+                        'description' => $this->globalSetting->description ?? 'Premium access',
+                    ]
+                ]);
             }
+
         } catch (Exception $e) {
             $this->addError('payment', $e->getMessage());
+        }
+    }
+
+    /**
+     * Secure callback from frontend after backend verification passes.
+     */
+    public function handlePaymentVerified(string $reference)
+    {
+        $transaction = PaymentTransaction::where('reference', $reference)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if ($transaction && ($transaction->isCaptured() || $transaction->isAuthorized())) {
+            $this->paymentSuccess = true;
+            $this->paymentReference = $reference;
+            $this->isMember = true;
+            $this->dispatch('membership-activated');
+        } else {
+            $this->addError('payment', 'Payment verification failed on the server.');
         }
     }
 
