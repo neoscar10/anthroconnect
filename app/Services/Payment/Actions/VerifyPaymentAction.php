@@ -5,18 +5,19 @@ namespace App\Services\Payment\Actions;
 use App\Models\PaymentTransaction;
 use App\Models\User;
 use App\Services\Payment\Exceptions\PaymentVerificationException;
+use App\Services\Payment\PaymentManager;
 use Illuminate\Support\Facades\Log;
 
 class VerifyPaymentAction
 {
-    protected VerifyRazorpayPaymentAction $verifyRazorpay;
+    protected PaymentManager $paymentManager;
     protected MarkTransactionFailedAction $markFailed;
 
     public function __construct(
-        VerifyRazorpayPaymentAction $verifyRazorpay,
+        PaymentManager $paymentManager,
         MarkTransactionFailedAction $markFailed
     ) {
-        $this->verifyRazorpay = $verifyRazorpay;
+        $this->paymentManager = $paymentManager;
         $this->markFailed = $markFailed;
     }
 
@@ -44,12 +45,18 @@ class VerifyPaymentAction
             return true;
         }
 
-        // Verify with Razorpay
-        $verification = $this->verifyRazorpay->execute($transaction, $params);
+        // Resolve gateway dynamically
+        $gateway = $this->paymentManager->gateway($transaction->gateway->value);
+
+        // Verify with gateway adapter
+        $verification = $gateway->verifyPayment(array_merge($params, [
+            'reference' => $transaction->reference,
+            'amount' => (float) $transaction->amount,
+        ]));
 
         if ($verification->success) {
-            $transaction->gateway_payment_id = $params['razorpay_payment_id'];
-            $transaction->gateway_signature = $params['razorpay_signature'];
+            $transaction->gateway_payment_id = $verification->gatewayPaymentId;
+            $transaction->gateway_signature = $params['razorpay_signature'] ?? $verification->meta['gateway_signature'] ?? null;
             $transaction->meta = array_merge($transaction->meta ?? [], ['frontend_callback' => $params]);
             $transaction->transitionTo(\App\Enums\Payment\PaymentStatus::AUTHORIZED);
 

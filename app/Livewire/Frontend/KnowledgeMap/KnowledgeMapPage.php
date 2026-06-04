@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class KnowledgeMapPage extends Component
 {
-    public KnowledgeMap $map;
+    public ?KnowledgeMap $map = null;
     public bool $upscOnly = false;
     public array $selectedTags = [];
     public array $selectedSingleTags = [];
@@ -48,10 +48,12 @@ class KnowledgeMapPage extends Component
         ]);
 
         $this->map = (clone $query)->where('slug', 'main-map')->where('status', 'published')->first() 
-            ?? $query->where('status', 'published')->firstOrFail();
+            ?? $query->where('status', 'published')->first();
 
-        $firstNode = $this->map->nodes->sortBy('sort_order')->first();
-        $this->selectedNodeId = $firstNode?->id;
+        if ($this->map) {
+            $firstNode = $this->map->nodes->sortBy('sort_order')->first();
+            $this->selectedNodeId = $firstNode?->id;
+        }
     }
 
 
@@ -101,6 +103,10 @@ class KnowledgeMapPage extends Component
 
     public function getVisibleNodesProperty()
     {
+        if (!$this->map) {
+            return [];
+        }
+
         return $this->map->nodes
             ->filter(function ($node) {
                 if ($this->upscOnly && !$node->is_upsc_relevant) {
@@ -142,6 +148,10 @@ class KnowledgeMapPage extends Component
 
     public function getVisibleConnectionsProperty()
     {
+        if (!$this->map) {
+            return [];
+        }
+
         $visibleIds = collect($this->visibleNodes)->pluck('id')->map(fn ($id) => (int) $id);
 
         return $this->map->connections
@@ -167,11 +177,19 @@ class KnowledgeMapPage extends Component
 
     public function getSelectedNodeProperty()
     {
+        if (!$this->map) {
+            return null;
+        }
+
         return $this->map->nodes->firstWhere('id', $this->selectedNodeId);
     }
 
     public function getTagGroupsProperty()
     {
+        if (!$this->map) {
+            return [];
+        }
+
         return $this->map->nodes
             ->flatMap(fn ($node) => $node->tags)
             ->filter()
@@ -195,6 +213,10 @@ class KnowledgeMapPage extends Component
 
     public function getLearningPathsProperty()
     {
+        if (!$this->map) {
+            return collect();
+        }
+
         return $this->map->learningPaths()
             ->withCount('nodes')
             ->with('nodes')

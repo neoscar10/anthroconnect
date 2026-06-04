@@ -29,5 +29,19 @@ return [
                 'webhook_secret' => env('RAZORPAY_LIVE_WEBHOOK_SECRET'),
             ],
         ],
+
+        'cashfree' => [
+            'enabled' => env('CASHFREE_ENABLED', false),
+
+            'test' => [
+                'app_id' => env('CASHFREE_TEST_APP_ID'),
+                'secret_key' => env('CASHFREE_TEST_SECRET_KEY'),
+            ],
+
+            'live' => [
+                'app_id' => env('CASHFREE_LIVE_APP_ID'),
+                'secret_key' => env('CASHFREE_LIVE_SECRET_KEY'),
+            ],
+        ],
     ],
 ];

@@ -8,6 +8,7 @@ use App\Services\Membership\MembershipService;
 use App\Services\Payment\PaymentManager;
 use App\Models\MembershipSetting;
 use App\Models\PaymentTransaction;
+use App\Services\Payment\GatewayRegistry;
 use Exception;
 
 class UpgradeModal extends Component
@@ -18,6 +19,10 @@ class UpgradeModal extends Component
 
     public ?MembershipSetting $globalSetting = null;
     public bool $isMember = false;
+
+    public array $enabledGateways = [];
+    public string $selectedGateway = '';
+    public array $gatewaysData = [];
 
     protected $listeners = ['open-upgrade-modal' => 'open'];
 
@@ -31,6 +36,17 @@ class UpgradeModal extends Component
         $membershipService = app(MembershipService::class);
         $this->globalSetting = $membershipService->getCurrentSettings();
         $this->isMember = Auth::user()?->isMember() ?? false;
+
+        $registry = app(GatewayRegistry::class);
+        $this->enabledGateways = $registry->getEnabledGateways();
+        $this->selectedGateway = $registry->getDefaultGateway();
+
+        $settingsService = app(\App\Services\Payment\PaymentSettingsService::class);
+        $this->gatewaysData = collect($settingsService->getGatewayDisplayData())
+            ->filter(fn($dto) => $dto->enabled)
+            ->map(fn($dto) => $dto->toArray())
+            ->values()
+            ->toArray();
     }
 
     /**
@@ -70,7 +86,14 @@ class UpgradeModal extends Component
                 throw new Exception("Membership configuration is missing.");
             }
 
-            $gateway = config('payments.default_gateway', 'dummy');
+            if (empty($this->selectedGateway)) {
+                throw new Exception("No active payment method selected.");
+            }
+
+            // Bind the chosen gateway temporarily to the config for PaymentManager context
+            config(['payments.default_gateway' => $this->selectedGateway]);
+
+            $gateway = $this->selectedGateway;
             $paymentManager = app(PaymentManager::class);
             
             $cardData = [];
@@ -101,9 +124,12 @@ class UpgradeModal extends Component
                 $this->dispatch('membership-activated');
             } else {
                 $mode = config('payments.mode', 'test');
-                $key = config("payments.gateways.razorpay.{$mode}.key_id");
+                $key = ($gateway === 'cashfree')
+                    ? config("payments.gateways.{$gateway}.{$mode}.app_id")
+                    : config("payments.gateways.{$gateway}.{$mode}.key_id");
 
-                $this->dispatch('start-razorpay-checkout', [
+                $this->dispatch('start-payment-checkout', [
+                    'gateway' => $gateway,
                     'key' => $key,
                     'amount' => (int) round($this->globalSetting->price_inr * 100),
                     'currency' => config('payments.currency', 'INR'),

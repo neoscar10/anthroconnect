@@ -30,6 +30,7 @@
                     <option value="all">All Gateways</option>
                     <option value="dummy">Dummy</option>
                     <option value="razorpay">Razorpay</option>
+                    <option value="cashfree">Cashfree</option>
                 </select>
 
                 <input wire:model.live="dateFrom" type="date" placeholder="From Date" class="bg-white border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary shadow-sm text-stone-700">

@@ -12,12 +12,8 @@ use App\Services\Payment\Actions\CreatePaymentTransactionAction;
 use App\Services\Payment\Actions\MarkTransactionCapturedAction;
 use App\Services\Payment\Actions\MarkTransactionFailedAction;
 use App\Services\Payment\Actions\ActivateMembershipFromPaymentAction;
-use App\Services\Payment\Exceptions\UnsupportedGatewayException;
-use App\Services\Payment\Gateways\DummyPaymentGateway;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
-
-use App\Services\Payment\Gateways\RazorpayGateway;
 
 class PaymentManager
 {
@@ -25,17 +21,20 @@ class PaymentManager
     protected MarkTransactionCapturedAction $markCapturedAction;
     protected MarkTransactionFailedAction $markFailedAction;
     protected ActivateMembershipFromPaymentAction $activateMembershipAction;
+    protected GatewayRegistry $gatewayRegistry;
 
     public function __construct(
         CreatePaymentTransactionAction $createTransactionAction,
         MarkTransactionCapturedAction $markCapturedAction,
         MarkTransactionFailedAction $markFailedAction,
-        ActivateMembershipFromPaymentAction $activateMembershipAction
+        ActivateMembershipFromPaymentAction $activateMembershipAction,
+        GatewayRegistry $gatewayRegistry
     ) {
         $this->createTransactionAction = $createTransactionAction;
         $this->markCapturedAction = $markCapturedAction;
         $this->markFailedAction = $markFailedAction;
         $this->activateMembershipAction = $activateMembershipAction;
+        $this->gatewayRegistry = $gatewayRegistry;
     }
 
     /**
@@ -43,17 +42,8 @@ class PaymentManager
      */
     public function gateway(?string $name = null): PaymentGatewayInterface
     {
-        $name = $name ?? config('payments.default_gateway', 'dummy');
-
-        if ($name === 'dummy') {
-            return app(DummyPaymentGateway::class);
-        }
-
-        if ($name === 'razorpay') {
-            return app(RazorpayGateway::class);
-        }
-
-        throw new UnsupportedGatewayException("Gateway [{$name}] is not supported.");
+        $name = $name ?? $this->gatewayRegistry->getDefaultGateway();
+        return $this->gatewayRegistry->resolve($name);
     }
 
     /**
@@ -61,7 +51,7 @@ class PaymentManager
      */
     public function purchaseMembership(User $user, float $amount, array $cardData, int $settingId): CreatePaymentResult
     {
-        $gatewayName = config('payments.default_gateway', 'dummy');
+        $gatewayName = $this->gatewayRegistry->getDefaultGateway();
         $gateway = $this->gateway($gatewayName);
         $currency = config('payments.currency', 'INR');
 
@@ -95,8 +85,8 @@ class PaymentManager
             ]);
 
             if ($result->success) {
-                if ($gatewayName === 'razorpay') {
-                    // Update to pending and store the razorpay order_id
+                if ($result->gatewayOrderId && $gatewayName !== 'dummy') {
+                    // Update to pending and store the gateway order_id
                     $transaction->update([
                         'status' => \App\Enums\Payment\PaymentStatus::PENDING,
                         'gateway_order_id' => $result->gatewayOrderId,

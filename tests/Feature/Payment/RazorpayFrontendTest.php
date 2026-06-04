@@ -56,7 +56,7 @@ class RazorpayFrontendTest extends TestCase
         Livewire::test(\App\Livewire\Public\UpgradeModal::class)
             ->call('open')
             ->call('processPurchase')
-            ->assertDispatched('start-razorpay-checkout');
+            ->assertDispatched('start-payment-checkout');
 
         $this->assertDatabaseHas('payment_transactions', [
             'gateway_order_id' => 'order_rzp_999',
@@ -196,6 +196,12 @@ class RazorpayFrontendTest extends TestCase
     {
         config(['payments.default_gateway' => 'dummy']);
 
+        \App\Models\PaymentSetting::query()->update(['is_default' => false, 'is_enabled' => false]);
+        \App\Models\PaymentSetting::firstOrCreate(
+            ['gateway' => 'dummy'],
+            ['display_name' => 'Dummy Gateway', 'is_enabled' => true, 'is_default' => true]
+        );
+
         $user = User::factory()->create();
         $setting = MembershipSetting::create([
             'title' => 'Premium Pass',
@@ -209,7 +215,7 @@ class RazorpayFrontendTest extends TestCase
         Livewire::test(\App\Livewire\Public\UpgradeModal::class)
             ->call('open')
             ->call('processPurchase')
-            ->assertNotDispatched('start-razorpay-checkout')
+            ->assertNotDispatched('start-payment-checkout')
             ->assertSet('paymentSuccess', true);
 
         $this->assertTrue($user->fresh()->isMember());

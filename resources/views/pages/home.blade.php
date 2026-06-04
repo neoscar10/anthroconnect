@@ -15,12 +15,12 @@
             Preserving narratives, analyzing cultures, and exploring the biological evolution of our species through a dedicated academic lens.
         </p>
         <div class="flex flex-col sm:flex-row justify-center gap-4">
-            <button class="w-full sm:w-auto py-4 px-10 bg-stone-900 text-stone-50 font-bold rounded-xl shadow-xl hover:-translate-y-1 active:scale-95 transition-all">
+            <a href="{{ route('explore.index') }}" class="inline-block text-center no-underline w-full sm:w-auto py-4 px-10 bg-stone-900 text-stone-50 font-bold rounded-xl shadow-xl hover:-translate-y-1 active:scale-95 transition-all">
                 Explore Anthropology
-            </button>
-            <button class="w-full sm:w-auto py-4 px-10 bg-white border border-stone-200 text-stone-900 font-bold rounded-xl active:scale-95 hover:bg-stone-50 transition-all">
+            </a>
+            <a href="{{ route('modules.index') }}" class="inline-block text-center no-underline w-full sm:w-auto py-4 px-10 bg-white border border-stone-200 text-stone-900 font-bold rounded-xl active:scale-95 hover:bg-stone-50 transition-all">
                 Start Learning
-            </button>
+            </a>
         </div>
     </div>
 </section>

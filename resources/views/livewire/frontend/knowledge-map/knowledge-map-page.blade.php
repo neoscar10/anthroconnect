@@ -92,8 +92,8 @@
                         nodes: @js($visibleNodes),
                         connections: @js($visibleConnections),
                         selectedNodeId: @entangle('selectedNodeId').live,
-                        canvasWidth: @js($map->canvas_settings['width'] ?? 4000),
-                        canvasHeight: @js($map->canvas_settings['height'] ?? 3000)
+                        canvasWidth: @js(optional($map)->canvas_settings['width'] ?? 4000),
+                        canvasHeight: @js(optional($map)->canvas_settings['height'] ?? 3000)
                     })"
                     x-init="init()"
                     @mousedown="handleMouseDown"

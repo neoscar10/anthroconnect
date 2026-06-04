@@ -182,6 +182,20 @@
                     <span class="material-symbols-outlined mr-3 text-[20px]">group</span>
                     <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">User Management</span>
                 </a>
+
+                <div x-data="{ payOpen: {{ (request()->routeIs('admin.payments.index') || request()->routeIs('admin.settings.payments')) ? 'true' : 'false' }} }" class="group w-full">
+                    <button @click="payOpen = !payOpen" class="{{ (request()->routeIs('admin.payments.index') || request()->routeIs('admin.settings.payments')) ? 'bg-primary/10 text-primary' : 'text-stone-600 dark:text-stone-400 hover:text-primary hover:bg-stone-200 dark:hover:bg-stone-800' }} rounded-sm font-medium flex items-center justify-between w-full px-3 py-2.5 transition-all">
+                        <div class="flex items-center">
+                            <span class="material-symbols-outlined mr-3 text-[20px]">payments</span>
+                            <span class="font-sans Inter tracking-tight" x-show="sidebarOpen">Payments</span>
+                        </div>
+                        <span class="material-symbols-outlined text-[16px] transition-transform duration-200" :class="payOpen ? 'rotate-180' : ''" x-show="sidebarOpen">expand_more</span>
+                    </button>
+                    <div x-show="payOpen && sidebarOpen" x-collapse x-cloak class="pl-11 pr-3 pb-2 pt-1 space-y-1">
+                        <a wire:navigate href="{{ route('admin.payments.index') }}" class="{{ request()->routeIs('admin.payments.index') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Audit Logs</a>
+                        <a wire:navigate href="{{ route('admin.settings.payments') }}" class="{{ request()->routeIs('admin.settings.payments') ? 'text-primary font-bold' : 'text-stone-500 hover:text-primary' }} block py-1.5 text-[11px] uppercase tracking-widest transition-colors font-semibold">Settings</a>
+                    </div>
+                </div>
                         <div class="px-3 py-2">
                             <p class="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-2 px-3" x-show="sidebarOpen">Community</p>
 

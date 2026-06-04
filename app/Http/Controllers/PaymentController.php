@@ -24,15 +24,12 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthenticated.'], 401);
         }
 
-        $validated = $request->validate([
-            'razorpay_payment_id' => 'required|string',
-            'razorpay_order_id' => 'required|string',
-            'razorpay_signature' => 'required|string',
+        $request->validate([
             'transaction_reference' => 'required|string',
         ]);
 
         try {
-            $success = $this->verifyPayment->execute(Auth::user(), $validated);
+            $success = $this->verifyPayment->execute(Auth::user(), $request->all());
 
             return response()->json([
                 'success' => $success,

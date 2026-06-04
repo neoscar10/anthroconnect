@@ -87,6 +87,9 @@ Route::prefix('admin')->name('admin.')->group(function () {
         // Payment Logs
         Route::get('/payments', \App\Livewire\Admin\Payments\PaymentIndex::class)->name('payments.index');
 
+        // Payment Settings
+        Route::get('/settings/payments', \App\Livewire\Admin\Settings\PaymentSettings::class)->name('settings.payments');
+
         // Onboarding Management
         Route::prefix('onboarding')->name('onboarding.')->group(function () {
             Route::get('/', [App\Http\Controllers\Admin\OnboardingController::class, 'index'])->name('index');
@@ -198,8 +201,19 @@ Route::get('/exams/{slug}', \App\Livewire\Frontend\Exams\ExamQuestionDetailPage:
 // Razorpay Webhook Route
 Route::post('/webhooks/razorpay', [App\Http\Controllers\Webhooks\RazorpayWebhookController::class, 'handle'])->name('webhooks.razorpay');
 
+// Cashfree Webhook Route
+Route::post('/webhooks/cashfree', [App\Http\Controllers\Webhooks\CashfreeWebhookController::class, 'handle'])->name('webhooks.cashfree');
+
 // Razorpay Payment Verification Route
 Route::middleware(['auth'])->group(function () {
+    Route::get('/payments/gateways', function () {
+        $registry = app(\App\Services\Payment\GatewayRegistry::class);
+        return response()->json([
+            'enabled_gateways' => $registry->getEnabledGateways(),
+            'default_gateway' => $registry->getDefaultGateway(),
+        ]);
+    })->name('payments.gateways');
+
     Route::post('/payments/verify', [App\Http\Controllers\PaymentController::class, 'verify'])->name('payments.verify');
 });
 
