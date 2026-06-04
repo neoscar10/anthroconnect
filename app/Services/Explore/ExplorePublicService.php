@@ -60,7 +60,7 @@ class ExplorePublicService
             $query->whereNotIn('id', $filters['exclude_ids']);
         }
 
-        return $query->paginate(6);
+        return $query->paginate(12);
     }
 
     /**

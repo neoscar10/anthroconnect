@@ -37,7 +37,7 @@ class ExplorePage extends Component
         $featuredArticles = $exploreService->getFeaturedArticles($this->tagId);
         
         $featuredIds = $featuredArticles->pluck('id')->toArray();
-        $articles = $exploreService->getPublishedArticles(array_merge($filters, ['exclude_ids' => $featuredIds]));
+        $articles = $exploreService->getPublishedArticles($filters);
 
         return view('livewire.public.explore-page', compact('tagGroups', 'featuredArticles', 'articles'))
             ->title('Explore Humanity');
