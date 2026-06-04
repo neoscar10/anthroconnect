@@ -12,13 +12,19 @@ class VerifyPaymentAction
 {
     protected PaymentManager $paymentManager;
     protected MarkTransactionFailedAction $markFailed;
+    protected CapturePaymentAction $capturePayment;
+    protected HandleCapturedPaymentAction $handleCaptured;
 
     public function __construct(
         PaymentManager $paymentManager,
-        MarkTransactionFailedAction $markFailed
+        MarkTransactionFailedAction $markFailed,
+        CapturePaymentAction $capturePayment,
+        HandleCapturedPaymentAction $handleCaptured
     ) {
         $this->paymentManager = $paymentManager;
         $this->markFailed = $markFailed;
+        $this->capturePayment = $capturePayment;
+        $this->handleCaptured = $handleCaptured;
     }
 
     public function execute(User $user, array $params): bool
@@ -59,6 +65,13 @@ class VerifyPaymentAction
             $transaction->gateway_signature = $params['razorpay_signature'] ?? $verification->meta['gateway_signature'] ?? null;
             $transaction->meta = array_merge($transaction->meta ?? [], ['frontend_callback' => $params]);
             $transaction->transitionTo(\App\Enums\Payment\PaymentStatus::AUTHORIZED);
+
+            $this->capturePayment->execute(
+                $transaction,
+                $transaction->gateway_payment_id,
+                $transaction->gateway_signature
+            );
+            $this->handleCaptured->execute($transaction);
 
             return true;
         } else {
